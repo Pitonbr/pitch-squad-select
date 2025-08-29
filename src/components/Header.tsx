@@ -5,12 +5,14 @@ import {
   Users, 
   Plus,
   Settings,
-  Bell
+  Bell,
+  Play,
+  Award
 } from "lucide-react";
 
 interface HeaderProps {
-  currentView: "dashboard" | "players" | "games";
-  onViewChange: (view: "dashboard" | "players" | "games") => void;
+  currentView: "dashboard" | "players" | "games" | "live" | "rankings";
+  onViewChange: (view: "dashboard" | "players" | "games" | "live" | "rankings") => void;
 }
 
 export function Header({ currentView, onViewChange }: HeaderProps) {
@@ -29,6 +31,16 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
       key: "games" as const,
       label: "Jogos",
       icon: Plus
+    },
+    {
+      key: "live" as const,
+      label: "Jogo Ativo",
+      icon: Play
+    },
+    {
+      key: "rankings" as const,
+      label: "Rankings",
+      icon: Award
     }
   ];
 

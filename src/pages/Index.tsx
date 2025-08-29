@@ -5,6 +5,8 @@ import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { GameCard } from "@/components/GameCard";
+import { LiveGame } from "@/components/LiveGame";
+import { Rankings } from "@/components/Rankings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +34,7 @@ interface Game {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"dashboard" | "players" | "games">("dashboard");
+  const [currentView, setCurrentView] = useState<"dashboard" | "players" | "games" | "live" | "rankings">("dashboard");
   const [players, setPlayers] = useState<Player[]>([
     {
       id: "1",
@@ -225,6 +227,8 @@ const Index = () => {
         {currentView === "dashboard" && <Dashboard />}
         {currentView === "players" && renderPlayersView()}
         {currentView === "games" && renderGamesView()}
+        {currentView === "live" && <LiveGame />}
+        {currentView === "rankings" && <Rankings />}
       </main>
     </div>
   );
