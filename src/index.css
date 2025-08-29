@@ -2,41 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Soccer Field Management App Design System - Football inspired colors and gradients */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Soccer Field Theme - Light Mode */
+    --background: 120 20% 97%;
+    --foreground: 140 40% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 140 40% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 140 40% 8%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Soccer field green as primary */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 142 60% 55%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 120 15% 93%;
+    --secondary-foreground: 140 40% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 120 10% 95%;
+    --muted-foreground: 140 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 50% 88%;
+    --accent-foreground: 142 76% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Team colors */
+    --team-a: 220 100% 55%;
+    --team-a-foreground: 0 0% 100%;
+    --team-b: 0 85% 60%;
+    --team-b-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 142 20% 85%;
+    --input: 142 20% 88%;
+    --ring: 142 76% 36%;
 
     --radius: 0.5rem;
+
+    /* Soccer field gradients */
+    --gradient-field: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 60% 45%));
+    --gradient-team-a: linear-gradient(135deg, hsl(220 100% 55%), hsl(220 80% 65%));
+    --gradient-team-b: linear-gradient(135deg, hsl(0 85% 60%), hsl(0 70% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 60% 55%));
+
+    /* Field animations and effects */
+    --shadow-field: 0 10px 30px -10px hsl(142 76% 36% / 0.3);
+    --shadow-team: 0 4px 20px -4px hsl(142 50% 50% / 0.25);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,41 +80,58 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Soccer Field Theme - Dark Mode */
+    --background: 140 20% 8%;
+    --foreground: 120 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 140 15% 12%;
+    --card-foreground: 120 15% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 140 15% 12%;
+    --popover-foreground: 120 15% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142 76% 45%;
+    --primary-foreground: 140 40% 8%;
+    --primary-glow: 142 60% 65%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 140 10% 15%;
+    --secondary-foreground: 120 15% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 140 8% 18%;
+    --muted-foreground: 140 10% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 30% 20%;
+    --accent-foreground: 142 60% 80%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --team-a: 220 90% 65%;
+    --team-a-foreground: 0 0% 100%;
+    --team-b: 0 75% 70%;
+    --team-b-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 142 76% 45%;
+    --success-foreground: 140 40% 8%;
+
+    --warning: 45 83% 57%;
+    --warning-foreground: 45 30% 15%;
+
+    --destructive: 0 75% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 142 15% 20%;
+    --input: 142 15% 18%;
+    --ring: 142 76% 45%;
+
+    --radius: 0.5rem;
+
+    /* Dark mode gradients */
+    --gradient-field: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 60% 55%));
+    --gradient-team-a: linear-gradient(135deg, hsl(220 90% 65%), hsl(220 70% 75%));
+    --gradient-team-b: linear-gradient(135deg, hsl(0 75% 70%), hsl(0 60% 80%));
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 60% 65%));
+
+    /* Dark mode shadows */
+    --shadow-field: 0 10px 30px -10px hsl(142 76% 45% / 0.4);
+    --shadow-team: 0 4px 20px -4px hsl(142 50% 60% / 0.3);
   }
 }
 
@@ -101,5 +142,36 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Soccer field utilities */
+@layer utilities {
+  .field-gradient {
+    background: var(--gradient-field);
+  }
+  
+  .team-a-gradient {
+    background: var(--gradient-team-a);
+  }
+  
+  .team-b-gradient {
+    background: var(--gradient-team-b);
+  }
+  
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  .field-shadow {
+    box-shadow: var(--shadow-field);
+  }
+  
+  .team-shadow {
+    box-shadow: var(--shadow-team);
+  }
+  
+  .smooth-transition {
+    transition: var(--transition-smooth);
   }
 }
