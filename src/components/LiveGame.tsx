@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { SoccerField } from "@/components/SoccerField";
 import { 
   Play, 
   Pause, 
@@ -320,6 +321,42 @@ export function LiveGame() {
               Admin
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Soccer Field Visualization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5" />
+            Campo de Jogo
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SoccerField
+            teamA={{
+              name: teamA.name,
+              players: teamA.players.map(p => ({
+                id: p.id,
+                name: p.name,
+                nickname: p.nickname,
+                position: p.position,
+                photo: undefined // Add photo upload functionality later
+              }))
+            }}
+            teamB={{
+              name: teamB.name,
+              players: teamB.players.map(p => ({
+                id: p.id,
+                name: p.name,
+                nickname: p.nickname,
+                position: p.position,
+                photo: undefined // Add photo upload functionality later
+              }))
+            }}
+            scoreA={teamA.score}
+            scoreB={teamB.score}
+          />
         </CardContent>
       </Card>
 

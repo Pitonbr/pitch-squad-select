@@ -7,12 +7,14 @@ import {
   Settings,
   Bell,
   Play,
-  Award
+  Award,
+  Gamepad2,
+  DollarSign
 } from "lucide-react";
 
 interface HeaderProps {
-  currentView: "dashboard" | "players" | "games" | "live" | "rankings";
-  onViewChange: (view: "dashboard" | "players" | "games" | "live" | "rankings") => void;
+  currentView: "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial";
+  onViewChange: (view: "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial") => void;
 }
 
 export function Header({ currentView, onViewChange }: HeaderProps) {
@@ -33,6 +35,11 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
       icon: Plus
     },
     {
+      key: "tournaments" as const,
+      label: "Campeonatos",
+      icon: Gamepad2
+    },
+    {
       key: "live" as const,
       label: "Jogo Ativo",
       icon: Play
@@ -41,6 +48,11 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
       key: "rankings" as const,
       label: "Rankings",
       icon: Award
+    },
+    {
+      key: "financial" as const,
+      label: "Financeiro",
+      icon: DollarSign
     }
   ];
 

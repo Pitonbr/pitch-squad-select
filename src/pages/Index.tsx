@@ -7,11 +7,13 @@ import { GameForm } from "@/components/GameForm";
 import { GameCard } from "@/components/GameCard";
 import { LiveGame } from "@/components/LiveGame";
 import { Rankings } from "@/components/Rankings";
+import { TournamentManager } from "@/components/TournamentManager";
+import { FinancialControl } from "@/components/FinancialControl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Users, Calendar, Plus } from "lucide-react";
+import { Search, Filter, Users, Calendar, Plus, Trash2 } from "lucide-react";
 
 interface Player {
   id: string;
@@ -34,7 +36,7 @@ interface Game {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"dashboard" | "players" | "games" | "live" | "rankings">("dashboard");
+  const [currentView, setCurrentView] = useState<"dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial">("dashboard");
   const [players, setPlayers] = useState<Player[]>([
     {
       id: "1",
@@ -101,6 +103,10 @@ const Index = () => {
     ));
   };
 
+  const handleDeletePlayer = (playerId: string) => {
+    setPlayers(players.filter(player => player.id !== playerId));
+  };
+
   const filteredPlayers = players.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,15 +158,24 @@ const Index = () => {
           ) : (
             <div className="grid gap-4">
               {filteredPlayers.map((player) => (
-                <PlayerCard
-                  key={player.id}
-                  name={player.name}
-                  nickname={player.nickname}
-                  position={player.position}
-                  phone={player.phone}
-                  checkedIn={player.checkedIn}
-                  onCheckIn={() => handlePlayerCheckIn(player.id)}
-                />
+                <div key={player.id} className="relative">
+                  <PlayerCard
+                    name={player.name}
+                    nickname={player.nickname}
+                    position={player.position}
+                    phone={player.phone}
+                    checkedIn={player.checkedIn}
+                    onCheckIn={() => handlePlayerCheckIn(player.id)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleDeletePlayer(player.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               ))}
             </div>
           )}
@@ -227,8 +242,10 @@ const Index = () => {
         {currentView === "dashboard" && <Dashboard />}
         {currentView === "players" && renderPlayersView()}
         {currentView === "games" && renderGamesView()}
+        {currentView === "tournaments" && <TournamentManager />}
         {currentView === "live" && <LiveGame />}
         {currentView === "rankings" && <Rankings />}
+        {currentView === "financial" && <FinancialControl />}
       </main>
     </div>
   );

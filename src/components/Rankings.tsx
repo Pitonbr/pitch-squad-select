@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -11,7 +13,9 @@ import {
   AlertTriangle,
   Crown,
   Medal,
-  Award
+  Award,
+  Calendar,
+  TrendingUp
 } from "lucide-react";
 
 interface PlayerRanking {
@@ -32,6 +36,29 @@ interface CoachRanking {
 }
 
 export function Rankings() {
+  const [activeTab, setActiveTab] = useState("stats");
+
+  // Recent games data
+  const recentGames = [
+    { id: 1, date: "2024-01-15", home: "Time Azul", away: "Time Vermelho", score: "3x2", points: 3 },
+    { id: 2, date: "2024-01-12", home: "Time Verde", away: "Time Azul", score: "1x1", points: 1 },
+    { id: 3, date: "2024-01-10", home: "Time Azul", away: "Time Amarelo", score: "2x0", points: 3 },
+    { id: 4, date: "2024-01-08", home: "Time Roxo", away: "Time Azul", score: "0x1", points: 3 },
+    { id: 5, date: "2024-01-05", home: "Time Azul", away: "Time Laranja", score: "2x2", points: 1 },
+    { id: 6, date: "2024-01-03", home: "Time Branco", away: "Time Azul", score: "1x3", points: 3 },
+    { id: 7, date: "2024-01-01", home: "Time Azul", away: "Time Preto", score: "0x2", points: 0 },
+    { id: 8, date: "2023-12-29", home: "Time Rosa", away: "Time Azul", score: "1x1", points: 1 },
+    { id: 9, date: "2023-12-27", home: "Time Azul", away: "Time Cinza", score: "4x1", points: 3 },
+    { id: 10, date: "2023-12-24", home: "Time Marrom", away: "Time Azul", score: "0x1", points: 3 }
+  ];
+
+  const calculateEfficiency = (points: number, games: number) => {
+    return games > 0 ? ((points / (games * 3)) * 100).toFixed(1) : "0.0";
+  };
+
+  const totalPoints = recentGames.reduce((sum, game) => sum + game.points, 0);
+  const efficiency = calculateEfficiency(totalPoints, recentGames.length);
+
   // Mock data - in real app this would come from database
   const goalScorers: PlayerRanking[] = [
     { id: "1", name: "Carlos Silva", nickname: "Carlão", position: "Atacante", value: 15 },
@@ -162,24 +189,25 @@ export function Rankings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Rankings</h2>
-          <p className="text-muted-foreground">Estatísticas e classificações dos melhores jogadores</p>
-        </div>
-        <Badge className="field-gradient text-white flex items-center space-x-1">
-          <Trophy className="h-3 w-3" />
-          <span>Temporada 2024</span>
-        </Badge>
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Rankings e Estatísticas</h2>
+        <p className="text-muted-foreground">
+          Estatísticas completas, rankings e histórico de jogos
+        </p>
       </div>
 
-      <Tabs defaultValue="players" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="players">Jogadores</TabsTrigger>
-          <TabsTrigger value="coaches">Técnicos</TabsTrigger>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="stats">Top 10 Estatísticas</TabsTrigger>
+          <TabsTrigger value="recent">Últimos 10 Jogos</TabsTrigger>
+          <TabsTrigger value="coaches">Ranking Técnicos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="players" className="space-y-6">
+        {/* Player Statistics Tab */}
+        <TabsContent value="stats" className="space-y-6">
+          {/* Player Rankings Grid */}
           <div className="grid lg:grid-cols-2 gap-6">
             <PlayerRankingCard
               players={goalScorers}
@@ -211,6 +239,82 @@ export function Rankings() {
           </div>
         </TabsContent>
 
+        {/* Recent Games Tab */}
+        <TabsContent value="recent" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Performance Summary */}
+            <Card className="field-gradient text-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Aproveitamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm opacity-90">Últimos 10 jogos</p>
+                    <p className="text-3xl font-bold">{efficiency}%</p>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    <div>Pontos: {totalPoints}/30</div>
+                    <div>Vitórias: {recentGames.filter(g => g.points === 3).length}</div>
+                    <div>Empates: {recentGames.filter(g => g.points === 1).length}</div>
+                    <div>Derrotas: {recentGames.filter(g => g.points === 0).length}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Games List */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Histórico dos Últimos 10 Jogos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recentGames.map((game, index) => (
+                      <div key={game.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="w-8 text-center">
+                            {index + 1}
+                          </Badge>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {game.home} vs {game.away}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(game.date).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium">{game.score}</span>
+                          <Badge variant={
+                            game.points === 3 ? "default" : 
+                            game.points === 1 ? "secondary" : "destructive"
+                          }>
+                            {game.points === 3 ? "V" : game.points === 1 ? "E" : "D"}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {game.points}pts
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Coach Rankings Tab */}
         <TabsContent value="coaches" className="space-y-6">
           <Card>
             <CardHeader className="pb-3">
