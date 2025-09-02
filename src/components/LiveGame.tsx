@@ -28,8 +28,7 @@ interface PlayerStats {
   assists: number;
   yellowCards: number;
   redCards: number;
-  saves: number;
-  fouls: number;
+  difficultDefenses: number;
   tackles: number;
 }
 
@@ -66,7 +65,7 @@ export function LiveGame() {
         nickname: "Carlão",
         position: "Atacante",
         isStarter: true,
-        stats: { goals: 2, assists: 1, yellowCards: 0, redCards: 0, saves: 0, fouls: 1, tackles: 3 }
+        stats: { goals: 2, assists: 1, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 3 }
       },
       {
         id: "2",
@@ -74,7 +73,7 @@ export function LiveGame() {
         nickname: "Joãozinho",
         position: "Goleiro",
         isStarter: true,
-        stats: { goals: 0, assists: 0, yellowCards: 1, redCards: 0, saves: 4, fouls: 0, tackles: 0 }
+        stats: { goals: 0, assists: 0, yellowCards: 1, redCards: 0, difficultDefenses: 4, tackles: 0 }
       },
       {
         id: "3",
@@ -82,7 +81,7 @@ export function LiveGame() {
         nickname: "Pedrinho",
         position: "Zagueiro",
         isStarter: false,
-        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 2, tackles: 5 }
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 5 }
       },
       {
         id: "7",
@@ -90,7 +89,7 @@ export function LiveGame() {
         nickname: "Marquinhos",
         position: "Meio-campo",
         isStarter: true,
-        stats: { goals: 0, assists: 2, yellowCards: 0, redCards: 0, saves: 0, fouls: 1, tackles: 4 }
+        stats: { goals: 0, assists: 2, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 4 }
       },
       {
         id: "8",
@@ -98,7 +97,7 @@ export function LiveGame() {
         nickname: "Fernandinho",
         position: "Atacante",
         isStarter: false,
-        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 0, tackles: 1 }
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 1 }
       }
     ],
     score: 2
@@ -113,7 +112,7 @@ export function LiveGame() {
         nickname: "Lukão",
         position: "Atacante",
         isStarter: true,
-        stats: { goals: 1, assists: 2, yellowCards: 0, redCards: 0, saves: 0, fouls: 0, tackles: 2 }
+        stats: { goals: 1, assists: 2, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 2 }
       },
       {
         id: "5",
@@ -121,7 +120,7 @@ export function LiveGame() {
         nickname: "Rafa",
         position: "Meio-campo",
         isStarter: true,
-        stats: { goals: 0, assists: 1, yellowCards: 1, redCards: 0, saves: 0, fouls: 3, tackles: 4 }
+        stats: { goals: 0, assists: 1, yellowCards: 1, redCards: 0, difficultDefenses: 0, tackles: 4 }
       },
       {
         id: "6",
@@ -129,7 +128,7 @@ export function LiveGame() {
         nickname: "Dieguinho",
         position: "Zagueiro",
         isStarter: false,
-        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 1, tackles: 3 }
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 3 }
       },
       {
         id: "9",
@@ -137,7 +136,7 @@ export function LiveGame() {
         nickname: "Gabigol",
         position: "Atacante",
         isStarter: false,
-        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 0, tackles: 0 }
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, difficultDefenses: 0, tackles: 0 }
       }
     ],
     score: 1
@@ -155,7 +154,9 @@ export function LiveGame() {
               ...player,
               stats: {
                 ...player.stats,
-                [stat]: increment ? player.stats[stat] + 1 : Math.max(0, player.stats[stat] - 1)
+                [stat]: increment 
+                  ? Math.min(10, player.stats[stat] + 1) 
+                  : Math.max(0, player.stats[stat] - 1)
               }
             }
           : player
@@ -450,7 +451,20 @@ export function LiveGame() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "difficultDefenses");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-blue/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-blue/20 text-blue border-blue/30">
+                          DF{player.stats.difficultDefenses}
+                        </Badge>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -458,10 +472,10 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamA.name, player.id, "goals");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-success/10"
+                        className="h-8 w-10 p-0 hover:bg-success/10"
                       >
                         <Badge variant="secondary" className="text-xs bg-success/20 text-success border-success/30">
-                          {player.stats.goals}
+                          G{player.stats.goals}
                         </Badge>
                       </Button>
                       <Button
@@ -471,10 +485,23 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamA.name, player.id, "assists");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                        className="h-8 w-10 p-0 hover:bg-primary/10"
                       >
-                        <Badge variant="secondary" className="text-xs">
-                          {player.stats.assists}
+                        <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30">
+                          A{player.stats.assists}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "tackles");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-purple/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-purple/20 text-purple border-purple/30">
+                          DS{player.stats.tackles}
                         </Badge>
                       </Button>
                       <Button
@@ -484,27 +511,25 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamA.name, player.id, "yellowCards");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-warning/10"
+                        className="h-8 w-10 p-0 hover:bg-warning/10"
                       >
                         <Badge variant="secondary" className="text-xs bg-warning/20 text-warning border-warning/30">
-                          {player.stats.yellowCards}
+                          CA{player.stats.yellowCards}
                         </Badge>
                       </Button>
-                      {player.stats.redCards > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updatePlayerStat(teamA.name, player.id, "redCards");
-                          }}
-                          className="h-8 w-8 p-0 hover:bg-destructive/10"
-                        >
-                          <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
-                            {player.stats.redCards}
-                          </Badge>
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "redCards");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-destructive/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
+                          CV{player.stats.redCards}
+                        </Badge>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -599,7 +624,20 @@ export function LiveGame() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "difficultDefenses");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-blue/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-blue/20 text-blue border-blue/30">
+                          DF{player.stats.difficultDefenses}
+                        </Badge>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -607,10 +645,10 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamB.name, player.id, "goals");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-success/10"
+                        className="h-8 w-10 p-0 hover:bg-success/10"
                       >
                         <Badge variant="secondary" className="text-xs bg-success/20 text-success border-success/30">
-                          {player.stats.goals}
+                          G{player.stats.goals}
                         </Badge>
                       </Button>
                       <Button
@@ -620,10 +658,23 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamB.name, player.id, "assists");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                        className="h-8 w-10 p-0 hover:bg-primary/10"
                       >
-                        <Badge variant="secondary" className="text-xs">
-                          {player.stats.assists}
+                        <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30">
+                          A{player.stats.assists}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "tackles");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-purple/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-purple/20 text-purple border-purple/30">
+                          DS{player.stats.tackles}
                         </Badge>
                       </Button>
                       <Button
@@ -633,27 +684,25 @@ export function LiveGame() {
                           e.stopPropagation();
                           updatePlayerStat(teamB.name, player.id, "yellowCards");
                         }}
-                        className="h-8 w-8 p-0 hover:bg-warning/10"
+                        className="h-8 w-10 p-0 hover:bg-warning/10"
                       >
                         <Badge variant="secondary" className="text-xs bg-warning/20 text-warning border-warning/30">
-                          {player.stats.yellowCards}
+                          CA{player.stats.yellowCards}
                         </Badge>
                       </Button>
-                      {player.stats.redCards > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updatePlayerStat(teamB.name, player.id, "redCards");
-                          }}
-                          className="h-8 w-8 p-0 hover:bg-destructive/10"
-                        >
-                          <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
-                            {player.stats.redCards}
-                          </Badge>
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "redCards");
+                        }}
+                        className="h-8 w-10 p-0 hover:bg-destructive/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
+                          CV{player.stats.redCards}
+                        </Badge>
+                      </Button>
                     </div>
                   </div>
                 ))}
