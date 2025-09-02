@@ -16,7 +16,11 @@ import {
   Shield,
   AlertTriangle,
   Zap,
-  Edit
+  Edit,
+  RefreshCw,
+  User,
+  UserCheck,
+  ArrowUpDown
 } from "lucide-react";
 
 interface PlayerStats {
@@ -48,6 +52,10 @@ export function LiveGame() {
   const [gameTime, setGameTime] = useState("45:30");
   const [isRunning, setIsRunning] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [substitutionMode, setSubstitutionMode] = useState(false);
+  const [playerOut, setPlayerOut] = useState<string | null>(null);
+  const [playerIn, setPlayerIn] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
   const [teamA, setTeamA] = useState<Team>({
     name: "Time Azul",
@@ -75,6 +83,22 @@ export function LiveGame() {
         position: "Zagueiro",
         isStarter: false,
         stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 2, tackles: 5 }
+      },
+      {
+        id: "7",
+        name: "Marcos Oliveira",
+        nickname: "Marquinhos",
+        position: "Meio-campo",
+        isStarter: true,
+        stats: { goals: 0, assists: 2, yellowCards: 0, redCards: 0, saves: 0, fouls: 1, tackles: 4 }
+      },
+      {
+        id: "8",
+        name: "Fernando Silva",
+        nickname: "Fernandinho",
+        position: "Atacante",
+        isStarter: false,
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 0, tackles: 1 }
       }
     ],
     score: 2
@@ -98,6 +122,22 @@ export function LiveGame() {
         position: "Meio-campo",
         isStarter: true,
         stats: { goals: 0, assists: 1, yellowCards: 1, redCards: 0, saves: 0, fouls: 3, tackles: 4 }
+      },
+      {
+        id: "6",
+        name: "Diego Santos",
+        nickname: "Dieguinho",
+        position: "Zagueiro",
+        isStarter: false,
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 1, tackles: 3 }
+      },
+      {
+        id: "9",
+        name: "Gabriel Costa",
+        nickname: "Gabigol",
+        position: "Atacante",
+        isStarter: false,
+        stats: { goals: 0, assists: 0, yellowCards: 0, redCards: 0, saves: 0, fouls: 0, tackles: 0 }
       }
     ],
     score: 1
@@ -137,111 +177,39 @@ export function LiveGame() {
     }
   };
 
-  const StatButton = ({ 
-    icon: Icon, 
-    label, 
-    value, 
-    onClick, 
-    color = "primary" 
-  }: { 
-    icon: any; 
-    label: string; 
-    value: number; 
-    onClick: () => void;
-    color?: string;
-  }) => (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={onClick}
-      className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-        color === "warning" ? "border-warning text-warning hover:bg-warning/10" :
-        color === "destructive" ? "border-destructive text-destructive hover:bg-destructive/10" :
-        color === "success" ? "border-success text-success hover:bg-success/10" :
-        "hover:field-shadow"
-      }`}
-    >
-      <Icon className="h-4 w-4" />
-      <span className="text-xs font-medium">{label}</span>
-      <Badge variant="secondary" className="text-xs px-1 min-w-[20px]">
-        {value}
-      </Badge>
-    </Button>
-  );
+  const makeSubstitution = () => {
+    if (!playerOut || !playerIn || !selectedTeam) return;
+    
+    const updateTeam = selectedTeam === "Time Azul" ? setTeamA : setTeamB;
+    const team = selectedTeam === "Time Azul" ? teamA : teamB;
+    
+    updateTeam({
+      ...team,
+      players: team.players.map(player => {
+        if (player.id === playerOut) {
+          return { ...player, isStarter: false };
+        }
+        if (player.id === playerIn) {
+          return { ...player, isStarter: true };
+        }
+        return player;
+      })
+    });
 
-  const PlayerCard = ({ player, teamName }: { player: LivePlayer; teamName: string }) => (
-    <Card className={`${selectedPlayer === player.id ? "ring-2 ring-primary" : ""} smooth-transition hover:field-shadow`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-sm font-bold">{player.nickname}</CardTitle>
-            <p className="text-xs text-muted-foreground">{player.name}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={player.isStarter ? "default" : "secondary"} className="text-xs">
-              {player.isStarter ? "Titular" : "Reserva"}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {player.position}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-4 gap-2">
-          <StatButton
-            icon={Target}
-            label="Gols"
-            value={player.stats.goals}
-            onClick={() => updatePlayerStat(teamName, player.id, "goals")}
-            color="success"
-          />
-          <StatButton
-            icon={Heart}
-            label="Assist"
-            value={player.stats.assists}
-            onClick={() => updatePlayerStat(teamName, player.id, "assists")}
-          />
-          <StatButton
-            icon={Square}
-            label="Amarelo"
-            value={player.stats.yellowCards}
-            onClick={() => updatePlayerStat(teamName, player.id, "yellowCards")}
-            color="warning"
-          />
-          <StatButton
-            icon={Square}
-            label="Vermelho"
-            value={player.stats.redCards}
-            onClick={() => updatePlayerStat(teamName, player.id, "redCards")}
-            color="destructive"
-          />
-        </div>
-        
-        <div className="grid grid-cols-3 gap-2">
-          <StatButton
-            icon={Shield}
-            label="Defesas"
-            value={player.stats.saves}
-            onClick={() => updatePlayerStat(teamName, player.id, "saves")}
-          />
-          <StatButton
-            icon={AlertTriangle}
-            label="Faltas"
-            value={player.stats.fouls}
-            onClick={() => updatePlayerStat(teamName, player.id, "fouls")}
-          />
-          <StatButton
-            icon={Zap}
-            label="Desarmes"
-            value={player.stats.tackles}
-            onClick={() => updatePlayerStat(teamName, player.id, "tackles")}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
+    // Reset substitution mode
+    setSubstitutionMode(false);
+    setPlayerOut(null);
+    setPlayerIn(null);
+    setSelectedTeam(null);
+  };
+
+  const cancelSubstitution = () => {
+    setSubstitutionMode(false);
+    setPlayerOut(null);
+    setPlayerIn(null);
+    setSelectedTeam(null);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -360,61 +328,376 @@ export function LiveGame() {
         </CardContent>
       </Card>
 
-      {/* Teams Grid */}
+      {/* Substitution Controls */}
+      {substitutionMode && (
+        <Card className="border-primary bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <ArrowUpDown className="h-5 w-5" />
+              Modo Substituição {selectedTeam && `- ${selectedTeam}`}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium mb-2">Jogador que sai:</p>
+                <div className="space-y-1">
+                  {selectedTeam && (selectedTeam === "Time Azul" ? teamA : teamB).players
+                    .filter(p => p.isStarter)
+                    .map(player => (
+                      <Button
+                        key={player.id}
+                        variant={playerOut === player.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPlayerOut(player.id)}
+                        className="w-full justify-start"
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        {player.nickname} - {player.position}
+                      </Button>
+                    ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2">Jogador que entra:</p>
+                <div className="space-y-1">
+                  {selectedTeam && (selectedTeam === "Time Azul" ? teamA : teamB).players
+                    .filter(p => !p.isStarter)
+                    .map(player => (
+                      <Button
+                        key={player.id}
+                        variant={playerIn === player.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPlayerIn(player.id)}
+                        className="w-full justify-start"
+                      >
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        {player.nickname} - {player.position}
+                      </Button>
+                    ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={makeSubstitution}
+                disabled={!playerOut || !playerIn}
+                className="flex-1"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Confirmar Substituição
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={cancelSubstitution}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Player Lists */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Team A */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-primary">{teamA.name}</h3>
-            <Badge className="bg-primary text-primary-foreground">
-              {teamA.players.filter(p => p.isStarter).length} titulares
-            </Badge>
-          </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <Trophy className="h-5 w-5" />
+                {teamA.name}
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSubstitutionMode(true);
+                  setSelectedTeam(teamA.name);
+                }}
+                disabled={substitutionMode || !teamA.players.some(p => !p.isStarter)}
+              >
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                Substituir
+              </Button>
+            </div>
+          </CardHeader>
           
-          <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-muted-foreground">TITULARES</h4>
-            {teamA.players.filter(p => p.isStarter).map(player => (
-              <PlayerCard key={player.id} player={player} teamName={teamA.name} />
-            ))}
-            
+          <CardContent className="space-y-4">
+            {/* Titulares */}
+            <div>
+              <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                TITULARES ({teamA.players.filter(p => p.isStarter).length})
+              </h4>
+              <div className="space-y-2">
+                {teamA.players.filter(p => p.isStarter).map(player => (
+                  <div 
+                    key={player.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 smooth-transition ${
+                      selectedPlayer === player.id ? "ring-2 ring-primary" : ""
+                    }`}
+                    onClick={() => setSelectedPlayer(selectedPlayer === player.id ? null : player.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{player.nickname}</p>
+                        <p className="text-xs text-muted-foreground">{player.position}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "goals");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-success/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-success/20 text-success border-success/30">
+                          {player.stats.goals}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "assists");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                      >
+                        <Badge variant="secondary" className="text-xs">
+                          {player.stats.assists}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamA.name, player.id, "yellowCards");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-warning/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-warning/20 text-warning border-warning/30">
+                          {player.stats.yellowCards}
+                        </Badge>
+                      </Button>
+                      {player.stats.redCards > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updatePlayerStat(teamA.name, player.id, "redCards");
+                          }}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10"
+                        >
+                          <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
+                            {player.stats.redCards}
+                          </Badge>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Reservas */}
             {teamA.players.some(p => !p.isStarter) && (
               <>
                 <Separator />
-                <h4 className="font-semibold text-sm text-muted-foreground">RESERVAS</h4>
-                {teamA.players.filter(p => !p.isStarter).map(player => (
-                  <PlayerCard key={player.id} player={player} teamName={teamA.name} />
-                ))}
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    RESERVAS ({teamA.players.filter(p => !p.isStarter).length})
+                  </h4>
+                  <div className="space-y-2">
+                    {teamA.players.filter(p => !p.isStarter).map(player => (
+                      <div 
+                        key={player.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 smooth-transition opacity-75"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{player.nickname}</p>
+                            <p className="text-xs text-muted-foreground">{player.position}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            Reserva
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Team B */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-destructive">{teamB.name}</h3>
-            <Badge className="bg-destructive text-destructive-foreground">
-              {teamB.players.filter(p => p.isStarter).length} titulares
-            </Badge>
-          </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <Trophy className="h-5 w-5" />
+                {teamB.name}
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSubstitutionMode(true);
+                  setSelectedTeam(teamB.name);
+                }}
+                disabled={substitutionMode || !teamB.players.some(p => !p.isStarter)}
+              >
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                Substituir
+              </Button>
+            </div>
+          </CardHeader>
           
-          <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-muted-foreground">TITULARES</h4>
-            {teamB.players.filter(p => p.isStarter).map(player => (
-              <PlayerCard key={player.id} player={player} teamName={teamB.name} />
-            ))}
-            
+          <CardContent className="space-y-4">
+            {/* Titulares */}
+            <div>
+              <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                TITULARES ({teamB.players.filter(p => p.isStarter).length})
+              </h4>
+              <div className="space-y-2">
+                {teamB.players.filter(p => p.isStarter).map(player => (
+                  <div 
+                    key={player.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 smooth-transition ${
+                      selectedPlayer === player.id ? "ring-2 ring-primary" : ""
+                    }`}
+                    onClick={() => setSelectedPlayer(selectedPlayer === player.id ? null : player.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-destructive" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{player.nickname}</p>
+                        <p className="text-xs text-muted-foreground">{player.position}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "goals");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-success/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-success/20 text-success border-success/30">
+                          {player.stats.goals}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "assists");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                      >
+                        <Badge variant="secondary" className="text-xs">
+                          {player.stats.assists}
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updatePlayerStat(teamB.name, player.id, "yellowCards");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-warning/10"
+                      >
+                        <Badge variant="secondary" className="text-xs bg-warning/20 text-warning border-warning/30">
+                          {player.stats.yellowCards}
+                        </Badge>
+                      </Button>
+                      {player.stats.redCards > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updatePlayerStat(teamB.name, player.id, "redCards");
+                          }}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10"
+                        >
+                          <Badge variant="secondary" className="text-xs bg-destructive/20 text-destructive border-destructive/30">
+                            {player.stats.redCards}
+                          </Badge>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Reservas */}
             {teamB.players.some(p => !p.isStarter) && (
               <>
                 <Separator />
-                <h4 className="font-semibold text-sm text-muted-foreground">RESERVAS</h4>
-                {teamB.players.filter(p => !p.isStarter).map(player => (
-                  <PlayerCard key={player.id} player={player} teamName={teamB.name} />
-                ))}
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    RESERVAS ({teamB.players.filter(p => !p.isStarter).length})
+                  </h4>
+                  <div className="space-y-2">
+                    {teamB.players.filter(p => !p.isStarter).map(player => (
+                      <div 
+                        key={player.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 smooth-transition opacity-75"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{player.nickname}</p>
+                            <p className="text-xs text-muted-foreground">{player.position}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            Reserva
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
