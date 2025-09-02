@@ -66,7 +66,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
               <Trophy className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Campo Squad</h1>
+              <h1 className="text-xl font-bold">Soccer Squad</h1>
               <p className="text-xs text-muted-foreground">Gestão de Partidas</p>
             </div>
           </div>

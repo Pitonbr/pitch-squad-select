@@ -136,7 +136,7 @@ export function FinancialControl() {
 
   const sendPaymentReminder = (player: Player) => {
     // Simulate sending reminder
-    const message = `Olá ${player.name}! Lembrete: você tem um pagamento pendente de R$ ${player.amount.toFixed(2)}. Campo Squad.`;
+    const message = `Olá ${player.name}! Lembrete: você tem um pagamento pendente de R$ ${player.amount.toFixed(2)}. Soccer Squad.`;
     
     // This would integrate with SMS/WhatsApp API
     console.log(`Sending to ${player.phone}: ${message}`);

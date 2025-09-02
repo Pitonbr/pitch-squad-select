@@ -157,7 +157,7 @@ export function TournamentManager() {
                   id="tournament-name"
                   value={tournamentName}
                   onChange={(e) => setTournamentName(e.target.value)}
-                  placeholder="Ex: Copa Campo Squad 2024"
+                  placeholder="Ex: Copa Soccer Squad 2024"
                 />
               </div>
               <div className="space-y-2">

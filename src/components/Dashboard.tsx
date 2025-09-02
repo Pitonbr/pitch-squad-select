@@ -74,7 +74,7 @@ export function Dashboard() {
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative h-full flex items-center justify-center text-white text-center p-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Campo Squad</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Soccer Squad</h1>
               <p className="text-lg md:text-xl opacity-90">Gestão Inteligente de Partidas de Futebol</p>
               <Button 
                 className="mt-4 bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30 smooth-transition"
