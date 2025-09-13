@@ -6,6 +6,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PlayerSelector } from "./PlayerSelector";
+
+interface Player {
+  id: string;
+  name: string;
+  nickname: string;
+  position: string;
+  phone: string;
+  checkedIn?: boolean;
+}
+
+interface TeamList {
+  id: string;
+  name: string;
+  playerIds: string[];
+  createdAt: Date;
+}
 
 interface GameFormData {
   title: string;
@@ -13,21 +30,34 @@ interface GameFormData {
   time: string;
   location: string;
   description?: string;
+  invitedPlayerIds: string[];
 }
 
 interface GameFormProps {
+  allPlayers: Player[];
+  teamLists: TeamList[];
   onGameCreated: (game: GameFormData) => void;
+  onTeamListSave: (teamList: Omit<TeamList, 'id' | 'createdAt'>) => void;
+  onTeamListDelete: (teamListId: string) => void;
 }
 
-export function GameForm({ onGameCreated }: GameFormProps) {
+export function GameForm({ 
+  allPlayers, 
+  teamLists, 
+  onGameCreated, 
+  onTeamListSave, 
+  onTeamListDelete 
+}: GameFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<GameFormData>({
     title: "",
     date: "",
     time: "",
     location: "",
-    description: ""
+    description: "",
+    invitedPlayerIds: []
   });
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,15 +82,22 @@ export function GameForm({ onGameCreated }: GameFormProps) {
       return;
     }
 
-    onGameCreated(formData);
+    const gameData = {
+      ...formData,
+      invitedPlayerIds: selectedPlayerIds
+    };
+    
+    onGameCreated(gameData);
     
     setFormData({
       title: "",
       date: "",
       time: "",
       location: "",
-      description: ""
+      description: "",
+      invitedPlayerIds: []
     });
+    setSelectedPlayerIds([]);
 
     toast({
       title: "Jogo criado!",
@@ -149,9 +186,19 @@ export function GameForm({ onGameCreated }: GameFormProps) {
             />
           </div>
 
+          <PlayerSelector
+            allPlayers={allPlayers}
+            selectedPlayerIds={selectedPlayerIds}
+            onSelectionChange={setSelectedPlayerIds}
+            teamLists={teamLists}
+            onTeamListSave={onTeamListSave}
+            onTeamListDelete={onTeamListDelete}
+            onTeamListLoad={setSelectedPlayerIds}
+          />
+
           <Button type="submit" className="w-full field-gradient font-semibold">
             <Plus className="h-4 w-4 mr-2" />
-            Criar Jogo
+            Criar Jogo {selectedPlayerIds.length > 0 && `(${selectedPlayerIds.length} jogadores)`}
           </Button>
         </form>
       </CardContent>

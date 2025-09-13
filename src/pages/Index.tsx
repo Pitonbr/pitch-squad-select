@@ -5,15 +5,16 @@ import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { GameCard } from "@/components/GameCard";
+import { TournamentManager } from "@/components/TournamentManager";
 import { LiveGame } from "@/components/LiveGame";
 import { Rankings } from "@/components/Rankings";
-import { TournamentManager } from "@/components/TournamentManager";
 import { FinancialControl } from "@/components/FinancialControl";
+import { CancelGameDialog } from "@/components/CancelGameDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Users, Calendar, Plus, Trash2 } from "lucide-react";
+import { Users, Calendar, Search, Filter, Trash2 } from "lucide-react";
 
 interface Player {
   id: string;
@@ -24,6 +25,13 @@ interface Player {
   checkedIn?: boolean;
 }
 
+interface TeamList {
+  id: string;
+  name: string;
+  playerIds: string[];
+  createdAt: Date;
+}
+
 interface Game {
   id: string;
   title: string;
@@ -31,12 +39,15 @@ interface Game {
   time: string;
   location: string;
   description?: string;
-  status: "upcoming" | "checkin" | "closed" | "ongoing";
+  status: "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
   playersCheckedIn: number;
+  invitedPlayerIds: string[];
 }
 
+type ViewType = "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial";
+
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial">("dashboard");
+  const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([
     {
       id: "1",
@@ -51,7 +62,8 @@ const Index = () => {
       name: "João Santos",
       nickname: "Joãozinho",
       position: "Goleiro",
-      phone: "(11) 99999-0002"
+      phone: "(11) 99999-0002",
+      checkedIn: false
     },
     {
       id: "3",
@@ -71,24 +83,35 @@ const Index = () => {
       time: "15:00",
       location: "Campo Central",
       status: "checkin",
-      playersCheckedIn: 18
+      playersCheckedIn: 18,
+      invitedPlayerIds: ["1", "2", "3"]
     }
   ]);
 
+  const [teamLists, setTeamLists] = useState<TeamList[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [cancelDialogGame, setCancelDialogGame] = useState<Game | null>(null);
 
   const handlePlayerAdded = (playerData: Omit<Player, "id">) => {
     const newPlayer: Player = {
       ...playerData,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      checkedIn: false
     };
     setPlayers([...players, newPlayer]);
   };
 
-  const handleGameCreated = (gameData: Omit<Game, "id" | "status" | "playersCheckedIn">) => {
+  const handleGameCreated = (gameData: { 
+    title: string; 
+    date: string; 
+    time: string; 
+    location: string; 
+    description?: string; 
+    invitedPlayerIds: string[] 
+  }) => {
     const newGame: Game = {
-      ...gameData,
       id: Date.now().toString(),
+      ...gameData,
       status: "upcoming",
       playersCheckedIn: 0
     };
@@ -107,7 +130,35 @@ const Index = () => {
     setPlayers(players.filter(player => player.id !== playerId));
   };
 
-  const filteredPlayers = players.filter(player =>
+  const handleTeamListSave = (teamListData: Omit<TeamList, 'id' | 'createdAt'>) => {
+    const newTeamList: TeamList = {
+      id: Date.now().toString(),
+      ...teamListData,
+      createdAt: new Date()
+    };
+    setTeamLists([...teamLists, newTeamList]);
+  };
+
+  const handleTeamListDelete = (teamListId: string) => {
+    setTeamLists(teamLists.filter(tl => tl.id !== teamListId));
+  };
+
+  const handleCancelGame = (gameId: string, message: string) => {
+    setGames(games.map(game => 
+      game.id === gameId 
+        ? { ...game, status: "cancelled" as const }
+        : game
+    ));
+    
+    if (message) {
+      // Here you would normally send the message to invited players
+      console.log(`Mensagem de cancelamento enviada para ${cancelDialogGame?.invitedPlayerIds?.length || 0} jogadores: ${message}`);
+    }
+    
+    setCancelDialogGame(null);
+  };
+
+  const filteredPlayers = players.filter(player => 
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.position.toLowerCase().includes(searchTerm.toLowerCase())
@@ -164,7 +215,7 @@ const Index = () => {
                     nickname={player.nickname}
                     position={player.position}
                     phone={player.phone}
-                    checkedIn={player.checkedIn}
+                    checkedIn={player.checkedIn || false}
                     onCheckIn={() => handlePlayerCheckIn(player.id)}
                   />
                   <Button
@@ -197,7 +248,13 @@ const Index = () => {
         </Badge>
       </div>
 
-      <GameForm onGameCreated={handleGameCreated} />
+      <GameForm 
+        allPlayers={players}
+        teamLists={teamLists}
+        onGameCreated={handleGameCreated}
+        onTeamListSave={handleTeamListSave}
+        onTeamListDelete={handleTeamListDelete}
+      />
 
       <Card>
         <CardHeader>
@@ -219,12 +276,14 @@ const Index = () => {
                   time={game.time}
                   location={game.location}
                   playersCheckedIn={game.playersCheckedIn}
-                  totalPlayers={22}
+                  totalPlayers={game.invitedPlayerIds?.length || 22}
                   status={game.status}
                   timeLeft={game.status === "checkin" ? "2h 30min" : undefined}
+                  isAdmin={true}
                   onJoinGame={game.status === "checkin" ? () => {
                     console.log("Participar do jogo", game.id);
                   } : undefined}
+                  onCancelGame={() => setCancelDialogGame(game)}
                 />
               ))}
             </div>
@@ -247,6 +306,14 @@ const Index = () => {
         {currentView === "rankings" && <Rankings />}
         {currentView === "financial" && <FinancialControl />}
       </main>
+      
+      <CancelGameDialog
+        isOpen={!!cancelDialogGame}
+        onClose={() => setCancelDialogGame(null)}
+        onConfirm={(message) => handleCancelGame(cancelDialogGame!.id, message)}
+        gameTitle={cancelDialogGame?.title || ""}
+        invitedPlayersCount={cancelDialogGame?.invitedPlayerIds?.length || 0}
+      />
     </div>
   );
 };

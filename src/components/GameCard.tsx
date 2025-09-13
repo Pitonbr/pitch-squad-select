@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, Timer } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Timer, X } from "lucide-react";
 
 interface GameCardProps {
   title: string;
@@ -11,8 +11,10 @@ interface GameCardProps {
   playersCheckedIn: number;
   totalPlayers: number;
   timeLeft?: string;
-  status: "upcoming" | "checkin" | "closed" | "ongoing";
+  status: "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
   onJoinGame?: () => void;
+  onCancelGame?: () => void;
+  isAdmin?: boolean;
 }
 
 const statusConfig = {
@@ -31,6 +33,10 @@ const statusConfig = {
   ongoing: {
     badge: "bg-success text-success-foreground",
     text: "Em Andamento"
+  },
+  cancelled: {
+    badge: "bg-destructive text-destructive-foreground",
+    text: "Cancelado"
   }
 };
 
@@ -43,16 +49,30 @@ export function GameCard({
   totalPlayers, 
   timeLeft, 
   status,
-  onJoinGame 
+  onJoinGame,
+  onCancelGame,
+  isAdmin = false
 }: GameCardProps) {
   return (
     <Card className="smooth-transition hover:field-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-bold">{title}</CardTitle>
-          <Badge className={statusConfig[status].badge}>
-            {statusConfig[status].text}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={statusConfig[status].badge}>
+              {statusConfig[status].text}
+            </Badge>
+            {isAdmin && status !== "cancelled" && onCancelGame && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCancelGame}
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       
