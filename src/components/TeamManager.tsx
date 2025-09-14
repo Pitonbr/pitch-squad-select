@@ -1,0 +1,260 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { useTeams } from "@/hooks/useTeams";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Users, Plus, Crown, Copy, UserPlus, Share } from "lucide-react";
+
+export function TeamManager() {
+  const { createTeam, joinTeamByCode, userTeams, isTeamAdmin } = useTeams();
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    description: ""
+  });
+  
+  const [joinCode, setJoinCode] = useState("");
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.name.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const newTeam = await createTeam(createForm.name, createForm.description);
+      if (newTeam) {
+        setCreateForm({ name: "", description: "" });
+        setIsCreateDialogOpen(false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJoinTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const success = await joinTeamByCode(joinCode.trim());
+      if (success) {
+        setJoinCode("");
+        setIsJoinDialogOpen(false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const copyInviteCode = async (inviteCode: string, teamName: string) => {
+    const inviteUrl = `${window.location.origin}?invite=${inviteCode}`;
+    
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      toast({
+        title: "Link copiado!",
+        description: `Link de convite para ${teamName} copiado para a área de transferência.`
+      });
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = inviteUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      
+      toast({
+        title: "Link copiado!",
+        description: `Link de convite para ${teamName} copiado para a área de transferência.`
+      });
+    }
+  };
+
+  if (!profile) return null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Gerenciar Times</h2>
+          <p className="text-muted-foreground">
+            Crie novos times ou participe de times existentes
+          </p>
+        </div>
+        
+        <div className="flex space-x-2">
+          <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Entrar em Time
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Entrar em um Time</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleJoinTeam} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="join-code">Código de Convite</Label>
+                  <Input
+                    id="join-code"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    placeholder="Cole o código de convite aqui"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Entrando..." : "Entrar no Time"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Time
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Novo Time</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateTeam} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="team-name">Nome do Time *</Label>
+                  <Input
+                    id="team-name"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    placeholder="Ex: Atlético do João"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="team-description">Descrição (opcional)</Label>
+                  <Textarea
+                    id="team-description"
+                    value={createForm.description}
+                    onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                    placeholder="Descreva seu time..."
+                    rows={3}
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Criando..." : "Criar Time"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {userTeams.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum time encontrado</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Você ainda não faz parte de nenhum time. Crie um novo time ou entre em um existente.
+            </p>
+            <div className="flex space-x-2">
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Time
+              </Button>
+              <Button variant="outline" onClick={() => setIsJoinDialogOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Entrar em Time
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {userTeams.map((team) => (
+            <Card key={team.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="h-5 w-5" />
+                    <span>{team.name}</span>
+                  </CardTitle>
+                  {isTeamAdmin(team.id) && (
+                    <Badge variant="secondary">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Admin
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {team.description && (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {team.description}
+                  </p>
+                )}
+                
+                {isTeamAdmin(team.id) && (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-muted rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            Código de Convite
+                          </p>
+                          <p className="font-mono text-sm">{team.invite_code}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyInviteCode(team.invite_code, team.name)}
+                        >
+                          <Share className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => copyInviteCode(team.invite_code, team.name)}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Compartilhar Convite
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="mt-4 text-xs text-muted-foreground">
+                  Criado em {new Date(team.created_at).toLocaleDateString('pt-BR')}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

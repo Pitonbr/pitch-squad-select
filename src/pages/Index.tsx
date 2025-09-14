@@ -1,20 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
-import { Dashboard } from "@/components/Dashboard";
 import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { GameCard } from "@/components/GameCard";
+import { Dashboard } from "@/components/Dashboard";
 import { TournamentManager } from "@/components/TournamentManager";
 import { LiveGame } from "@/components/LiveGame";
 import { Rankings } from "@/components/Rankings";
 import { FinancialControl } from "@/components/FinancialControl";
 import { CancelGameDialog } from "@/components/CancelGameDialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, Search, Filter, Trash2 } from "lucide-react";
+import { TeamManager } from "@/components/TeamManager";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeams } from "@/hooks/useTeams";
+import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
 
 interface Player {
   id: string;
@@ -44,53 +48,66 @@ interface Game {
   invitedPlayerIds: string[];
 }
 
-type ViewType = "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial";
+type ViewType = "dashboard" | "players" | "games" | "tournaments" | "live" | "rankings" | "financial" | "teams";
 
-const Index = () => {
+export default function Index() {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const { activeTeam } = useTeams();
+  
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
-  const [players, setPlayers] = useState<Player[]>([
-    {
-      id: "1",
-      name: "Carlos Silva",
-      nickname: "Carlão",
-      position: "Atacante",
-      phone: "(11) 99999-0001",
-      checkedIn: true
-    },
-    {
-      id: "2", 
-      name: "João Santos",
-      nickname: "Joãozinho",
-      position: "Goleiro",
-      phone: "(11) 99999-0002",
-      checkedIn: false
-    },
-    {
-      id: "3",
-      name: "Pedro Costa",
-      nickname: "Pedrinho",
-      position: "Zagueiro", 
-      phone: "(11) 99999-0003",
-      checkedIn: true
-    }
-  ]);
-
-  const [games, setGames] = useState<Game[]>([
-    {
-      id: "1",
-      title: "Pelada da Galera - Sábado",
-      date: "2024-01-20",
-      time: "15:00",
-      location: "Campo Central",
-      status: "checkin",
-      playersCheckedIn: 18,
-      invitedPlayerIds: ["1", "2", "3"]
-    }
-  ]);
-
-  const [teamLists, setTeamLists] = useState<TeamList[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [cancelDialogGame, setCancelDialogGame] = useState<Game | null>(null);
+  const [gameToCancel, setGameToCancel] = useState<Game | null>(null);
+  const [teamLists, setTeamLists] = useState<TeamList[]>([]);
+
+  // Check authentication
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  // Check for invite code in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('invite');
+    if (inviteCode && user) {
+      // Auto-navigate to teams view with invite
+      setCurrentView("teams");
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="p-6">
+            <h1 className="text-2xl font-bold mb-4">⚽ Soccer Manager</h1>
+            <p className="text-muted-foreground mb-6">
+              Faça login para acessar o sistema de gerenciamento de futebol
+            </p>
+            <Button onClick={() => navigate("/auth")} className="w-full">
+              <LogIn className="h-4 w-4 mr-2" />
+              Fazer Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handlePlayerAdded = (playerData: Omit<Player, "id">) => {
     const newPlayer: Player = {
@@ -143,19 +160,20 @@ const Index = () => {
     setTeamLists(teamLists.filter(tl => tl.id !== teamListId));
   };
 
-  const handleCancelGame = (gameId: string, message: string) => {
+  const handleCancelGame = (message: string) => {
+    if (!gameToCancel) return;
+    
     setGames(games.map(game => 
-      game.id === gameId 
+      game.id === gameToCancel.id 
         ? { ...game, status: "cancelled" as const }
         : game
     ));
     
     if (message) {
-      // Here you would normally send the message to invited players
-      console.log(`Mensagem de cancelamento enviada para ${cancelDialogGame?.invitedPlayerIds?.length || 0} jogadores: ${message}`);
+      console.log(`Mensagem de cancelamento enviada para ${gameToCancel.invitedPlayerIds?.length || 0} jogadores: ${message}`);
     }
     
-    setCancelDialogGame(null);
+    setGameToCancel(null);
   };
 
   const filteredPlayers = players.filter(player => 
@@ -283,7 +301,7 @@ const Index = () => {
                   onJoinGame={game.status === "checkin" ? () => {
                     console.log("Participar do jogo", game.id);
                   } : undefined}
-                  onCancelGame={() => setCancelDialogGame(game)}
+                  onCancelGame={() => setGameToCancel(game)}
                 />
               ))}
             </div>
@@ -295,9 +313,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header currentView={currentView} onViewChange={setCurrentView} />
-      
-      <main className="container mx-auto px-4 py-6">
+      <Header 
+        currentView={currentView} 
+        onViewChange={setCurrentView}
+      />
+      <main className="container mx-auto px-4 py-8">
         {currentView === "dashboard" && <Dashboard />}
         {currentView === "players" && renderPlayersView()}
         {currentView === "games" && renderGamesView()}
@@ -305,17 +325,16 @@ const Index = () => {
         {currentView === "live" && <LiveGame />}
         {currentView === "rankings" && <Rankings />}
         {currentView === "financial" && <FinancialControl />}
+        {currentView === "teams" && <TeamManager />}
       </main>
-      
+
       <CancelGameDialog
-        isOpen={!!cancelDialogGame}
-        onClose={() => setCancelDialogGame(null)}
-        onConfirm={(message) => handleCancelGame(cancelDialogGame!.id, message)}
-        gameTitle={cancelDialogGame?.title || ""}
-        invitedPlayersCount={cancelDialogGame?.invitedPlayerIds?.length || 0}
+        isOpen={!!gameToCancel}
+        onClose={() => setGameToCancel(null)}
+        onConfirm={handleCancelGame}
+        gameTitle={gameToCancel?.title || ""}
+        invitedPlayersCount={gameToCancel?.invitedPlayerIds?.length || 0}
       />
     </div>
   );
-};
-
-export default Index;
+}
