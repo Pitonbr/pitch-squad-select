@@ -7,16 +7,12 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import { usePWA } from "./hooks/usePWA";
 import { AuthProvider } from "./hooks/useAuth";
 import { TeamsProvider } from "./hooks/useTeams";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Initialize PWA functionality
-  usePWA();
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
