@@ -14,7 +14,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 const queryClient = new QueryClient();
 
 const App = () => {
-  console.log('App: Rendering main app component');
+  console.log('App: Component loaded successfully - no usePWA hook');
   
   return (
     <ErrorBoundary>
