@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,13 +7,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { useTeams } from "@/hooks/useTeams";
+import { Eye, EyeOff, Mail, Lock, User, Phone, Users } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { joinTeamByCode } = useTeams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Check for invite code in URL
+  const inviteCode = searchParams.get('invite');
+  const [isInviteSignup, setIsInviteSignup] = useState(!!inviteCode);
   
   const [loginData, setLoginData] = useState({
     email: "",
@@ -37,6 +44,17 @@ export default function Auth() {
     };
     checkUser();
   }, [navigate]);
+
+  // Show invite info if invite code is present
+  useEffect(() => {
+    if (inviteCode) {
+      setIsInviteSignup(true);
+      toast({
+        title: "Convite Detectado! 🎉",
+        description: "Complete seu cadastro para entrar automaticamente no time.",
+      });
+    }
+  }, [inviteCode, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,14 +107,15 @@ export default function Auth() {
     try {
       const redirectUrl = `${window.location.origin}/`;
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
             display_name: signupData.displayName,
-            phone: signupData.phone
+            phone: signupData.phone,
+            invite_code: inviteCode // Store invite code in metadata
           }
         }
       });
@@ -118,10 +137,28 @@ export default function Auth() {
         return;
       }
 
-      toast({
-        title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta."
-      });
+      // If signup was successful and we have an invite code, try to join team
+      if (data.user && inviteCode) {
+        try {
+          // Wait a moment for the profile to be created
+          setTimeout(async () => {
+            const success = await joinTeamByCode(inviteCode);
+            if (success) {
+              toast({
+                title: "Cadastro completo! 🎉",
+                description: "Você foi adicionado ao time automaticamente. Verifique seu email para confirmar a conta."
+              });
+            }
+          }, 2000);
+        } catch (joinError) {
+          console.error('Error auto-joining team:', joinError);
+        }
+      } else {
+        toast({
+          title: "Cadastro realizado!",
+          description: "Verifique seu email para confirmar a conta."
+        });
+      }
 
       // Clear form
       setSignupData({
@@ -148,9 +185,15 @@ export default function Auth() {
           <CardTitle className="text-center text-2xl font-bold">
             ⚽ Soccer Manager
           </CardTitle>
+          {isInviteSignup && (
+            <div className="flex items-center justify-center space-x-2 mt-2 p-2 bg-primary/10 rounded-lg">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Cadastro via Convite</span>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={isInviteSignup ? "signup" : "login"} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Cadastro</TabsTrigger>

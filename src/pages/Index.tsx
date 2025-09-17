@@ -16,6 +16,7 @@ import { Rankings } from "@/components/Rankings";
 import { FinancialControl } from "@/components/FinancialControl";
 import { CancelGameDialog } from "@/components/CancelGameDialog";
 import { TeamManager } from "@/components/TeamManager";
+import { TeamOnboarding } from "@/components/TeamOnboarding";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
@@ -53,7 +54,7 @@ type ViewType = "dashboard" | "players" | "games" | "tournaments" | "live" | "ra
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { activeTeam } = useTeams();
+  const { activeTeam, loading: teamsLoading } = useTeams();
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
@@ -69,17 +70,7 @@ export default function Index() {
     }
   }, [user, loading, navigate]);
 
-  // Check for invite code in URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const inviteCode = urlParams.get('invite');
-    if (inviteCode && user) {
-      // Auto-navigate to teams view with invite
-      setCurrentView("teams");
-    }
-  }, [user]);
-
-  if (loading) {
+  if (loading || teamsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -107,6 +98,11 @@ export default function Index() {
         </Card>
       </div>
     );
+  }
+
+  // CRITICAL: Mandatory team association - Block access if no active team
+  if (!activeTeam) {
+    return <TeamOnboarding />;
   }
 
   const handlePlayerAdded = (playerData: Omit<Player, "id">) => {
