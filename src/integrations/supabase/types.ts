@@ -252,6 +252,120 @@ export type Database = {
           },
         ]
       }
+      tournament_matches: {
+        Row: {
+          created_at: string
+          id: string
+          is_return_leg: boolean | null
+          location: string | null
+          match_number: number
+          player1_id: string
+          player2_id: string | null
+          round: number
+          scheduled_date: string | null
+          scheduled_time: string | null
+          score1: number | null
+          score2: number | null
+          status: string
+          tournament_id: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_return_leg?: boolean | null
+          location?: string | null
+          match_number: number
+          player1_id: string
+          player2_id?: string | null
+          round: number
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          score1?: number | null
+          score2?: number | null
+          status?: string
+          tournament_id: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_return_leg?: boolean | null
+          location?: string | null
+          match_number?: number
+          player1_id?: string
+          player2_id?: string | null
+          round?: number
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          score1?: number | null
+          score2?: number | null
+          status?: string
+          tournament_id?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      tournament_participants: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string
+          tournament_id?: string
+        }
+        Relationships: []
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          team_id: string
+          tournament_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          team_id: string
+          tournament_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          team_id?: string
+          tournament_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
