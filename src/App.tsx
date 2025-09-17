@@ -14,7 +14,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 const queryClient = new QueryClient();
 
 const App = () => {
-  console.log('App: Cache cleared successfully - v2.0');
+  console.log('App: Tournament system loaded - v2.1');
   
   return (
     <ErrorBoundary>
