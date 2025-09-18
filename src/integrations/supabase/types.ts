@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          profile_id: string | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          profile_id?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          profile_id?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_participants: {
         Row: {
           game_id: string
@@ -371,6 +421,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_audit_log: {
+        Args: {
+          _action: string
+          _new_values?: Json
+          _old_values?: Json
+          _resource_id?: string
+          _resource_type: string
+        }
+        Returns: undefined
+      }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
@@ -387,6 +447,10 @@ export type Database = {
           team_id: string
           team_name: string
         }[]
+      }
+      mask_phone_number: {
+        Args: { _phone: string; _requesting_user_id: string; _team_id: string }
+        Returns: string
       }
     }
     Enums: {
