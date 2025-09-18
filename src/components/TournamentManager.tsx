@@ -67,9 +67,7 @@ export function TournamentManager() {
 
     try {
       const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .eq('team_id', activeTeam.id);
+        .rpc('get_team_players', { _team_id: activeTeam.id });
 
       if (error) throw error;
       setTeamPlayers(data || []);

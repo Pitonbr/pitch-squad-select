@@ -12,8 +12,12 @@ import {
   TrendingUp
 } from "lucide-react";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
+import { AuditLogs } from "@/components/AuditLogs";
+import { useTeams } from "@/hooks/useTeams";
 
 export function Dashboard() {
+  const { activeTeam, isTeamAdmin } = useTeams();
+  
   // Mock data do jogador logado
   const player = {
     name: "João Silva",
@@ -221,6 +225,11 @@ export function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Audit Logs for Team Admins */}
+      {activeTeam && isTeamAdmin(activeTeam.id) && (
+        <AuditLogs teamId={activeTeam.id} />
+      )}
     </div>
   );
 }
