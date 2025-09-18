@@ -379,6 +379,15 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      join_team_by_invite_code: {
+        Args: { _invite_code: string; _profile_id: string }
+        Returns: {
+          message: string
+          success: boolean
+          team_id: string
+          team_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

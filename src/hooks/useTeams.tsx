@@ -158,53 +158,29 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     if (!profile) return false;
 
     try {
-      // Find team by invite code
-      const { data: teamData, error: teamError } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('invite_code', inviteCode)
-        .single();
+      // Use secure function to join team by invite code
+      const { data, error } = await supabase
+        .rpc('join_team_by_invite_code', {
+          _invite_code: inviteCode,
+          _profile_id: profile.id
+        });
 
-      if (teamError || !teamData) {
+      if (error) throw error;
+
+      const result = data[0];
+      
+      if (!result.success) {
         toast({
-          title: "Código inválido",
-          description: "Código de convite não encontrado.",
+          title: "Não foi possível entrar no time",
+          description: result.message,
           variant: "destructive"
         });
         return false;
       }
-
-      // Check if user is already a member
-      const { data: existingMember } = await supabase
-        .from('team_members')
-        .select('id')
-        .eq('team_id', teamData.id)
-        .eq('profile_id', profile.id)
-        .single();
-
-      if (existingMember) {
-        toast({
-          title: "Já é membro",
-          description: "Você já faz parte deste time.",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      // Add user to team
-      const { error: joinError } = await supabase
-        .from('team_members')
-        .insert({
-          team_id: teamData.id,
-          profile_id: profile.id,
-          role: 'player'
-        });
-
-      if (joinError) throw joinError;
 
       toast({
         title: "Entrou no time!",
-        description: `Você agora faz parte do ${teamData.name}.`
+        description: result.message
       });
 
       // Refresh teams
