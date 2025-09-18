@@ -64,6 +64,47 @@ export type Database = {
           },
         ]
       }
+      financial_periods: {
+        Row: {
+          created_at: string
+          game_fee: number | null
+          id: string
+          monthly_fee: number | null
+          period_month: number
+          period_year: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          game_fee?: number | null
+          id?: string
+          monthly_fee?: number | null
+          period_month: number
+          period_year: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game_fee?: number | null
+          id?: string
+          monthly_fee?: number | null
+          period_month?: number
+          period_year?: number
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_periods_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_participants: {
         Row: {
           game_id: string
@@ -147,6 +188,96 @@ export type Database = {
           },
         ]
       }
+      payment_reminders: {
+        Row: {
+          id: string
+          message: string | null
+          player_payment_id: string
+          sent_at: string
+          sent_by: string
+        }
+        Insert: {
+          id?: string
+          message?: string | null
+          player_payment_id: string
+          sent_at?: string
+          sent_by: string
+        }
+        Update: {
+          id?: string
+          message?: string | null
+          player_payment_id?: string
+          sent_at?: string
+          sent_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_player_payment_id_fkey"
+            columns: ["player_payment_id"]
+            isOneToOne: false
+            referencedRelation: "player_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          financial_period_id: string
+          id: string
+          paid: boolean
+          payment_date: string | null
+          payment_type: string
+          player_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          financial_period_id: string
+          id?: string
+          paid?: boolean
+          payment_date?: string | null
+          payment_type: string
+          player_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          financial_period_id?: string
+          id?: string
+          paid?: boolean
+          payment_date?: string | null
+          payment_type?: string
+          player_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_payments_financial_period_id_fkey"
+            columns: ["financial_period_id"]
+            isOneToOne: false
+            referencedRelation: "financial_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_payments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           created_at: string
@@ -225,6 +356,60 @@ export type Database = {
         }
         Relationships: []
       }
+      team_expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string
+          expense_date: string
+          financial_period_id: string
+          id: string
+          paid: boolean
+          payment_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description: string
+          expense_date?: string
+          financial_period_id: string
+          id?: string
+          paid?: boolean
+          payment_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string
+          expense_date?: string
+          financial_period_id?: string
+          id?: string
+          paid?: boolean
+          payment_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_expenses_financial_period_id_fkey"
+            columns: ["financial_period_id"]
+            isOneToOne: false
+            referencedRelation: "financial_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -272,6 +457,7 @@ export type Database = {
           id: string
           invite_code: string
           name: string
+          treasurer_id: string | null
           updated_at: string
         }
         Insert: {
@@ -281,6 +467,7 @@ export type Database = {
           id?: string
           invite_code?: string
           name: string
+          treasurer_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -290,12 +477,20 @@ export type Database = {
           id?: string
           invite_code?: string
           name?: string
+          treasurer_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "teams_admin_id_fkey"
             columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_treasurer_id_fkey"
+            columns: ["treasurer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -445,11 +640,19 @@ export type Database = {
           updated_at: string
         }[]
       }
+      has_financial_admin_access: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
       is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_treasurer: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }

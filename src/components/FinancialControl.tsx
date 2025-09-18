@@ -1,226 +1,244 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   DollarSign, 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  Calendar,
   Plus,
   Trash2,
-  Calculator,
-  Users,
-  Calendar,
   MessageSquare,
-  TrendingUp,
-  TrendingDown,
   AlertCircle,
-  CheckCircle2,
-  PieChart
-} from "lucide-react";
+  ChevronLeft,
+  ChevronRight,
+  BarChart3
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useFinancialData } from '@/hooks/useFinancialData';
+import { TreasurerSelector } from './TreasurerSelector';
+import { useTeams } from '@/hooks/useTeams';
 
-interface Player {
-  id: string;
-  name: string;
-  phone: string;
-  isPaid: boolean;
-  amount: number;
-}
-
-interface Expense {
-  id: string;
-  description: string;
-  date: string;
-  amount: number;
-  paymentDate?: string;
-}
-
-interface FinancialPeriod {
-  month: number;
-  year: number;
-  players: Player[];
-  expenses: Expense[];
-  monthlyFee: number;
-  gameFee: number;
-}
-
-export function FinancialControl() {
-  const [currentPeriod, setCurrentPeriod] = useState<FinancialPeriod>({
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
-    players: [
-      { id: "1", name: "Carlos Silva", phone: "(11) 99999-0001", isPaid: true, amount: 50 },
-      { id: "2", name: "João Santos", phone: "(11) 99999-0002", isPaid: false, amount: 50 },
-      { id: "3", name: "Pedro Costa", phone: "(11) 99999-0003", isPaid: true, amount: 50 },
-    ],
-    expenses: [
-      { id: "1", description: "Aluguel do campo", date: "2024-01-05", amount: 200, paymentDate: "2024-01-05" },
-      { id: "2", description: "Bolas de futebol", date: "2024-01-10", amount: 80 },
-    ],
-    monthlyFee: 50,
-    gameFee: 20
-  });
+export const FinancialControl: React.FC = () => {
+  const { activeTeam } = useTeams();
+  const {
+    loading,
+    currentPeriod,
+    playerPayments,
+    teamExpenses,
+    isFinancialAdmin,
+    selectedYear,
+    selectedMonth,
+    setSelectedYear,
+    setSelectedMonth,
+    generatePlayerPayments,
+    togglePlayerPayment,
+    addExpense,
+    deleteExpense,
+    sendPaymentReminder,
+    getFinancialSummary
+  } = useFinancialData();
 
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [newExpense, setNewExpense] = useState({
-    description: "",
-    date: new Date().toISOString().split('T')[0],
-    amount: "",
-    paymentDate: ""
-  });
+  const [newExpense, setNewExpense] = useState({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
+  const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('monthly');
 
-  // Calculations
-  const totalIncome = currentPeriod.players.reduce((sum, player) => 
-    sum + (player.isPaid ? player.amount : 0), 0
-  );
-  
-  const expectedIncome = currentPeriod.players.reduce((sum, player) => 
-    sum + player.amount, 0
-  );
-  
-  const totalExpenses = currentPeriod.expenses.reduce((sum, expense) => 
-    sum + expense.amount, 0
-  );
-  
-  const paidExpenses = currentPeriod.expenses
-    .filter(expense => expense.paymentDate)
-    .reduce((sum, expense) => sum + expense.amount, 0);
-  
-  const paymentPercentage = expectedIncome > 0 ? (totalIncome / expectedIncome) * 100 : 0;
-  const balance = totalIncome - totalExpenses;
-  const unpaidPlayers = currentPeriod.players.filter(p => !p.isPaid);
+  if (!activeTeam) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">
+            Selecione um time para ver os dados financeiros
+          </h3>
+        </div>
+      </div>
+    );
+  }
 
-  const togglePlayerPayment = (playerId: string) => {
-    setCurrentPeriod({
-      ...currentPeriod,
-      players: currentPeriod.players.map(player =>
-        player.id === playerId ? { ...player, isPaid: !player.isPaid } : player
-      )
-    });
+  const summary = getFinancialSummary();
+
+  const handleAddExpense = () => {
+    if (!newExpense.description || !newExpense.amount) return;
+    
+    addExpense(
+      newExpense.description,
+      parseFloat(newExpense.amount),
+      newExpense.date
+    );
+    
+    setNewExpense({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
+    setShowAddExpense(false);
   };
 
-  const addExpense = () => {
-    if (newExpense.description.trim() && newExpense.amount) {
-      const expense: Expense = {
-        id: Date.now().toString(),
-        description: newExpense.description.trim(),
-        date: newExpense.date,
-        amount: parseFloat(newExpense.amount),
-        paymentDate: newExpense.paymentDate || undefined
-      };
-      
-      setCurrentPeriod({
-        ...currentPeriod,
-        expenses: [...currentPeriod.expenses, expense]
-      });
-      
-      setNewExpense({
-        description: "",
-        date: new Date().toISOString().split('T')[0],
-        amount: "",
-        paymentDate: ""
-      });
-      setShowAddExpense(false);
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      if (selectedMonth === 1) {
+        setSelectedMonth(12);
+        setSelectedYear(selectedYear - 1);
+      } else {
+        setSelectedMonth(selectedMonth - 1);
+      }
+    } else {
+      if (selectedMonth === 12) {
+        setSelectedMonth(1);
+        setSelectedYear(selectedYear + 1);
+      } else {
+        setSelectedMonth(selectedMonth + 1);
+      }
     }
   };
 
-  const deleteExpense = (expenseId: string) => {
-    setCurrentPeriod({
-      ...currentPeriod,
-      expenses: currentPeriod.expenses.filter(e => e.id !== expenseId)
-    });
-  };
-
-  const sendPaymentReminder = (player: Player) => {
-    // Simulate sending reminder
-    const message = `Olá ${player.name}! Lembrete: você tem um pagamento pendente de R$ ${player.amount.toFixed(2)}. Soccer Squad.`;
-    
-    // This would integrate with SMS/WhatsApp API
-    console.log(`Sending to ${player.phone}: ${message}`);
-    
-    // Show confirmation (you could add a toast notification)
-    alert(`Lembrete enviado para ${player.name}`);
+  const getMonthName = () => {
+    return format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy', { locale: ptBR });
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Controle Financeiro</h2>
-          <p className="text-muted-foreground">
-            Gerencie pagamentos e despesas do time - {new Date(currentPeriod.year, currentPeriod.month - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowAddExpense(true)}
-            variant="outline"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Despesa
-          </Button>
-        </div>
-      </div>
+      {/* Treasurer Configuration (Admin only) */}
+      <TreasurerSelector />
 
-      {/* Financial Overview */}
+      {/* Period Navigation and View Mode */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Período Financeiro
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(value: 'monthly' | 'annual') => setViewMode(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="annual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {viewMode === 'monthly' && (
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="text-lg font-semibold capitalize">
+                {getMonthName()}
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          {viewMode === 'annual' && (
+            <div className="text-center">
+              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                <SelectTrigger className="w-32 mx-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = new Date().getFullYear() - 2 + i;
+                    return (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Financial Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="field-gradient text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Recebido</p>
-                <p className="text-2xl font-bold">R$ {totalIncome.toFixed(2)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 opacity-80" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Atual</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              R$ {summary.totalIncome.toFixed(2)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              de R$ {summary.expectedIncome.toFixed(2)} esperado
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="hero-gradient text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Esperado</p>
-                <p className="text-2xl font-bold">R$ {expectedIncome.toFixed(2)}</p>
-              </div>
-              <Calculator className="h-8 w-8 opacity-80" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Esperada</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              R$ {summary.expectedIncome.toFixed(2)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {summary.totalPlayers} jogador(es)
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-destructive">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Despesas</p>
-                <p className="text-2xl font-bold text-destructive">R$ {totalExpenses.toFixed(2)}</p>
-              </div>
-              <TrendingDown className="h-8 w-8 text-destructive" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Despesas</CardTitle>
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              R$ {summary.totalExpenses.toFixed(2)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {teamExpenses.filter(e => e.paid).length} despesa(s) paga(s)
+            </p>
           </CardContent>
         </Card>
 
-        <Card className={balance >= 0 ? "border-success" : "border-warning"}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Saldo</p>
-                <p className={`text-2xl font-bold ${balance >= 0 ? "text-success" : "text-warning"}`}>
-                  R$ {balance.toFixed(2)}
-                </p>
-              </div>
-              <div className={`p-2 rounded-full ${balance >= 0 ? "bg-success/10" : "bg-warning/10"}`}>
-                {balance >= 0 ? (
-                  <CheckCircle2 className="h-6 w-6 text-success" />
-                ) : (
-                  <AlertCircle className="h-6 w-6 text-warning" />
-                )}
-              </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              R$ {summary.balance.toFixed(2)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Receita - Despesas
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -229,218 +247,294 @@ export function FinancialControl() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <PieChart className="h-5 w-5" />
-            Taxa de Pagamentos
+            <TrendingUp className="h-5 w-5" />
+            Progresso dos Pagamentos
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span>Pagamentos recebidos</span>
-              <Badge variant={paymentPercentage >= 80 ? "default" : paymentPercentage >= 60 ? "secondary" : "destructive"}>
-                {paymentPercentage.toFixed(1)}%
-              </Badge>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Jogadores que pagaram</span>
+              <span>{Math.round(summary.paymentPercentage)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  paymentPercentage >= 80 ? "bg-success" : 
-                  paymentPercentage >= 60 ? "bg-warning" : "bg-destructive"
-                }`}
-                style={{ width: `${paymentPercentage}%` }}
-              />
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {currentPeriod.players.filter(p => p.isPaid).length} de {currentPeriod.players.length} jogadores pagaram
+            <Progress value={summary.paymentPercentage} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{summary.paidPlayers} de {summary.totalPlayers} jogadores</span>
+              <span>R$ {summary.totalIncome.toFixed(2)} arrecadado</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Players Payment Status */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      {/* Player Payment Status */}
+      {isFinancialAdmin ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Status dos Pagamentos
+              Gestão de Pagamentos
             </CardTitle>
-            <Badge variant="outline">
-              {currentPeriod.players.length} jogadores
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {currentPeriod.players.map((player) => (
-              <div key={player.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={player.isPaid}
-                    onCheckedChange={() => togglePlayerPayment(player.id)}
-                  />
-                  <div>
-                    <p className="font-medium">{player.name}</p>
-                    <p className="text-sm text-muted-foreground">{player.phone}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">R$ {player.amount.toFixed(2)}</span>
-                  <Badge variant={player.isPaid ? "default" : "destructive"}>
-                    {player.isPaid ? "Pago" : "Pendente"}
-                  </Badge>
-                  {!player.isPaid && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => sendPaymentReminder(player)}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      Lembrar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Expenses Management */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Despesas do Mês
-            </CardTitle>
-            <Button onClick={() => setShowAddExpense(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {showAddExpense && (
-            <div className="mb-6 p-4 border rounded-lg space-y-4">
-              <h4 className="font-semibold">Nova Despesa</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Input
-                    value={newExpense.description}
-                    onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
-                    placeholder="Ex: Aluguel do campo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Valor (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newExpense.amount}
-                    onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-                    placeholder="0,00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data da Despesa</Label>
-                  <Input
-                    type="date"
-                    value={newExpense.date}
-                    onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data de Pagamento (opcional)</Label>
-                  <Input
-                    type="date"
-                    value={newExpense.paymentDate}
-                    onChange={(e) => setNewExpense({...newExpense, paymentDate: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={addExpense}>Adicionar Despesa</Button>
-                <Button variant="outline" onClick={() => setShowAddExpense(false)}>
-                  Cancelar
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {playerPayments.length} pagamentos
+              </Badge>
+              {currentPeriod && playerPayments.length === 0 && (
+                <Button
+                  onClick={generatePlayerPayments}
+                  size="sm"
+                  disabled={loading}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Gerar Pagamentos
                 </Button>
-              </div>
+              )}
             </div>
-          )}
-
-          <div className="space-y-3">
-            {currentPeriod.expenses.map((expense) => (
-              <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-medium">{expense.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Despesa: {new Date(expense.date).toLocaleDateString('pt-BR')}
-                        {expense.paymentDate && (
-                          <span> • Pago: {new Date(expense.paymentDate).toLocaleDateString('pt-BR')}</span>
-                        )}
-                      </p>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-muted rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : playerPayments.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {currentPeriod ? 'Clique em "Gerar Pagamentos" para começar' : 'Nenhum período financeiro encontrado'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {playerPayments.map((payment) => (
+                  <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <p className="font-medium">{payment.player?.name}</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {payment.payment_type === 'monthly_fee' ? 'Mensalidade' : 'Taxa do jogo'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={payment.paid ? "default" : "secondary"}>
+                        R$ {payment.amount.toFixed(2)}
+                      </Badge>
+                      <Switch
+                        checked={payment.paid}
+                        onCheckedChange={(checked) => togglePlayerPayment(payment.id, checked)}
+                        disabled={loading}
+                      />
+                      {!payment.paid && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => sendPaymentReminder(payment.id)}
+                          disabled={loading}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="font-medium text-destructive">R$ {expense.amount.toFixed(2)}</span>
-                  <Badge variant={expense.paymentDate ? "default" : "secondary"}>
-                    {expense.paymentDate ? "Pago" : "Pendente"}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deleteExpense(expense.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
-            {currentPeriod.expenses.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma despesa registrada neste período.</p>
+                ))}
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Unpaid Players Alert */}
-      {unpaidPlayers.length > 0 && (
-        <Card className="border-warning">
+          </CardContent>
+        </Card>
+      ) : (
+        // Regular players see only summary
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-warning">
-              <AlertCircle className="h-5 w-5" />
-              Atenção: {unpaidPlayers.length} Pagamento(s) Pendente(s)
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Resumo de Pagamentos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {unpaidPlayers.map((player) => (
-                <div key={player.id} className="flex items-center justify-between p-2 bg-warning/5 rounded">
-                  <span>{player.name} - R$ {player.amount.toFixed(2)}</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => sendPaymentReminder(player)}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    Enviar Lembrete
-                  </Button>
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {summary.paidPlayers}
                 </div>
-              ))}
+                <p className="text-sm text-green-600">Jogadores em dia</p>
+              </div>
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">
+                  {summary.totalPlayers - summary.paidPlayers}
+                </div>
+                <p className="text-sm text-red-600">Jogadores pendentes</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Expense Management */}
+      {isFinancialAdmin ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5" />
+              Controle de Despesas
+            </CardTitle>
+            <Button
+              onClick={() => setShowAddExpense(true)}
+              size="sm"
+              className="flex items-center gap-1"
+              disabled={!currentPeriod}
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add Expense Form */}
+            {showAddExpense && (
+              <div className="p-4 border rounded-lg bg-muted/30">
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="description">Descrição</Label>
+                    <Input
+                      id="description"
+                      placeholder="Ex: Aluguel do campo"
+                      value={newExpense.description}
+                      onChange={(e) => setNewExpense(prev => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="amount">Valor</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="0.00"
+                      step="0.01"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date">Data</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={newExpense.date}
+                      onChange={(e) => setNewExpense(prev => ({ ...prev, date: e.target.value }))}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleAddExpense}
+                      size="sm"
+                      disabled={!newExpense.description || !newExpense.amount || loading}
+                    >
+                      Adicionar
+                    </Button>
+                    <Button
+                      onClick={() => setShowAddExpense(false)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Expense List */}
+            {loading ? (
+              <div className="space-y-3">
+                {Array(2).fill(0).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-muted rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : teamExpenses.length === 0 ? (
+              <div className="text-center py-8">
+                <TrendingDown className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhuma despesa registrada</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {teamExpenses.map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{expense.description}</p>
+                        {expense.paid && (
+                          <Badge variant="outline" className="text-xs">
+                            Pago
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(expense.expense_date), 'dd/MM/yyyy', { locale: ptBR })}
+                        </span>
+                        {expense.payment_date && (
+                          <span className="text-green-600">
+                            Pago em {format(new Date(expense.payment_date), 'dd/MM/yyyy', { locale: ptBR })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={expense.paid ? "default" : "secondary"}>
+                        R$ {expense.amount.toFixed(2)}
+                      </Badge>
+                      <Button
+                        onClick={() => deleteExpense(expense.id)}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700"
+                        disabled={loading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        // Regular players see only expense summary
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5" />
+              Resumo de Despesas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600 mb-2">
+                R$ {summary.totalExpenses.toFixed(2)}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Total de despesas do período
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alerts and Notifications */}
+      {summary.totalPlayers - summary.paidPlayers > 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Atenção:</strong> {summary.totalPlayers - summary.paidPlayers} jogador(es) ainda não pagaram a mensalidade. 
+            {isFinancialAdmin && ' Considere enviar lembretes de pagamento.'}
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
-}
+};
