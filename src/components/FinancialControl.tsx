@@ -42,6 +42,7 @@ export const FinancialControl: React.FC = () => {
     currentPeriod,
     playerPayments,
     teamExpenses,
+    teamRevenues,
     isFinancialAdmin,
     selectedYear,
     selectedMonth,
@@ -51,12 +52,17 @@ export const FinancialControl: React.FC = () => {
     togglePlayerPayment,
     addExpense,
     deleteExpense,
+    addRevenue,
+    deleteRevenue,
+    toggleRevenueReceived,
     sendPaymentReminder,
     getFinancialSummary
   } = useFinancialData();
 
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [newExpense, setNewExpense] = useState({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
+  const [showAddRevenue, setShowAddRevenue] = useState(false);
+  const [newRevenue, setNewRevenue] = useState({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
   const [viewMode, setViewMode] = useState<'monthly' | 'annual'>('monthly');
 
   if (!activeTeam) {
@@ -85,6 +91,19 @@ export const FinancialControl: React.FC = () => {
     
     setNewExpense({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
     setShowAddExpense(false);
+  };
+
+  const handleAddRevenue = () => {
+    if (!newRevenue.description || !newRevenue.amount) return;
+    
+    addRevenue(
+      newRevenue.description,
+      parseFloat(newRevenue.amount),
+      newRevenue.date
+    );
+    
+    setNewRevenue({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
+    setShowAddRevenue(false);
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -184,7 +203,7 @@ export const FinancialControl: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Atual</CardTitle>
+            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -192,7 +211,7 @@ export const FinancialControl: React.FC = () => {
               R$ {summary.totalIncome.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              de R$ {summary.expectedIncome.toFixed(2)} esperado
+              Jogadores: R$ {summary.playerIncome.toFixed(2)} | Extras: R$ {summary.extraRevenue.toFixed(2)}
             </p>
           </CardContent>
         </Card>
@@ -519,6 +538,156 @@ export const FinancialControl: React.FC = () => {
               </div>
               <p className="text-sm text-muted-foreground">
                 Total de despesas do período
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Revenue Management */}
+      {isFinancialAdmin ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Controle de Receitas
+            </CardTitle>
+            <Button
+              onClick={() => setShowAddRevenue(true)}
+              size="sm"
+              className="flex items-center gap-1"
+              disabled={!currentPeriod}
+            >
+              <Plus className="h-4 w-4" />
+              Nova Receita
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add Revenue Form */}
+            {showAddRevenue && (
+              <div className="p-4 border rounded-lg bg-muted/30">
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="revenue-description">Descrição</Label>
+                    <Input
+                      id="revenue-description"
+                      placeholder="Ex: Patrocínio Empresa X, Venda de camisetas"
+                      value={newRevenue.description}
+                      onChange={(e) => setNewRevenue(prev => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="revenue-amount">Valor</Label>
+                    <Input
+                      id="revenue-amount"
+                      type="number"
+                      placeholder="0.00"
+                      step="0.01"
+                      value={newRevenue.amount}
+                      onChange={(e) => setNewRevenue(prev => ({ ...prev, amount: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="revenue-date">Data</Label>
+                    <Input
+                      id="revenue-date"
+                      type="date"
+                      value={newRevenue.date}
+                      onChange={(e) => setNewRevenue(prev => ({ ...prev, date: e.target.value }))}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleAddRevenue}
+                      size="sm"
+                      disabled={!newRevenue.description || !newRevenue.amount || loading}
+                    >
+                      Adicionar
+                    </Button>
+                    <Button
+                      onClick={() => setShowAddRevenue(false)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Revenue List */}
+            {loading ? (
+              <div className="space-y-3">
+                {Array(2).fill(0).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-muted rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : teamRevenues.length === 0 ? (
+              <div className="text-center py-8">
+                <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhuma receita extra registrada</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {teamRevenues.map((revenue) => (
+                  <div key={revenue.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{revenue.description}</p>
+                        {revenue.received && (
+                          <Badge variant="outline" className="text-xs">
+                            Recebido
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(revenue.revenue_date), "d 'de' MMMM, yyyy", { locale: ptBR })}
+                      </p>
+                      <p className="text-lg font-semibold text-green-600">
+                        R$ {revenue.amount.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={revenue.received}
+                        onCheckedChange={(checked) => toggleRevenueReceived(revenue.id, checked)}
+                        disabled={loading}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteRevenue(revenue.id)}
+                        disabled={loading}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        // Regular players see only revenue summary
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Resumo de Receitas Extras
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                R$ {summary.extraRevenue.toFixed(2)}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Total de receitas extras do período
               </p>
             </div>
           </CardContent>

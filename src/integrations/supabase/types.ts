@@ -656,6 +656,60 @@ export type Database = {
           },
         ]
       }
+      team_revenues: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string
+          financial_period_id: string
+          id: string
+          received: boolean
+          received_date: string | null
+          revenue_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description: string
+          financial_period_id: string
+          id?: string
+          received?: boolean
+          received_date?: string | null
+          revenue_date?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string
+          financial_period_id?: string
+          id?: string
+          received?: boolean
+          received_date?: string | null
+          revenue_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_revenues_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_revenues_financial_period_id_fkey"
+            columns: ["financial_period_id"]
+            isOneToOne: false
+            referencedRelation: "financial_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           admin_id: string

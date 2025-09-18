@@ -40,8 +40,21 @@ interface TeamExpense {
   created_by: string;
 }
 
+interface TeamRevenue {
+  id: string;
+  financial_period_id: string;
+  description: string;
+  amount: number;
+  revenue_date: string;
+  received: boolean;
+  received_date: string | null;
+  created_by: string;
+}
+
 interface FinancialSummary {
   totalIncome: number;
+  playerIncome: number;
+  extraRevenue: number;
   expectedIncome: number;
   totalExpenses: number;
   balance: number;
@@ -57,6 +70,7 @@ export const useFinancialData = () => {
   const [currentPeriod, setCurrentPeriod] = useState<FinancialPeriod | null>(null);
   const [playerPayments, setPlayerPayments] = useState<PlayerPayment[]>([]);
   const [teamExpenses, setTeamExpenses] = useState<TeamExpense[]>([]);
+  const [teamRevenues, setTeamRevenues] = useState<TeamRevenue[]>([]);
   const [isFinancialAdmin, setIsFinancialAdmin] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -130,7 +144,8 @@ export const useFinancialData = () => {
       if (period) {
         await Promise.all([
           loadPlayerPayments(period.id),
-          loadTeamExpenses(period.id)
+          loadTeamExpenses(period.id),
+          loadTeamRevenues(period.id)
         ]);
       }
     } catch (error) {
@@ -184,6 +199,21 @@ export const useFinancialData = () => {
       setTeamExpenses(data || []);
     } catch (error) {
       console.error('Error loading team expenses:', error);
+    }
+  };
+
+  const loadTeamRevenues = async (periodId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('team_revenues')
+        .select('*')
+        .eq('financial_period_id', periodId)
+        .order('revenue_date', { ascending: false });
+
+      if (error) throw error;
+      setTeamRevenues(data || []);
+    } catch (error) {
+      console.error('Error loading team revenues:', error);
     }
   };
 
@@ -339,6 +369,109 @@ export const useFinancialData = () => {
     }
   };
 
+  const addRevenue = async (description: string, amount: number, revenueDate: string) => {
+    if (!currentPeriod || !isFinancialAdmin || !user) return;
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error('Profile not found');
+
+      const { data, error } = await supabase
+        .from('team_revenues')
+        .insert({
+          financial_period_id: currentPeriod.id,
+          description,
+          amount,
+          revenue_date: revenueDate,
+          created_by: profile.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setTeamRevenues(prev => [data, ...prev]);
+      toast({
+        title: 'Sucesso',
+        description: 'Receita adicionada com sucesso!'
+      });
+    } catch (error) {
+      console.error('Error adding revenue:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao adicionar receita.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const deleteRevenue = async (revenueId: string) => {
+    if (!isFinancialAdmin) return;
+
+    try {
+      const { error } = await supabase
+        .from('team_revenues')
+        .delete()
+        .eq('id', revenueId);
+
+      if (error) throw error;
+
+      setTeamRevenues(prev => prev.filter(revenue => revenue.id !== revenueId));
+      toast({
+        title: 'Sucesso',
+        description: 'Receita removida com sucesso!'
+      });
+    } catch (error) {
+      console.error('Error deleting revenue:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao remover receita.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const toggleRevenueReceived = async (revenueId: string, received: boolean) => {
+    if (!isFinancialAdmin) return;
+
+    try {
+      const { error } = await supabase
+        .from('team_revenues')
+        .update({ 
+          received,
+          received_date: received ? new Date().toISOString().split('T')[0] : null
+        })
+        .eq('id', revenueId);
+
+      if (error) throw error;
+
+      setTeamRevenues(prev => 
+        prev.map(revenue => 
+          revenue.id === revenueId 
+            ? { ...revenue, received, received_date: received ? new Date().toISOString().split('T')[0] : null }
+            : revenue
+        )
+      );
+
+      toast({
+        title: 'Sucesso',
+        description: `Receita ${received ? 'confirmada como recebida' : 'marcada como pendente'}!`
+      });
+    } catch (error) {
+      console.error('Error updating revenue:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao atualizar receita.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const sendPaymentReminder = async (paymentId: string) => {
     if (!isFinancialAdmin || !user) return;
 
@@ -377,7 +510,9 @@ export const useFinancialData = () => {
 
   // Calculate financial summary
   const getFinancialSummary = (): FinancialSummary => {
-    const totalIncome = playerPayments.filter(p => p.paid).reduce((sum, p) => sum + p.amount, 0);
+    const playerIncome = playerPayments.filter(p => p.paid).reduce((sum, p) => sum + p.amount, 0);
+    const extraRevenue = teamRevenues.filter(r => r.received).reduce((sum, r) => sum + r.amount, 0);
+    const totalIncome = playerIncome + extraRevenue;
     const expectedIncome = playerPayments.reduce((sum, p) => sum + p.amount, 0);
     const totalExpenses = teamExpenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
     const balance = totalIncome - totalExpenses;
@@ -388,6 +523,8 @@ export const useFinancialData = () => {
 
     return {
       totalIncome,
+      playerIncome,
+      extraRevenue,
       expectedIncome,
       totalExpenses,
       balance,
@@ -402,6 +539,7 @@ export const useFinancialData = () => {
     currentPeriod,
     playerPayments,
     teamExpenses,
+    teamRevenues,
     isFinancialAdmin,
     selectedYear,
     selectedMonth,
@@ -412,6 +550,9 @@ export const useFinancialData = () => {
     togglePlayerPayment,
     addExpense,
     deleteExpense,
+    addRevenue,
+    deleteRevenue,
+    toggleRevenueReceived,
     sendPaymentReminder,
     getFinancialSummary
   };
