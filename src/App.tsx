@@ -14,7 +14,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 const queryClient = new QueryClient();
 
 const App = () => {
-  console.log('App: Tournament system loaded - v2.1');
+  console.log('App: Tournament system loaded - v2.2 - PWA fixed');
   
   return (
     <ErrorBoundary>
