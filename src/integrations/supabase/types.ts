@@ -98,6 +98,13 @@ export type Database = {
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "game_participants_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       games: {
@@ -418,7 +425,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      players_view: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+          nickname: string | null
+          phone: string | null
+          position: string | null
+          profile_id: string | null
+          team_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          nickname?: string | null
+          phone?: never
+          position?: string | null
+          profile_id?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          nickname?: string | null
+          phone?: never
+          position?: string | null
+          profile_id?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_audit_log: {
@@ -430,6 +487,20 @@ export type Database = {
           _resource_type: string
         }
         Returns: undefined
+      }
+      get_team_players: {
+        Args: { _team_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          nickname: string
+          phone: string
+          position: string
+          profile_id: string
+          team_id: string
+          updated_at: string
+        }[]
       }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
