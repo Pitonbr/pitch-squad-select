@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import { UpdatePrompt } from "./components/UpdatePrompt";
+import UpdatePrompt from "./components/UpdatePrompt";
 import { AuthProvider } from "./hooks/useAuth";
 import { TeamsProvider } from "./hooks/useTeams";
 import { SafeProvider } from "./components/SafeProvider";

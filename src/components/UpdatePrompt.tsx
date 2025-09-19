@@ -10,7 +10,7 @@ interface UpdatePromptProps {
   onUpdateComplete?: () => void;
 }
 
-export function UpdatePrompt({ onUpdateComplete }: UpdatePromptProps) {
+function UpdatePrompt({ onUpdateComplete }: UpdatePromptProps) {
   const [showUpdate, setShowUpdate] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateType, setUpdateType] = useState<'optional' | 'critical'>('optional');
@@ -242,3 +242,5 @@ export function UpdatePrompt({ onUpdateComplete }: UpdatePromptProps) {
     </div>
   );
 }
+
+export default UpdatePrompt;
