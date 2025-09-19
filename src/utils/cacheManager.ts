@@ -64,6 +64,7 @@ export class CacheManager {
         console.log('CacheManager: Version mismatch detected, clearing caches...');
         this.clearAllCaches().then(() => {
           console.log('CacheManager: Cache cleared due to version update');
+          this.notifyUpdateApplied();
         });
       } else {
         // Just update the version timestamp
@@ -86,12 +87,95 @@ export class CacheManager {
             timestamp: new Date().toISOString(),
             suggestion: 'Clear browser cache or try incognito mode'
           }));
+          
+          // Auto-attempt to fix cache issues
+          this.attemptCacheFix();
         }
       });
+
+      // Listen for online/offline events
+      window.addEventListener('online', this.handleOnline.bind(this));
+      window.addEventListener('offline', this.handleOffline.bind(this));
 
     } catch (error) {
       console.error('CacheManager: Initialization failed:', error);
     }
+  }
+
+  /**
+   * Handle coming back online
+   */
+  private static handleOnline(): void {
+    console.log('CacheManager: Back online, checking for updates...');
+    
+    // Dispatch custom event for update service
+    window.dispatchEvent(new CustomEvent('connection-restored'));
+    
+    // Check for pending updates
+    this.checkForPendingUpdates();
+  }
+
+  /**
+   * Handle going offline
+   */
+  private static handleOffline(): void {
+    console.log('CacheManager: Gone offline');
+    
+    // Save current state for offline recovery
+    sessionStorage.setItem('offlineTimestamp', Date.now().toString());
+  }
+
+  /**
+   * Attempt to fix cache-related issues automatically
+   */
+  private static async attemptCacheFix(): Promise<void> {
+    try {
+      console.log('CacheManager: Attempting automatic cache fix...');
+      
+      // Clear problematic caches first
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        const problematicCaches = cacheNames.filter(name => 
+          name.includes('workbox') || name.includes('precache')
+        );
+        
+        await Promise.all(
+          problematicCaches.map(cacheName => caches.delete(cacheName))
+        );
+      }
+      
+      // Force refresh after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('CacheManager: Auto-fix failed:', error);
+    }
+  }
+
+  /**
+   * Check for pending updates when coming back online
+   */
+  private static checkForPendingUpdates(): void {
+    // Dispatch event to trigger update check
+    window.dispatchEvent(new CustomEvent('check-for-updates'));
+  }
+
+  /**
+   * Notify that an update has been applied
+   */
+  private static notifyUpdateApplied(): void {
+    const updateInfo = {
+      timestamp: Date.now(),
+      version: this.CURRENT_VERSION,
+      type: 'cache-cleared'
+    };
+    
+    localStorage.setItem('lastUpdate', JSON.stringify(updateInfo));
+    
+    // Dispatch event for UI components
+    window.dispatchEvent(new CustomEvent('update-applied', { detail: updateInfo }));
   }
 
   /**

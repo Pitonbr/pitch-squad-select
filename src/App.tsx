@@ -7,10 +7,12 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 import { AuthProvider } from "./hooks/useAuth";
 import { TeamsProvider } from "./hooks/useTeams";
 import { SafeProvider } from "./components/SafeProvider";
 import { useErrorDetection } from "./components/SafeProvider";
+import { useUpdateService } from "./hooks/useUpdateService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,10 +32,13 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App: Tournament system loaded - v3.0 - Comprehensive error fixes applied');
+  console.log('App: Tournament system loaded - v3.1.0 - Update system implemented');
   
   // Initialize error detection
   useErrorDetection();
+  
+  // Initialize update service
+  const { updateAvailable, updateInfo, applyUpdate } = useUpdateService();
   
   return (
     <SafeProvider
@@ -56,6 +61,11 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <PWAInstallPrompt />
+                {updateAvailable && updateInfo && (
+                  <UpdatePrompt 
+                    onUpdateComplete={() => applyUpdate(updateInfo)}
+                  />
+                )}
               </BrowserRouter>
             </TeamsProvider>
           </AuthProvider>
