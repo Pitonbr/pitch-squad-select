@@ -425,6 +425,60 @@ export type Database = {
           },
         ]
       }
+      player_requests: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          jersey_number: number | null
+          name: string
+          nickname: string
+          phone: string
+          player_position: string
+          profile_image: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          jersey_number?: number | null
+          name: string
+          nickname: string
+          phone: string
+          player_position: string
+          profile_image?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          jersey_number?: number | null
+          name?: string
+          nickname?: string
+          phone?: string
+          player_position?: string
+          profile_image?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_statistics: {
         Row: {
           assists: number | null
@@ -488,34 +542,43 @@ export type Database = {
       players: {
         Row: {
           created_at: string
+          email: string | null
           id: string
+          jersey_number: number | null
           name: string
           nickname: string
           phone: string
           position: string
           profile_id: string
+          profile_image: string | null
           team_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
+          jersey_number?: number | null
           name: string
           nickname: string
           phone: string
           position: string
           profile_id: string
+          profile_image?: string | null
           team_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
+          jersey_number?: number | null
           name?: string
           nickname?: string
           phone?: string
           position?: string
           profile_id?: string
+          profile_image?: string | null
           team_id?: string
           updated_at?: string
         }
@@ -910,6 +973,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_player_request: {
+        Args: { _request_id: string }
+        Returns: {
+          message: string
+          player_id: string
+          success: boolean
+        }[]
+      }
       auto_cleanup_verification_codes: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -943,6 +1014,21 @@ export type Database = {
           success: boolean
           team_id: string
           team_name: string
+        }[]
+      }
+      get_pending_player_requests: {
+        Args: { _team_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          jersey_number: number
+          name: string
+          nickname: string
+          phone: string
+          player_position: string
+          profile_image: string
+          requested_by_name: string
         }[]
       }
       get_team_financial_summary: {
@@ -1007,6 +1093,13 @@ export type Database = {
       mask_phone_number: {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }
         Returns: string
+      }
+      reject_player_request: {
+        Args: { _reason?: string; _request_id: string }
+        Returns: {
+          message: string
+          success: boolean
+        }[]
       }
       request_sms_verification: {
         Args: {

@@ -17,6 +17,7 @@ import { FinancialControl } from "@/components/FinancialControl";
 import { CancelGameDialog } from "@/components/CancelGameDialog";
 import { TeamManager } from "@/components/TeamManager";
 import { TeamOnboarding } from "@/components/TeamOnboarding";
+import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
@@ -27,6 +28,9 @@ interface Player {
   nickname: string;
   position: string;
   phone: string;
+  email?: string;
+  jersey_number?: number;
+  profile_image?: string;
   checkedIn?: boolean;
 }
 
@@ -225,12 +229,16 @@ export default function Index() {
               {filteredPlayers.map((player) => (
                 <div key={player.id} className="relative">
                   <PlayerCard
+                    id={player.id}
                     name={player.name}
                     nickname={player.nickname}
                     position={player.position}
                     phone={player.phone}
+                    email={player.email}
+                    jersey_number={player.jersey_number}
+                    profile_image={player.profile_image}
                     checkedIn={player.checkedIn || false}
-                    onCheckIn={() => handlePlayerCheckIn(player.id)}
+                    onCheckIn={handlePlayerCheckIn}
                   />
                   <Button
                     variant="ghost"

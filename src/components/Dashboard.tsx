@@ -207,14 +207,25 @@ export function Dashboard() {
         </div>
         <CardContent className="relative -mt-8 pb-6">
           <div className="flex items-center space-x-4">
-            <Avatar className="w-16 h-16 border-4 border-background">
-              <AvatarFallback className="text-lg font-bold">
-                {playerProfile.name.split(' ').map((n: string) => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
+            <div className="text-center">
+              <Avatar className="w-16 h-16 border-4 border-background mx-auto">
+                <AvatarImage src={playerProfile.profile_image} alt={playerProfile.name} />
+                <AvatarFallback className="text-lg font-bold">
+                  {playerProfile.jersey_number || playerProfile.name.split(' ').map((n: string) => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              {playerProfile.jersey_number && (
+                <Badge variant="outline" className="mt-1 font-bold text-xs">
+                  #{playerProfile.jersey_number}
+                </Badge>
+              )}
+            </div>
             <div>
               <h1 className="text-2xl font-bold">{playerProfile.name}</h1>
               <p className="text-muted-foreground">"{playerProfile.nickname}" • {playerProfile.position}</p>
+              {playerProfile.email && (
+                <p className="text-sm text-muted-foreground">{playerProfile.email}</p>
+              )}
             </div>
           </div>
         </CardContent>

@@ -7,19 +7,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, Phone, User, MapPin, Mail, Hash, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-interface PlayerFormData {
+interface PlayerRequestFormData {
   name: string;
   nickname: string;
   position: string;
   phone: string;
   email: string;
-  jersey_number: number | string;
-  profile_image?: string;
+  jersey_number: string;
 }
 
-interface PlayerFormProps {
-  onPlayerAdded: (player: PlayerFormData) => void;
+interface PlayerRequestFormProps {
+  teamId: string;
+  onRequestSubmitted: () => void;
 }
 
 const positions = [
@@ -31,9 +32,10 @@ const positions = [
   "Atacante"
 ];
 
-export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
+export function PlayerRequestForm({ teamId, onRequestSubmitted }: PlayerRequestFormProps) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState<PlayerFormData>({
+  const { profile } = useAuth();
+  const [formData, setFormData] = useState<PlayerRequestFormData>({
     name: "",
     nickname: "",
     position: "",
@@ -42,11 +44,10 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
     jersey_number: ""
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleImageUpload = async (file: File): Promise<string | null> => {
     try {
-      setUploading(true);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -72,8 +73,6 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
         variant: "destructive"
       });
       return null;
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -82,40 +81,78 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
     
     if (!formData.name || !formData.nickname || !formData.position || !formData.phone || !formData.email) {
       toast({
-        title: "Erro no cadastro",
+        title: "Erro na solicitação",
         description: "Por favor, preencha todos os campos obrigatórios.",
         variant: "destructive"
       });
       return;
     }
 
-    let profileImageUrl = formData.profile_image;
-    if (imageFile) {
-      profileImageUrl = await handleImageUpload(imageFile);
-      if (!profileImageUrl) return;
+    if (!profile) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para fazer essa solicitação.",
+        variant: "destructive"
+      });
+      return;
     }
 
-    const playerData = {
-      ...formData,
-      profile_image: profileImageUrl
-    };
+    setSubmitting(true);
 
-    onPlayerAdded(playerData);
-    
-    setFormData({
-      name: "",
-      nickname: "", 
-      position: "",
-      phone: "",
-      email: "",
-      jersey_number: ""
-    });
-    setImageFile(null);
+    try {
+      let profileImageUrl = null;
+      if (imageFile) {
+        profileImageUrl = await handleImageUpload(imageFile);
+        if (!profileImageUrl) {
+          setSubmitting(false);
+          return;
+        }
+      }
 
-    toast({
-      title: "Jogador cadastrado!",
-      description: `${formData.name} foi adicionado à lista de jogadores.`,
-    });
+      const { error } = await supabase
+        .from('player_requests')
+        .insert({
+          team_id: teamId,
+          name: formData.name,
+          nickname: formData.nickname,
+          player_position: formData.position,
+          phone: formData.phone,
+          email: formData.email,
+          jersey_number: formData.jersey_number ? parseInt(formData.jersey_number) : null,
+          profile_image: profileImageUrl,
+          requested_by: profile.id
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Solicitação enviada!",
+        description: "Sua solicitação foi enviada para o administrador do time.",
+      });
+
+      setFormData({
+        name: "",
+        nickname: "",
+        position: "",
+        phone: "",
+        email: "",
+        jersey_number: ""
+      });
+      setImageFile(null);
+      onRequestSubmitted();
+
+    } catch (error: any) {
+      console.error('Error submitting request:', error);
+      toast({
+        title: "Erro ao enviar solicitação",
+        description: error.message || "Não foi possível enviar a solicitação.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -123,7 +160,7 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <UserPlus className="h-5 w-5 text-primary" />
-          <span>Cadastrar Novo Jogador</span>
+          <span>Solicitar Entrada no Time</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -244,9 +281,9 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
             )}
           </div>
 
-          <Button type="submit" className="w-full field-gradient font-semibold" disabled={uploading}>
+          <Button type="submit" className="w-full field-gradient font-semibold" disabled={submitting}>
             <UserPlus className="h-4 w-4 mr-2" />
-            {uploading ? "Fazendo upload..." : "Cadastrar Jogador"}
+            {submitting ? "Enviando..." : "Enviar Solicitação"}
           </Button>
         </form>
       </CardContent>
