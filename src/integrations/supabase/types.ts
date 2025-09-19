@@ -563,6 +563,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_verification_codes: {
+        Row: {
+          attempts: number
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          user_data: Json
+          verified: boolean
+        }
+        Insert: {
+          attempts?: number
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone: string
+          user_data: Json
+          verified?: boolean
+        }
+        Update: {
+          attempts?: number
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          user_data?: Json
+          verified?: boolean
+        }
+        Relationships: []
+      }
       team_expenses: {
         Row: {
           amount: number
@@ -877,6 +910,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_audit_log: {
         Args: {
           _action: string
@@ -929,6 +966,27 @@ export type Database = {
       mask_phone_number: {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }
         Returns: string
+      }
+      request_sms_verification: {
+        Args: {
+          _display_name: string
+          _email: string
+          _password: string
+          _phone: string
+        }
+        Returns: {
+          message: string
+          success: boolean
+          verification_id: string
+        }[]
+      }
+      verify_sms_code: {
+        Args: { _code: string; _verification_id: string }
+        Returns: {
+          message: string
+          success: boolean
+          user_data: Json
+        }[]
       }
     }
     Enums: {

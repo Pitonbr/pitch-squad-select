@@ -44,19 +44,26 @@ export const SMSVerification = ({
   const sendSMSCode = async () => {
     try {
       setResendLoading(true);
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Store code in session storage temporarily
-      sessionStorage.setItem("sms_verification_code", verificationCode);
-      sessionStorage.setItem("sms_verification_phone", phone);
-      
-      const response = await supabase.functions.invoke("send-sms-verification", {
-        body: { phone, code: verificationCode },
+      const response = await supabase.functions.invoke("send-sms-verification/request", {
+        body: { 
+          phone, 
+          email, 
+          password, 
+          displayName 
+        },
       });
 
       if (response.error) {
         throw new Error(response.error.message);
       }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || "Erro ao solicitar verificação");
+      }
+
+      // Store verification ID
+      sessionStorage.setItem("sms_verification_id", response.data.verificationId);
 
       toast({
         title: "SMS enviado!",
@@ -69,7 +76,7 @@ export const SMSVerification = ({
       console.error("Error sending SMS:", error);
       toast({
         title: "Erro ao enviar SMS",
-        description: "Não foi possível enviar o código. Tente novamente.",
+        description: error.message || "Não foi possível enviar o código. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -87,20 +94,37 @@ export const SMSVerification = ({
 
     setLoading(true);
     try {
-      const storedCode = sessionStorage.getItem("sms_verification_code");
-      const storedPhone = sessionStorage.getItem("sms_verification_phone");
+      const verificationId = sessionStorage.getItem("sms_verification_id");
 
-      if (!storedCode || !storedPhone || storedPhone !== phone || code !== storedCode) {
-        throw new Error("Código inválido ou expirado");
+      if (!verificationId) {
+        throw new Error("ID de verificação não encontrado");
       }
 
-      // Create user account
+      // Verify SMS code via secure function
+      const response = await supabase.functions.invoke("send-sms-verification/verify", {
+        body: { 
+          verificationId, 
+          code 
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || "Código inválido");
+      }
+
+      const userData = response.data.userData;
+
+      // Create user account with verified data
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: userData.email,
+        password: userData.password,
         options: {
           data: {
-            display_name: displayName,
+            display_name: userData.display_name,
             phone: phone,
             verified_by_sms: true,
           },
@@ -110,8 +134,7 @@ export const SMSVerification = ({
       if (error) throw error;
 
       // Clear stored verification data
-      sessionStorage.removeItem("sms_verification_code");
-      sessionStorage.removeItem("sms_verification_phone");
+      sessionStorage.removeItem("sms_verification_id");
 
       toast({
         title: "Verificação bem-sucedida!",
