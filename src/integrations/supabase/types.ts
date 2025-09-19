@@ -910,6 +910,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_cleanup_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_expired_verification_codes: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -962,6 +966,10 @@ export type Database = {
           team_id: string
           team_name: string
         }[]
+      }
+      log_sensitive_operation: {
+        Args: { _action: string; _details?: Json }
+        Returns: undefined
       }
       mask_phone_number: {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }

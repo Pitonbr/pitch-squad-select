@@ -40,6 +40,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (path.endsWith("/request") && req.method === "POST") {
       const { phone, email, password, displayName }: SMSRequestBody = await req.json();
 
+      // Log security event
+      console.log("SMS verification request:", { 
+        phone: phone?.substring(0, 6) + "***", 
+        timestamp: new Date().toISOString() 
+      });
+
       // Validate inputs
       if (!phone || !email || !password || !displayName) {
         return new Response(
@@ -116,6 +122,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Verify SMS code
     if (path.endsWith("/verify") && req.method === "POST") {
       const { verificationId, code }: SMSVerifyBody = await req.json();
+
+      // Log verification attempt
+      console.log("SMS verification attempt:", { 
+        verificationId: verificationId?.substring(0, 8) + "***", 
+        timestamp: new Date().toISOString() 
+      });
 
       if (!verificationId || !code) {
         return new Response(
