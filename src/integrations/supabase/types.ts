@@ -64,6 +64,45 @@ export type Database = {
           },
         ]
       }
+      email_delivery_logs: {
+        Row: {
+          created_at: string
+          delivery_status: string
+          email_address: string
+          email_domain: string
+          email_provider: string | null
+          error_message: string | null
+          id: string
+          retry_count: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_status: string
+          email_address: string
+          email_domain: string
+          email_provider?: string | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_status?: string
+          email_address?: string
+          email_domain?: string
+          email_provider?: string | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       financial_periods: {
         Row: {
           created_at: string
@@ -1016,6 +1055,16 @@ export type Database = {
           team_name: string
         }[]
       }
+      get_email_delivery_stats: {
+        Args: { _days_back?: number }
+        Returns: {
+          email_domain: string
+          failed_deliveries: number
+          success_rate: number
+          successful_deliveries: number
+          total_attempts: number
+        }[]
+      }
       get_pending_player_requests: {
         Args: { _team_id: string }
         Returns: {
@@ -1085,6 +1134,17 @@ export type Database = {
           team_id: string
           team_name: string
         }[]
+      }
+      log_email_delivery: {
+        Args: {
+          _delivery_status: string
+          _email_address: string
+          _email_provider?: string
+          _error_message?: string
+          _retry_count?: number
+          _user_id: string
+        }
+        Returns: string
       }
       log_sensitive_operation: {
         Args: { _action: string; _details?: Json }
