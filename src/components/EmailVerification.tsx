@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, RefreshCw, CheckCircle } from "lucide-react";
+import { Mail, RefreshCw, CheckCircle, AlertTriangle } from "lucide-react";
+import { useEmailService } from "@/hooks/useEmailService";
 
 interface EmailVerificationProps {
   email: string;
@@ -26,7 +27,10 @@ export const EmailVerification = ({
   const [emailSent, setEmailSent] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const { sendCustomEmail, sendSupabaseAuthEmail } = useEmailService();
 
   // Timer for resend button
   useEffect(() => {
@@ -38,56 +42,75 @@ export const EmailVerification = ({
     }
   }, [timeLeft, emailSent]);
 
-  // Send confirmation email
+  // Enhanced email sending with better error handling
   const sendConfirmationEmail = async () => {
     setLoading(true);
+    setEmailError(null);
+    
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      console.log(`📧 Starting email verification process for: ${email}`);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            display_name: displayName,
-            invite_code: inviteCode,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      // Send custom email
-      if (data.user && !data.user.email_confirmed_at) {
+      // First, handle Supabase auth signup
+      const authData = await sendSupabaseAuthEmail(email, password, displayName, inviteCode);
+      
+      if (authData.user && !authData.user.email_confirmed_at) {
+        console.log("👤 User created, sending custom confirmation email...");
+        
         const confirmationUrl = `${window.location.origin}/auth?confirm=true`;
         
-        try {
-          await supabase.functions.invoke("send-custom-email", {
-            body: {
-              to: email,
-              confirmationUrl,
-              displayName,
-            },
+        // Use enhanced email service
+        const emailResult = await sendCustomEmail(email, confirmationUrl, displayName);
+        
+        if (emailResult.success) {
+          setEmailSent(true);
+          setTimeLeft(60);
+          setCanResend(false);
+          setRetryCount(0);
+          
+          // Domain-specific success messages are handled in useEmailService
+        } else {
+          // Custom email failed, log but don't fail the whole process
+          console.warn("❌ Custom email failed:", emailResult.error);
+          setEmailError(emailResult.error || "Falha no envio do email personalizado");
+          
+          // Still mark as sent since Supabase auth worked
+          setEmailSent(true);
+          setTimeLeft(60);
+          setCanResend(false);
+          
+          toast({
+            title: "Cadastro realizado!",
+            description: `Verifique sua caixa de entrada. ${emailResult.error || ''}`,
+            variant: emailResult.retryable ? "default" : "destructive",
           });
-        } catch (emailError) {
-          console.warn("Custom email failed, fallback to Supabase default:", emailError);
         }
+      } else if (authData.user?.email_confirmed_at) {
+        // Email already confirmed
+        console.log("✅ Email already confirmed");
+        toast({
+          title: "Email já confirmado!",
+          description: "Redirecionando...",
+        });
+        setTimeout(onSuccess, 1000);
       }
-
-      setEmailSent(true);
-      setTimeLeft(60);
-      setCanResend(false);
-
-      toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para confirmar o cadastro.",
-      });
+      
     } catch (error: any) {
-      console.error("Error during signup:", error);
+      console.error("❌ Error during signup process:", error);
+      
+      let errorMessage = "Ocorreu um erro inesperado.";
+      
+      if (error.message?.includes("User already registered")) {
+        errorMessage = "Este email já está cadastrado. Tente fazer login.";
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Email inválido. Verifique o formato.";
+      } else if (error.message?.includes("Password")) {
+        errorMessage = "Senha deve ter pelo menos 6 caracteres.";
+      }
+      
+      setEmailError(errorMessage);
       toast({
         title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -153,13 +176,37 @@ export const EmailVerification = ({
         <div className="space-y-3">
           <Button
             variant="outline"
-            onClick={sendConfirmationEmail}
+            onClick={() => {
+              setRetryCount(prev => prev + 1);
+              sendConfirmationEmail();
+            }}
             disabled={!canResend || loading}
             className="w-full"
           >
             {loading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-            {canResend ? "Reenviar Email" : `Reenviar em ${timeLeft}s`}
+            {canResend ? `Reenviar Email ${retryCount > 0 ? `(${retryCount + 1}ª tentativa)` : ''}` : `Reenviar em ${timeLeft}s`}
           </Button>
+
+          {/* Error message display */}
+          {emailError && (
+            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-destructive">
+                <p className="font-medium">Problema no envio:</p>
+                <p>{emailError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Domain-specific tips */}
+          {email.includes('@gmail.com') && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Dica para Gmail:</strong> Emails podem demorar até 5 minutos. 
+                Verifique também a pasta "Promoções" e "Spam".
+              </p>
+            </div>
+          )}
 
           <Button
             variant="ghost"
