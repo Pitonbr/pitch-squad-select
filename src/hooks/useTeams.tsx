@@ -8,6 +8,7 @@ interface Team {
   name: string;
   description: string | null;
   admin_id: string;
+  treasurer_id: string | null;
   invite_code: string;
   created_at: string;
   updated_at: string;
@@ -79,6 +80,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             name,
             description,
             admin_id,
+            treasurer_id,
             invite_code,
             created_at,
             updated_at
@@ -107,137 +109,44 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   };
 
   const createTeam = async (name: string, description?: string): Promise<Team | null> => {
-    // Enhanced authentication checks with detailed logging
-    console.log('useTeams: Starting team creation process', {
+    console.log('[useTeams] Creating team using secure function...', {
       hasProfile: !!profile,
-      hasUser: !!user,
       profileId: profile?.id,
-      userId: user?.id,
-      profileUserId: profile?.user_id
-    });
-
-    if (!profile) {
-      console.error('useTeams: Cannot create team - no profile available');
-      toast({
-        title: "Erro de autenticação",
-        description: "Perfil de usuário não encontrado. Tente fazer login novamente.",
-        variant: "destructive"
-      });
-      return null;
-    }
-
-    if (!user) {
-      console.error('useTeams: Cannot create team - no user available');
-      toast({
-        title: "Erro de autenticação", 
-        description: "Usuário não autenticado. Tente fazer login novamente.",
-        variant: "destructive"
-      });
-      return null;
-    }
-
-    // Verify session is active
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.error('useTeams: Cannot create team - no active session');
-      toast({
-        title: "Sessão expirada",
-        description: "Sua sessão expirou. Faça login novamente.",
-        variant: "destructive"
-      });
-      return null;
-    }
-
-    console.log('useTeams: Authentication verified, proceeding with team creation', {
-      sessionValid: !!session,
-      profileId: profile.id,
+      hasSession: !!session,
+      sessionId: session?.user?.id,
       teamName: name
     });
 
-    return await createTeamWithRetry(name, description, profile, 0);
-  };
-
-  const createTeamWithRetry = async (
-    name: string, 
-    description: string | undefined, 
-    userProfile: typeof profile,
-    retryCount: number
-  ): Promise<Team | null> => {
-    const maxRetries = 2;
-    
-    try {
-      console.log(`useTeams: Creating team attempt ${retryCount + 1}/${maxRetries + 1}`, {
-        name,
-        adminId: userProfile?.id,
-        hasProfile: !!userProfile
-      });
-
-      // Create team
-      const { data: teamData, error: teamError } = await supabase
-        .from('teams')
-        .insert({
-          name,
-          description,
-          admin_id: userProfile!.id
-        })
-        .select()
-        .single();
-
-      if (teamError) {
-        console.error('useTeams: Team creation error:', teamError);
-        
-        // If it's a RLS policy error and we have retries left, wait and retry
-        if (teamError.code === '42501' && retryCount < maxRetries) {
-          console.log(`useTeams: RLS policy error, retrying in ${(retryCount + 1) * 1000}ms...`);
-          await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
-          return createTeamWithRetry(name, description, userProfile, retryCount + 1);
-        }
-        
-        throw teamError;
-      }
-
-      console.log('useTeams: Team created successfully', teamData);
-
-      // Add creator as team member with admin role
-      const { error: memberError } = await supabase
-        .from('team_members')
-        .insert({
-          team_id: teamData.id,
-          profile_id: userProfile!.id,
-          role: 'admin'
-        });
-
-      if (memberError) {
-        console.error('useTeams: Team member creation error:', memberError);
-        throw memberError;
-      }
-
-      console.log('useTeams: Team member added successfully');
-
+    if (!session?.user) {
+      console.error('[useTeams] No authenticated session found');
       toast({
-        title: "Time criado!",
-        description: `${name} foi criado com sucesso.`
+        title: "Erro de autenticação",
+        description: "Sessão não encontrada. Faça login novamente.",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      console.log('[useTeams] Calling create_team_secure function...');
+
+      // Use the secure function instead of direct insert
+      const { data, error } = await supabase.rpc('create_team_secure', {
+        _team_name: name,
+        _team_description: description || null
       });
 
-      // Refresh teams
-      await refreshTeams();
-
-      return teamData;
-    } catch (error: any) {
-      console.error('useTeams: Error in createTeamWithRetry:', {
-        error,
-        retryCount,
-        maxRetries,
-        code: error.code,
-        message: error.message
-      });
-
-      // If we've exhausted retries, show error
-      if (retryCount >= maxRetries) {
-        let errorMessage = "Não foi possível criar o time.";
+      if (error) {
+        console.error('[useTeams] Error calling secure function:', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         
-        if (error.code === '42501') {
-          errorMessage = "Erro de permissão. Verifique se você está autenticado corretamente.";
+        let errorMessage = "Não foi possível criar o time.";
+        if (error.message.includes('não autenticado')) {
+          errorMessage = "Usuário não autenticado. Faça login novamente.";
         } else if (error.message) {
           errorMessage = error.message;
         }
@@ -250,17 +159,65 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      // If we have retries left and it's a retryable error, retry
-      if (error.code === '42501' || error.message?.includes('permission')) {
-        console.log(`useTeams: Retryable error, attempting retry ${retryCount + 1}...`);
-        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
-        return createTeamWithRetry(name, description, userProfile, retryCount + 1);
+      console.log('[useTeams] Secure function response:', data);
+
+      if (!data || data.length === 0) {
+        toast({
+          title: "Erro ao criar time",
+          description: "Nenhum dado retornado do servidor.",
+          variant: "destructive"
+        });
+        return null;
       }
 
-      // Non-retryable error
+      const result = data[0];
+      
+      if (!result.success) {
+        console.error('[useTeams] Team creation failed:', result.message);
+        toast({
+          title: "Erro ao criar time",
+          description: result.message,
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      console.log('[useTeams] Team created successfully via secure function:', result);
+
+      toast({
+        title: "Time criado!",
+        description: `${result.team_name} foi criado com sucesso.`
+      });
+
+      // Refresh teams to get the updated list
+      await refreshTeams();
+      
+      // Find and set the new team as active
+      const newTeam = userTeams.find(team => team.id === result.team_id);
+      if (newTeam) {
+        setActiveTeam(newTeam);
+        return newTeam;
+      }
+      
+      // Fallback - create a team object if not found in userTeams yet
+      const fallbackTeam = {
+        id: result.team_id,
+        name: result.team_name,
+        description: description || null,
+        admin_id: profile?.id || '',
+        treasurer_id: null,
+        invite_code: '', // Will be loaded when teams refresh
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setActiveTeam(fallbackTeam);
+      return fallbackTeam;
+    } catch (error: any) {
+      console.error('[useTeams] Final error in createTeam:', error);
       toast({
         title: "Erro ao criar time",
-        description: error.message || "Não foi possível criar o time.",
+        description: "Falha inesperada ao criar o time. Tente novamente.",
         variant: "destructive"
       });
       return null;

@@ -936,6 +936,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_team_secure: {
+        Args: { _team_description?: string; _team_name: string }
+        Returns: {
+          message: string
+          success: boolean
+          team_id: string
+          team_name: string
+        }[]
+      }
       get_team_financial_summary: {
         Args: { _period_month: number; _period_year: number; _team_id: string }
         Returns: {
