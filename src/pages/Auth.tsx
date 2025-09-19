@@ -1,64 +1,62 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useTeams } from "@/hooks/useTeams";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Eye, EyeOff, Mail, User, Phone, MessageSquare } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { SMSVerification } from "@/components/SMSVerification";
+import { EmailVerification } from "@/components/EmailVerification";
 
-export default function Auth() {
+type VerificationMethod = 'email' | 'sms' | null;
+type AuthStep = 'auth' | 'verification';
+
+const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { joinTeamByCode } = useTeams();
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Check for invite code in URL
-  const inviteCode = searchParams.get('invite');
-  const [isInviteSignup, setIsInviteSignup] = useState(!!inviteCode);
-  
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: ""
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [signupData, setSignupData] = useState({ 
+    email: "", 
+    password: "", 
+    displayName: "", 
+    phone: "" 
   });
+  const [authStep, setAuthStep] = useState<AuthStep>('auth');
+  const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>(null);
 
-  const [signupData, setSignupData] = useState({
-    email: "",
-    password: "",
-    displayName: "",
-    phone: ""
-  });
-
+  // Check for existing session and invite code
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         navigate("/");
       }
     };
-    checkUser();
-  }, [navigate]);
+    checkSession();
 
-  // Show invite info if invite code is present
-  useEffect(() => {
-    if (inviteCode) {
-      setIsInviteSignup(true);
+    // Check for invite code
+    const invite = searchParams.get('invite');
+    if (invite) {
+      setInviteCode(invite);
       toast({
         title: "Convite Detectado! 🎉",
         description: "Complete seu cadastro para entrar automaticamente no time.",
       });
     }
-  }, [inviteCode, toast]);
+  }, [navigate, searchParams, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -96,236 +94,289 @@ export default function Auth() {
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleVerificationMethodSelect = (method: VerificationMethod) => {
+    setVerificationMethod(method);
+    setAuthStep('verification');
+  };
 
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-
-      const { data, error } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            display_name: signupData.displayName,
-            phone: signupData.phone,
-            invite_code: inviteCode // Store invite code in metadata
-          }
-        }
-      });
-
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          toast({
-            title: "Erro no cadastro",
-            description: "Este email já está cadastrado. Tente fazer login.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Erro no cadastro",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
-        return;
-      }
-
-      // If signup was successful and we have an invite code, try to join team
-      if (data.user && inviteCode) {
+  const handleVerificationSuccess = () => {
+    toast({
+      title: "Cadastro concluído!",
+      description: "Bem-vindo ao Soccer Manager!",
+    });
+    
+    // Handle invite code if present
+    if (inviteCode) {
+      setTimeout(async () => {
         try {
-          // Wait a moment for the profile to be created
-          setTimeout(async () => {
-            const success = await joinTeamByCode(inviteCode);
-            if (success) {
-              toast({
-                title: "Cadastro completo! 🎉",
-                description: "Você foi adicionado ao time automaticamente. Verifique seu email para confirmar a conta."
-              });
-            }
-          }, 2000);
-        } catch (joinError) {
-          console.error('Error auto-joining team:', joinError);
-        }
-      } else {
-        toast({
-          title: "Cadastro realizado!",
-          description: "Verifique seu email para confirmar a conta."
-        });
-      }
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("user_id", user.id)
+              .single();
 
-      // Clear form
-      setSignupData({
-        email: "",
-        password: "",
-        displayName: "",
-        phone: ""
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro no cadastro",
-        description: "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+            if (profileData) {
+              const { data: joinResult } = await supabase.rpc("join_team_by_invite_code", {
+                _invite_code: inviteCode,
+                _profile_id: profileData.id,
+              });
+
+              if (joinResult && joinResult.length > 0 && joinResult[0].success) {
+                toast({
+                  title: "Entrou no time!",
+                  description: `Você foi adicionado ao time ${joinResult[0].team_name}`,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error joining team:", error);
+        }
+      }, 1000);
     }
+    
+    navigate("/");
   };
+
+  const handleBackToAuth = () => {
+    setAuthStep('auth');
+    setVerificationMethod(null);
+  };
+
+  // Render verification step
+  if (authStep === 'verification') {
+    if (verificationMethod === 'sms') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+          <SMSVerification
+            phone={signupData.phone}
+            email={signupData.email}
+            password={signupData.password}
+            displayName={signupData.displayName}
+            onSuccess={handleVerificationSuccess}
+            onBack={handleBackToAuth}
+          />
+        </div>
+      );
+    }
+
+    if (verificationMethod === 'email') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+          <EmailVerification
+            email={signupData.email}
+            password={signupData.password}
+            displayName={signupData.displayName}
+            inviteCode={inviteCode || undefined}
+            onSuccess={handleVerificationSuccess}
+            onBack={handleBackToAuth}
+          />
+        </div>
+      );
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            ⚽ Soccer Manager
-          </CardTitle>
-          {isInviteSignup && (
-            <div className="flex items-center justify-center space-x-2 mt-2 p-2 bg-primary/10 rounded-lg">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Cadastro via Convite</span>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue={isInviteSignup ? "signup" : "login"} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Cadastro</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email" className="flex items-center space-x-1">
-                    <Mail className="h-3 w-3" />
-                    <span>Email</span>
-                  </Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-full mb-4">
+            <span className="text-2xl">⚽</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Soccer Manager</h1>
+          <p className="text-gray-600 mt-2">Gerencie seu time de futebol</p>
+        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="login-password" className="flex items-center space-x-1">
-                    <Lock className="h-3 w-3" />
-                    <span>Senha</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="login-password"
-                      type={showPassword ? "text" : "password"}
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      placeholder="Sua senha"
-                      required
-                    />
-                    <button
+        <Card>
+          <Tabs defaultValue="login" value={inviteCode ? "signup" : undefined}>
+            <CardHeader>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Entrar</TabsTrigger>
+                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              </TabsList>
+            </CardHeader>
+
+            <CardContent>
+              <TabsContent value="login" className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={loginData.email}
+                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Sua senha"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        className="pr-10"
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Entrar
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Nome</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="signup-name"
+                        type="text"
+                        placeholder="Seu nome"
+                        value={signupData.displayName}
+                        onChange={(e) => setSignupData({ ...signupData, displayName: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={signupData.email}
+                        onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Telefone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        placeholder="+55 11 99999-9999"
+                        value={signupData.phone}
+                        onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Sua senha"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                        className="pr-10"
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-4">
+                    <Label className="text-base font-medium">Como deseja confirmar seu cadastro?</Label>
+                    
+                    <Button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      variant="outline"
+                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
+                      onClick={() => handleVerificationMethodSelect('email')}
+                      disabled={!signupData.email || !signupData.password || !signupData.displayName}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                      <Mail className="h-6 w-6 text-blue-600" />
+                      <div className="text-center">
+                        <div className="font-medium">Por Email</div>
+                        <div className="text-sm text-muted-foreground">
+                          Receba um link de confirmação
+                        </div>
+                      </div>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
+                      onClick={() => handleVerificationMethodSelect('sms')}
+                      disabled={!signupData.phone || !signupData.email || !signupData.password || !signupData.displayName}
+                    >
+                      <MessageSquare className="h-6 w-6 text-green-600" />
+                      <div className="text-center">
+                        <div className="font-medium">Por SMS</div>
+                        <div className="text-sm text-muted-foreground">
+                          Receba um código no seu celular
+                        </div>
+                      </div>
+                    </Button>
                   </div>
                 </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Entrando..." : "Entrar"}
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name" className="flex items-center space-x-1">
-                    <User className="h-3 w-3" />
-                    <span>Nome Completo</span>
-                  </Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    value={signupData.displayName}
-                    onChange={(e) => setSignupData({ ...signupData, displayName: e.target.value })}
-                    placeholder="Seu nome completo"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-phone" className="flex items-center space-x-1">
-                    <Phone className="h-3 w-3" />
-                    <span>Celular</span>
-                  </Label>
-                  <Input
-                    id="signup-phone"
-                    type="tel"
-                    value={signupData.phone}
-                    onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                    placeholder="(11) 99999-9999"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="flex items-center space-x-1">
-                    <Mail className="h-3 w-3" />
-                    <span>Email</span>
-                  </Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="flex items-center space-x-1">
-                    <Lock className="h-3 w-3" />
-                    <span>Senha</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      placeholder="Mínimo 6 caracteres"
-                      minLength={6}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Cadastrando..." : "Criar Conta"}
-                </Button>
-              </form>
-            </TabsContent>
+              </TabsContent>
+            </CardContent>
           </Tabs>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default Auth;
