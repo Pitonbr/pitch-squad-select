@@ -58,7 +58,7 @@ type ViewType = "dashboard" | "players" | "games" | "tournaments" | "live" | "ra
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { activeTeam, loading: teamsLoading } = useTeams();
+  const { activeTeam, loading: teamsLoading, isTeamAdmin } = useTeams();
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
@@ -109,10 +109,18 @@ export default function Index() {
     return <TeamOnboarding />;
   }
 
-  const handlePlayerAdded = (playerData: Omit<Player, "id">) => {
+  const handlePlayerAdded = (playerData: any) => {
     const newPlayer: Player = {
-      ...playerData,
       id: Date.now().toString(),
+      name: playerData.name,
+      nickname: playerData.nickname,
+      position: playerData.position,
+      phone: playerData.phone,
+      email: playerData.email,
+      jersey_number: typeof playerData.jersey_number === 'string' 
+        ? (playerData.jersey_number ? parseInt(playerData.jersey_number) : undefined)
+        : playerData.jersey_number,
+      profile_image: playerData.profile_image,
       checkedIn: false
     };
     setPlayers([...players, newPlayer]);
@@ -195,6 +203,8 @@ export default function Index() {
         </Badge>
       </div>
 
+      {isTeamAdmin(activeTeam.id) && <PlayerRequestsManager />}
+      
       <PlayerForm onPlayerAdded={handlePlayerAdded} />
 
       <Card>
