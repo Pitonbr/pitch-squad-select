@@ -15,6 +15,7 @@ interface EmailRequest {
   to: string;
   confirmationUrl: string;
   displayName?: string;
+  retryAttempt?: number;
 }
 
 const handler = async (req: Request): Promise<Response> => {
