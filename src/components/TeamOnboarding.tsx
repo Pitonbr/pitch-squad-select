@@ -12,7 +12,7 @@ import { Users, Plus, Search, Key } from "lucide-react";
 
 export function TeamOnboarding() {
   const { createTeam, joinTeamByCode } = useTeams();
-  const { profile } = useAuth();
+  const { profile, user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -30,10 +30,38 @@ export function TeamOnboarding() {
     e.preventDefault();
     if (!createForm.name.trim()) return;
     
+    // Enhanced pre-creation checks
+    if (!profile) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Perfil não carregado. Aguarde ou faça login novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user || !session) {
+      toast({
+        title: "Erro de autenticação", 
+        description: "Sessão não encontrada. Faça login novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('TeamOnboarding: Starting team creation with checks passed', {
+      hasProfile: !!profile,
+      hasUser: !!user, 
+      hasSession: !!session,
+      profileId: profile.id,
+      teamName: createForm.name
+    });
+    
     setIsLoading(true);
     try {
       const team = await createTeam(createForm.name, createForm.description);
       if (team) {
+        console.log('TeamOnboarding: Team created successfully', team);
         setIsCreateDialogOpen(false);
         setCreateForm({ name: "", description: "" });
       }
@@ -113,8 +141,8 @@ export function TeamOnboarding() {
                     <Button type="button" variant="outline" className="flex-1" onClick={() => setIsCreateDialogOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit" className="flex-1" disabled={isLoading || !createForm.name.trim()}>
-                      {isLoading ? "Criando..." : "Criar Time"}
+                    <Button type="submit" className="flex-1" disabled={isLoading || !createForm.name.trim() || !profile || !user || !session || authLoading}>
+                      {isLoading ? "Criando..." : authLoading ? "Carregando..." : "Criar Time"}
                     </Button>
                   </div>
                 </form>

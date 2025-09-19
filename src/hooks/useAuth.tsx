@@ -64,9 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retryCount = 0): Promise<void> => {
     try {
-      console.log('useAuth: Fetching profile for user', userId);
+      console.log('useAuth: Fetching profile for user', userId, `(attempt ${retryCount + 1})`);
+      
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
@@ -75,15 +76,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         console.error('useAuth: Error fetching profile:', error);
+        
+        // If profile doesn't exist and this is first attempt, try to create it
+        if (error.code === 'PGRST116' && retryCount === 0) {
+          console.log('useAuth: Profile not found, attempting to create one...');
+          await createProfileForUser(userId);
+          // Retry fetching after creation
+          return fetchProfile(userId, retryCount + 1);
+        }
         return;
       }
       
-      console.log('useAuth: Profile fetched', profileData);
+      if (!profileData && retryCount < 2) {
+        console.log('useAuth: Profile is null, retrying in 500ms...');
+        setTimeout(() => fetchProfile(userId, retryCount + 1), 500);
+        return;
+      }
+      
+      console.log('useAuth: Profile fetched successfully', profileData);
       setProfile(profileData);
     } catch (error) {
       console.error('useAuth: Exception fetching profile:', error);
     } finally {
-      setLoading(false);
+      if (retryCount === 0) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const createProfileForUser = async (userId: string) => {
+    try {
+      console.log('useAuth: Creating profile for user', userId);
+      
+      // Get current user's metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          display_name: user.user_metadata?.display_name || user.email,
+          phone: user.user_metadata?.phone
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('useAuth: Error creating profile:', error);
+        return;
+      }
+
+      console.log('useAuth: Profile created successfully', data);
+    } catch (error) {
+      console.error('useAuth: Exception creating profile:', error);
     }
   };
 
