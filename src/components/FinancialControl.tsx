@@ -27,13 +27,15 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  Shield
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { TreasurerSelector } from './TreasurerSelector';
 import { useTeams } from '@/hooks/useTeams';
+import { SecureFinancialSummary } from './SecureFinancialSummary';
 
 export const FinancialControl: React.FC = () => {
   const { activeTeam } = useTeams();
@@ -74,6 +76,90 @@ export const FinancialControl: React.FC = () => {
             Selecione um time para ver os dados financeiros
           </h3>
         </div>
+      </div>
+    );
+  }
+
+  // Show secure view for regular team members
+  if (!isFinancialAdmin) {
+    return (
+      <div className="space-y-6">
+        {/* Header with period selector */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Shield className="h-6 w-6 text-primary" />
+              Resumo Financeiro
+            </h2>
+            <p className="text-muted-foreground">
+              Visão geral das finanças do time - {format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy', { locale: ptBR })}
+            </p>
+          </div>
+          
+          {/* Period Selector */}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (selectedMonth === 1) {
+                  setSelectedMonth(12);
+                  setSelectedYear(selectedYear - 1);
+                } else {
+                  setSelectedMonth(selectedMonth - 1);
+                }
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex gap-2">
+              <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                    <SelectItem key={month} value={month.toString()}>
+                      {format(new Date(2024, month - 1), 'MMM', { locale: ptBR })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (selectedMonth === 12) {
+                  setSelectedMonth(1);
+                  setSelectedYear(selectedYear + 1);
+                } else {
+                  setSelectedMonth(selectedMonth + 1);
+                }
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Secure Financial Summary */}
+        <SecureFinancialSummary />
       </div>
     );
   }

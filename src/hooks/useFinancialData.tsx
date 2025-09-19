@@ -61,6 +61,17 @@ interface FinancialSummary {
   paymentPercentage: number;
   paidPlayers: number;
   totalPlayers: number;
+  // New fields from secure aggregation
+  totalPlayersWithPayments?: number;
+  playersPaidCount?: number;
+  totalCollected?: number;
+  totalExpected?: number;
+  expenseCount?: number;
+  expensesPaid?: number;
+  revenueCount?: number;
+  revenueReceived?: number;
+  totalExpectedRevenue?: number;
+  currentBalance?: number;
 }
 
 export const useFinancialData = () => {
@@ -161,6 +172,13 @@ export const useFinancialData = () => {
   };
 
   const loadPlayerPayments = async (periodId: string) => {
+    // Only financial admins can access detailed payment data
+    if (!isFinancialAdmin) {
+      console.log('Access denied: detailed payment data restricted to financial admins');
+      setPlayerPayments([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('player_payments')
@@ -173,7 +191,15 @@ export const useFinancialData = () => {
         `)
         .eq('financial_period_id', periodId);
 
-      if (error) throw error;
+      if (error) {
+        // If access is denied, clear data and show appropriate message
+        if (error.code === 'PGRST116' || error.message.includes('permission')) {
+          console.log('Financial data access restricted');
+          setPlayerPayments([]);
+          return;
+        }
+        throw error;
+      }
       
       const formattedPayments = data?.map(payment => ({
         ...payment,
@@ -184,10 +210,18 @@ export const useFinancialData = () => {
       setPlayerPayments(formattedPayments);
     } catch (error) {
       console.error('Error loading player payments:', error);
+      setPlayerPayments([]);
     }
   };
 
   const loadTeamExpenses = async (periodId: string) => {
+    // Only financial admins can access detailed expense data
+    if (!isFinancialAdmin) {
+      console.log('Access denied: detailed expense data restricted to financial admins');
+      setTeamExpenses([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('team_expenses')
@@ -195,14 +229,30 @@ export const useFinancialData = () => {
         .eq('financial_period_id', periodId)
         .order('expense_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If access is denied, clear data
+        if (error.code === 'PGRST116' || error.message.includes('permission')) {
+          console.log('Expense data access restricted');
+          setTeamExpenses([]);
+          return;
+        }
+        throw error;
+      }
       setTeamExpenses(data || []);
     } catch (error) {
       console.error('Error loading team expenses:', error);
+      setTeamExpenses([]);
     }
   };
 
   const loadTeamRevenues = async (periodId: string) => {
+    // Only financial admins can access detailed revenue data
+    if (!isFinancialAdmin) {
+      console.log('Access denied: detailed revenue data restricted to financial admins');
+      setTeamRevenues([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('team_revenues')
@@ -210,10 +260,19 @@ export const useFinancialData = () => {
         .eq('financial_period_id', periodId)
         .order('revenue_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If access is denied, clear data
+        if (error.code === 'PGRST116' || error.message.includes('permission')) {
+          console.log('Revenue data access restricted');
+          setTeamRevenues([]);
+          return;
+        }
+        throw error;
+      }
       setTeamRevenues(data || []);
     } catch (error) {
       console.error('Error loading team revenues:', error);
+      setTeamRevenues([]);
     }
   };
 
@@ -510,28 +569,90 @@ export const useFinancialData = () => {
 
   // Calculate financial summary
   const getFinancialSummary = (): FinancialSummary => {
-    const playerIncome = playerPayments.filter(p => p.paid).reduce((sum, p) => sum + p.amount, 0);
-    const extraRevenue = teamRevenues.filter(r => r.received).reduce((sum, r) => sum + r.amount, 0);
-    const totalIncome = playerIncome + extraRevenue;
-    const expectedIncome = playerPayments.reduce((sum, p) => sum + p.amount, 0);
-    const totalExpenses = teamExpenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
-    const balance = totalIncome - totalExpenses;
-    
-    const paidPlayers = new Set(playerPayments.filter(p => p.paid).map(p => p.player_id)).size;
-    const totalPlayers = new Set(playerPayments.map(p => p.player_id)).size;
-    const paymentPercentage = totalPlayers > 0 ? (paidPlayers / totalPlayers) * 100 : 0;
+    if (isFinancialAdmin) {
+      // Detailed calculation for financial admins
+      const playerIncome = playerPayments.filter(p => p.paid).reduce((sum, p) => sum + p.amount, 0);
+      const extraRevenue = teamRevenues.filter(r => r.received).reduce((sum, r) => sum + r.amount, 0);
+      const totalIncome = playerIncome + extraRevenue;
+      const expectedIncome = playerPayments.reduce((sum, p) => sum + p.amount, 0);
+      const totalExpenses = teamExpenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
+      const balance = totalIncome - totalExpenses;
+      
+      const paidPlayers = new Set(playerPayments.filter(p => p.paid).map(p => p.player_id)).size;
+      const totalPlayers = new Set(playerPayments.map(p => p.player_id)).size;
+      const paymentPercentage = totalPlayers > 0 ? (paidPlayers / totalPlayers) * 100 : 0;
 
-    return {
-      totalIncome,
-      playerIncome,
-      extraRevenue,
-      expectedIncome,
-      totalExpenses,
-      balance,
-      paymentPercentage,
-      paidPlayers,
-      totalPlayers
-    };
+      return {
+        totalIncome,
+        playerIncome,
+        extraRevenue,
+        expectedIncome,
+        totalExpenses,
+        balance,
+        paymentPercentage,
+        paidPlayers,
+        totalPlayers
+      };
+    } else {
+      // Return safe defaults for regular members - they should use getSecureFinancialSummary()
+      return {
+        totalIncome: 0,
+        playerIncome: 0,
+        extraRevenue: 0,
+        expectedIncome: 0,
+        totalExpenses: 0,
+        balance: 0,
+        paymentPercentage: 0,
+        paidPlayers: 0,
+        totalPlayers: 0
+      };
+    }
+  };
+
+  // New secure function for regular team members to get aggregated data
+  const getSecureFinancialSummary = async (): Promise<FinancialSummary | null> => {
+    if (!activeTeam || isFinancialAdmin) return null;
+
+    try {
+      const { data, error } = await supabase.rpc('get_team_financial_summary', {
+        _team_id: activeTeam.id,
+        _period_year: selectedYear,
+        _period_month: selectedMonth
+      });
+
+      if (error) throw error;
+
+      const summary = data?.[0];
+      if (!summary) return null;
+
+      return {
+        totalIncome: 0, // These will be calculated from aggregated data
+        playerIncome: Number(summary.total_collected) || 0,
+        extraRevenue: Number(summary.revenue_received) || 0,
+        expectedIncome: Number(summary.total_expected) || 0,
+        totalExpenses: Number(summary.expenses_paid) || 0,
+        balance: Number(summary.current_balance) || 0,
+        paymentPercentage: summary.total_players_with_payments > 0 
+          ? (Number(summary.players_paid_count) / Number(summary.total_players_with_payments)) * 100 
+          : 0,
+        paidPlayers: Number(summary.players_paid_count) || 0,
+        totalPlayers: Number(summary.total_players_with_payments) || 0,
+        // Additional aggregated fields
+        totalPlayersWithPayments: Number(summary.total_players_with_payments) || 0,
+        playersPaidCount: Number(summary.players_paid_count) || 0,
+        totalCollected: Number(summary.total_collected) || 0,
+        totalExpected: Number(summary.total_expected) || 0,
+        expenseCount: Number(summary.expense_count) || 0,
+        expensesPaid: Number(summary.expenses_paid) || 0,
+        revenueCount: Number(summary.revenue_count) || 0,
+        revenueReceived: Number(summary.revenue_received) || 0,
+        totalExpectedRevenue: Number(summary.total_expected_revenue) || 0,
+        currentBalance: Number(summary.current_balance) || 0
+      };
+    } catch (error) {
+      console.error('Error loading secure financial summary:', error);
+      return null;
+    }
   };
 
   return {
@@ -554,6 +675,7 @@ export const useFinancialData = () => {
     deleteRevenue,
     toggleRevenueReceived,
     sendPaymentReminder,
-    getFinancialSummary
+    getFinancialSummary,
+    getSecureFinancialSummary
   };
 };

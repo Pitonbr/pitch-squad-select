@@ -914,6 +914,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      can_view_player_payment_status: {
+        Args: {
+          _requesting_user_id: string
+          _target_player_id: string
+          _team_id: string
+        }
+        Returns: boolean
+      }
       cleanup_expired_verification_codes: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -927,6 +935,22 @@ export type Database = {
           _resource_type: string
         }
         Returns: undefined
+      }
+      get_team_financial_summary: {
+        Args: { _period_month: number; _period_year: number; _team_id: string }
+        Returns: {
+          current_balance: number
+          expense_count: number
+          expenses_paid: number
+          players_paid_count: number
+          revenue_count: number
+          revenue_received: number
+          total_collected: number
+          total_expected: number
+          total_expected_revenue: number
+          total_expenses: number
+          total_players_with_payments: number
+        }[]
       }
       get_team_players: {
         Args: { _team_id: string }
