@@ -110,9 +110,6 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     if (!profile) return null;
 
     try {
-      console.log('Creating team with profile:', profile);
-      console.log('User authenticated:', user);
-      
       // Create team
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
