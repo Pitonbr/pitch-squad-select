@@ -752,6 +752,64 @@ export type Database = {
           },
         ]
       }
+      team_join_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          requesting_player_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requesting_player_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requesting_player_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_join_requests_requesting_player_id_fkey"
+            columns: ["requesting_player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_join_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_join_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -848,31 +906,43 @@ export type Database = {
       teams: {
         Row: {
           admin_id: string
+          city: string | null
           created_at: string
           description: string | null
           id: string
           invite_code: string
+          is_public: boolean | null
           name: string
+          public_description: string | null
+          state: string | null
           treasurer_id: string | null
           updated_at: string
         }
         Insert: {
           admin_id: string
+          city?: string | null
           created_at?: string
           description?: string | null
           id?: string
           invite_code?: string
+          is_public?: boolean | null
           name: string
+          public_description?: string | null
+          state?: string | null
           treasurer_id?: string | null
           updated_at?: string
         }
         Update: {
           admin_id?: string
+          city?: string | null
           created_at?: string
           description?: string | null
           id?: string
           invite_code?: string
+          is_public?: boolean | null
           name?: string
+          public_description?: string | null
+          state?: string | null
           treasurer_id?: string | null
           updated_at?: string
         }
@@ -1047,12 +1117,27 @@ export type Database = {
         Returns: undefined
       }
       create_team_secure: {
-        Args: { _team_description?: string; _team_name: string }
+        Args:
+          | {
+              _city?: string
+              _public_description?: string
+              _state?: string
+              _team_description?: string
+              _team_name: string
+            }
+          | { _team_description?: string; _team_name: string }
         Returns: {
           message: string
           success: boolean
           team_id: string
           team_name: string
+        }[]
+      }
+      get_brazilian_states: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          code: string
+          name: string
         }[]
       }
       get_email_delivery_stats: {
@@ -1154,8 +1239,22 @@ export type Database = {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }
         Returns: string
       }
+      process_team_join_request: {
+        Args: { _action: string; _admin_message?: string; _request_id: string }
+        Returns: {
+          message: string
+          success: boolean
+        }[]
+      }
       reject_player_request: {
         Args: { _reason?: string; _request_id: string }
+        Returns: {
+          message: string
+          success: boolean
+        }[]
+      }
+      remove_player_from_team: {
+        Args: { _player_id: string; _team_id: string }
         Returns: {
           message: string
           success: boolean
@@ -1172,6 +1271,24 @@ export type Database = {
           message: string
           success: boolean
           verification_id: string
+        }[]
+      }
+      search_teams: {
+        Args: {
+          _city?: string
+          _limit?: number
+          _search_term?: string
+          _state?: string
+        }
+        Returns: {
+          city: string
+          created_at: string
+          description: string
+          id: string
+          member_count: number
+          name: string
+          public_description: string
+          state: string
         }[]
       }
       verify_sms_code: {
