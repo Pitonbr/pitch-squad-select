@@ -18,6 +18,9 @@ import { CancelGameDialog } from "@/components/CancelGameDialog";
 import { TeamManager } from "@/components/TeamManager";
 import { TeamOnboarding } from "@/components/TeamOnboarding";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
+import { TeamJoinRequests } from "@/components/TeamJoinRequests";
+import { PlayerRemovalDialog } from "@/components/PlayerRemovalDialog";
+import { AuditLogs } from "@/components/AuditLogs";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
@@ -53,7 +56,7 @@ interface Game {
   invitedPlayerIds: string[];
 }
 
-type ViewType = "dashboard" | "players" | "games" | "tournaments" | "live" | "rankings" | "financial" | "teams";
+type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -336,10 +339,10 @@ export default function Index() {
         {currentView === "players" && renderPlayersView()}
         {currentView === "games" && renderGamesView()}
         {currentView === "tournaments" && <TournamentManager />}
-        {currentView === "live" && <LiveGame />}
+        {currentView === "liveGame" && <LiveGame />}
         {currentView === "rankings" && <Rankings />}
-        {currentView === "financial" && <FinancialControl />}
-        {currentView === "teams" && <TeamManager />}
+        {currentView === "finances" && <FinancialControl />}
+        {currentView === "teamManager" && <TeamManager />}
       </main>
 
       <CancelGameDialog

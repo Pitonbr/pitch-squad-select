@@ -13,9 +13,9 @@ interface JoinRequest {
   team_id: string;
   requesting_player_id: string;
   status: 'pending' | 'approved' | 'rejected';
-  message: string;
+  message: string | null;
   created_at: string;
-  reviewed_at: string;
+  reviewed_at: string | null;
   requesting_player_name: string;
 }
 
@@ -27,7 +27,7 @@ export function TeamJoinRequests() {
   const { activeTeam, isTeamAdmin } = useTeams();
 
   useEffect(() => {
-    if (activeTeam && isTeamAdmin(activeTeam)) {
+    if (activeTeam && isTeamAdmin(activeTeam.id)) {
       loadJoinRequests();
     }
   }, [activeTeam]);
@@ -50,10 +50,11 @@ export function TeamJoinRequests() {
 
       if (error) throw error;
 
-      const formattedRequests = data?.map(request => ({
+      const formattedRequests = (data?.map(request => ({
         ...request,
-        requesting_player_name: request.profiles?.display_name || 'Usuário sem nome'
-      })) || [];
+        requesting_player_name: request.profiles?.display_name || 'Usuário sem nome',
+        status: request.status as 'pending' | 'approved' | 'rejected'
+      })) || []) as JoinRequest[];
 
       setRequests(formattedRequests);
     } catch (error) {
@@ -130,7 +131,7 @@ export function TeamJoinRequests() {
   const pendingRequests = requests.filter(r => r.status === 'pending');
   const processedRequests = requests.filter(r => r.status !== 'pending');
 
-  if (!activeTeam || !isTeamAdmin(activeTeam)) {
+  if (!activeTeam || !isTeamAdmin(activeTeam.id)) {
     return (
       <Card>
         <CardContent className="p-6 text-center text-muted-foreground">

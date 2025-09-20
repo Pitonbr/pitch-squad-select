@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
@@ -161,6 +161,11 @@ export function ImageCropper({ isOpen, onClose, imageSrc, onCropComplete }: Imag
     }
   };
 
+  // Redraw preview when parameters change
+  React.useEffect(() => {
+    drawPreview();
+  }, [drawPreview]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -258,9 +263,4 @@ export function ImageCropper({ isOpen, onClose, imageSrc, onCropComplete }: Imag
       </DialogContent>
     </Dialog>
   );
-
-  // Redraw preview when parameters change
-  React.useEffect(() => {
-    drawPreview();
-  }, [drawPreview]);
 }

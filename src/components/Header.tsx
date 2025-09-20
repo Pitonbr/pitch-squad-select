@@ -17,60 +17,55 @@ import {
   Gamepad2,
   DollarSign,
   LogOut,
-  UserCog
+  UserCog,
+  UserPlus,
+  FileText
 } from "lucide-react";
 
+type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit";
+
 interface HeaderProps {
-  currentView: "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial" | "teams";
-  onViewChange: (view: "dashboard" | "players" | "games" | "live" | "rankings" | "tournaments" | "financial" | "teams") => void;
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
 
 export function Header({ currentView, onViewChange }: HeaderProps) {
   const { profile, signOut } = useAuth();
-  const { activeTeam } = useTeams();
+  const { activeTeam, teams, isTeamAdmin } = useTeams();
 
-  const navigationItems = [
-    {
-      key: "dashboard" as const,
-      label: "Dashboard",
-      icon: Trophy
-    },
-    {
-      key: "players" as const,
-      label: "Jogadores",
-      icon: Users
-    },
-    {
-      key: "games" as const,
-      label: "Jogos",
-      icon: Plus
-    },
-    {
-      key: "tournaments" as const,
-      label: "Campeonatos",
-      icon: Gamepad2
-    },
-    {
-      key: "live" as const,
-      label: "Jogo Ativo",
-      icon: Play
-    },
-    {
-      key: "rankings" as const,
-      label: "Rankings",
-      icon: Award
-    },
-    {
-      key: "financial" as const,
-      label: "Financeiro",
-      icon: DollarSign
-    },
-    {
-      key: "teams" as const,
-      label: "Times",
-      icon: UserCog
+  const navItems = [
+    { key: 'dashboard', label: 'Dashboard', icon: Trophy },
+    { key: 'players', label: 'Jogadores', icon: Users },
+    { key: 'games', label: 'Jogos', icon: Plus },
+    { key: 'tournaments', label: 'Campeonatos', icon: Gamepad2 },
+    { key: 'liveGame', label: 'Jogo Ativo', icon: Play },
+    { key: 'rankings', label: 'Rankings', icon: Award },
+    { key: 'teamManager', label: 'Gerenciar Time', icon: UserCog },
+    { key: 'finances', label: 'Financeiro', icon: DollarSign },
+    { key: 'requests', label: 'Solicitações', icon: UserPlus },
+    { key: 'joinRequests', label: 'Entrar no Time', icon: UserPlus },
+    { key: 'audit', label: 'Auditoria', icon: FileText },
+  ] as const;
+
+  // Filter navigation items based on team membership and admin status
+  const filteredNavItems = navItems.filter(item => {
+    if (!activeTeam) {
+      // Users without a team can only access dashboard, games, rankings, and liveGame
+      return ['dashboard', 'games', 'rankings', 'liveGame'].includes(item.key);
     }
-  ];
+    
+    // Admin-only features
+    if (['teamManager', 'finances', 'audit'].includes(item.key)) {
+      return isTeamAdmin(activeTeam.id);
+    }
+    
+    // Join requests is only for admins
+    if (item.key === 'joinRequests') {
+      return isTeamAdmin(activeTeam.id);
+    }
+    
+    return true;
+  });
 
   const handleSignOut = async () => {
     try {
@@ -97,7 +92,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
           
           <div className="flex items-center space-x-4">
             {/* Team Selector */}
-            <TeamSelector onCreateTeam={() => onViewChange("teams")} />
+            <TeamSelector onCreateTeam={() => onViewChange("teamManager")} />
             
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
@@ -117,7 +112,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onViewChange("teams")}>
+                  <DropdownMenuItem onClick={() => onViewChange("teamManager")}>
                     <UserCog className="h-4 w-4 mr-2" />
                     Gerenciar Times
                   </DropdownMenuItem>
@@ -154,7 +149,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
 
         {/* Navigation */}
         <nav className="flex space-x-1 overflow-x-auto">
-          {navigationItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <Button
               key={item.key}
               variant={currentView === item.key ? "default" : "ghost"}

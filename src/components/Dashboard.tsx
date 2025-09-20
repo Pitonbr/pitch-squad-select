@@ -20,9 +20,10 @@ import { AuditLogs } from "@/components/AuditLogs";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { TeamSearch } from "@/components/TeamSearch";
 
 export function Dashboard() {
-  const { activeTeam, isTeamAdmin } = useTeams();
+  const { activeTeam, teams, isTeamAdmin } = useTeams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [playerProfile, setPlayerProfile] = useState<any>(null);
@@ -35,6 +36,63 @@ export function Dashboard() {
       fetchDashboardData();
     }
   }, [activeTeam, user]);
+
+  // Se não tem time ativo, mostra versão limitada do dashboard
+  if (!activeTeam || teams.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Bem-vindo ao Sistema de Futebol!</h1>
+          <p className="text-muted-foreground">
+            Você ainda não faz parte de nenhum time. Procure por times disponíveis ou aguarde um convite.
+          </p>
+          <TeamSearch />
+        </div>
+
+        {/* Funcionalidades limitadas para usuários sem time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rankings</CardTitle>
+              <Trophy className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Disponível</div>
+              <p className="text-xs text-muted-foreground">
+                Veja rankings gerais de jogadores
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Jogos Públicos</CardTitle>
+              <Calendar className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Em Breve</div>
+              <p className="text-xs text-muted-foreground">
+                Participe de jogos públicos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Perfil</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Configurar</div>
+              <p className="text-xs text-muted-foreground">
+                Configure seu perfil pessoal
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const fetchDashboardData = async () => {
     try {

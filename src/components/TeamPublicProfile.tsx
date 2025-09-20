@@ -28,7 +28,7 @@ interface TeamPublicProfileProps {
 interface JoinRequest {
   id: string;
   status: 'pending' | 'approved' | 'rejected';
-  message: string;
+  message: string | null;
   created_at: string;
 }
 
@@ -79,7 +79,10 @@ export function TeamPublicProfile({ team, onBack, onClose }: TeamPublicProfilePr
 
       if (error) throw error;
       if (data && data.length > 0) {
-        setExistingRequest(data[0]);
+        setExistingRequest({
+          ...data[0],
+          status: data[0].status as 'pending' | 'approved' | 'rejected'
+        });
       }
     } catch (error) {
       console.error('Error checking existing request:', error);
