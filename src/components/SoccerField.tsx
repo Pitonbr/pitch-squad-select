@@ -6,7 +6,7 @@ interface FieldPlayer {
   name: string;
   nickname: string;
   position: string;
-  photo?: string;
+  profile_image?: string;
 }
 
 interface Team {
@@ -80,9 +80,9 @@ export function SoccerField({ teamA, teamB, scoreA, scoreB }: SoccerFieldProps) 
           ? 'bg-blue-500 border-blue-700' 
           : 'bg-red-500 border-red-700'
       }`}>
-        {player.photo ? (
+        {player.profile_image ? (
           <Avatar className="w-full h-full">
-            <AvatarImage src={player.photo} />
+            <AvatarImage src={player.profile_image} />
             <AvatarFallback className="text-xs text-white bg-transparent">
               {player.nickname.charAt(0)}
             </AvatarFallback>

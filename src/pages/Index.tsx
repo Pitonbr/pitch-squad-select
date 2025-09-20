@@ -9,6 +9,9 @@ import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { GameCard } from "@/components/GameCard";
+import { GameDetailsCard } from "@/components/GameDetailsCard";
+import { GameEditDialog } from "@/components/GameEditDialog";
+import { PlayerInviteManager } from "@/components/PlayerInviteManager";
 import { Dashboard } from "@/components/Dashboard";
 import { TournamentManager } from "@/components/TournamentManager";
 import { LiveGame } from "@/components/LiveGame";
@@ -68,6 +71,8 @@ export default function Index() {
   const [games, setGames] = useState<Game[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [gameToCancel, setGameToCancel] = useState<Game | null>(null);
+  const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
+  const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
   const [teamLists, setTeamLists] = useState<TeamList[]>([]);
 
   // Check authentication
@@ -169,6 +174,22 @@ export default function Index() {
 
   const handleTeamListDelete = (teamListId: string) => {
     setTeamLists(teamLists.filter(tl => tl.id !== teamListId));
+  };
+
+  const handleGameUpdated = (updatedGame: Game) => {
+    setGames(games.map(game => 
+      game.id === updatedGame.id ? updatedGame : game
+    ));
+  };
+
+  const handlePlayersInvited = (playerIds: string[]) => {
+    if (gameToInvite) {
+      setGames(games.map(game => 
+        game.id === gameToInvite.id 
+          ? { ...game, invitedPlayerIds: playerIds }
+          : game
+      ));
+    }
   };
 
   const handleCancelGame = (message: string) => {
@@ -304,21 +325,24 @@ export default function Index() {
           ) : (
             <div className="grid gap-4">
               {games.map((game) => (
-                <GameCard
+                <GameDetailsCard
                   key={game.id}
+                  id={game.id}
                   title={game.title}
                   date={new Date(game.date).toLocaleDateString('pt-BR')}
                   time={game.time}
                   location={game.location}
-                  playersCheckedIn={game.playersCheckedIn}
+                  description={game.description}
+                  playersCheckedIn={game.playersCheckedIn || 0}
                   totalPlayers={game.invitedPlayerIds?.length || 22}
                   status={game.status}
                   timeLeft={game.status === "checkin" ? "2h 30min" : undefined}
                   isAdmin={true}
-                  onJoinGame={game.status === "checkin" ? () => {
+                  onEdit={() => setGameToEdit(game)}
+                  onInvite={() => setGameToInvite(game)}
+                  onJoin={game.status === "checkin" ? () => {
                     console.log("Participar do jogo", game.id);
                   } : undefined}
-                  onCancelGame={() => setGameToCancel(game)}
                 />
               ))}
             </div>
@@ -351,6 +375,20 @@ export default function Index() {
         onConfirm={handleCancelGame}
         gameTitle={gameToCancel?.title || ""}
         invitedPlayersCount={gameToCancel?.invitedPlayerIds?.length || 0}
+      />
+
+      <GameEditDialog
+        isOpen={!!gameToEdit}
+        onClose={() => setGameToEdit(null)}
+        game={gameToEdit}
+        onGameUpdated={handleGameUpdated}
+      />
+
+      <PlayerInviteManager
+        isOpen={!!gameToInvite}
+        onClose={() => setGameToInvite(null)}
+        game={gameToInvite}
+        onPlayersInvited={handlePlayersInvited}
       />
     </div>
   );

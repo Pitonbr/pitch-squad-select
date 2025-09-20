@@ -348,45 +348,51 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Next Game */}
-      {nextGame ? (
-        <Card className="hero-gradient text-primary-foreground">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Próximo Jogo</span>
-              <Badge variant="secondary" className="bg-white/20 text-white">
-                Em breve
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm">{new Date(nextGame.date).toLocaleDateString('pt-BR')}</span>
+      {/* Upcoming Games Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Próximos Jogos</h3>
+        {nextGame ? (
+          <Card className="hero-gradient text-primary-foreground">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{nextGame.title}</span>
+                <Badge variant="secondary" className="bg-white/20 text-white">
+                  Em breve
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-sm">{new Date(nextGame.date).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">{nextGame.time}</span>
+                </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm">{nextGame.time}</span>
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{nextGame.location}</span>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4" />
-              <span className="text-sm">{nextGame.location}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum jogo agendado</h3>
-            <p className="text-muted-foreground">
-              Aguarde o próximo jogo ser marcado pelo administrador
-            </p>
-          </CardContent>
-        </Card>
-      )}
+              {nextGame.description && (
+                <p className="text-sm opacity-90">{nextGame.description}</p>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum jogo agendado</h3>
+              <p className="text-muted-foreground">
+                Aguarde o próximo jogo ser marcado pelo administrador
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Recent Games */}
       <Card>

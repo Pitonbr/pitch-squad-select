@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -28,6 +28,7 @@ interface PlayerRanking {
   nickname: string;
   position: string;
   value: number;
+  profile_image?: string;
 }
 
 interface CoachRanking {
@@ -118,11 +119,12 @@ export function Rankings() {
               <div className="flex items-center justify-center">
                 {getRankingIcon(index + 1)}
               </div>
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs">
-                  {player.nickname.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={player.profile_image} alt={player.name} />
+                        <AvatarFallback className="text-xs">
+                          {player.nickname.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
               <div>
                 <p className="font-semibold text-sm">{player.nickname}</p>
                 <p className="text-xs text-muted-foreground">{player.name}</p>
@@ -207,6 +209,7 @@ export function Rankings() {
                           </span>
                         </div>
                         <Avatar className="h-8 w-8">
+                          <AvatarImage src={player.profile_image} alt={player.name} />
                           <AvatarFallback className="text-xs">
                             {player.nickname.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
