@@ -130,10 +130,13 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     try {
       console.log('[useTeams] Calling create_team_secure function...');
 
-      // Use the secure function instead of direct insert
+      // Use the secure function instead of direct insert with new parameters
       const { data, error } = await supabase.rpc('create_team_secure', {
         _team_name: name,
-        _team_description: description || null
+        _team_description: description || null,
+        _state: null,
+        _city: null,
+        _public_description: null
       });
 
       if (error) {
@@ -186,7 +189,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
       toast({
         title: "Time criado!",
-        description: `${result.team_name} foi criado com sucesso.`
+        description: `${result.team_name} foi criado com sucesso. Você foi automaticamente adicionado como jogador.`
       });
 
       // Refresh teams to get the updated list
