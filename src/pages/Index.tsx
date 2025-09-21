@@ -26,6 +26,7 @@ import { PlayerRemovalDialog } from "@/components/PlayerRemovalDialog";
 import { AuditLogs } from "@/components/AuditLogs";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
+import { supabase } from "@/integrations/supabase/client";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
 
 interface Player {
@@ -68,12 +69,47 @@ export default function Index() {
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
+  
+  // Function to fetch players from database
+  const fetchPlayersFromDB = async () => {
+    if (!activeTeam) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('get_team_players', {
+        _team_id: activeTeam.id
+      });
+
+      if (error) {
+        console.error('Error fetching players:', error);
+        return;
+      }
+
+      // Map to match expected Player interface
+      const playersData = data?.map((player: any) => ({
+        id: player.id,
+        name: player.name,
+        nickname: player.nickname,
+        position: player.position,
+        phone: player.phone,
+        profile_image: player.profile_image,
+      })) || [];
+
+      setPlayers(playersData);
+    } catch (error) {
+      console.error('Error fetching players:', error);
+    }
+  };
   const [games, setGames] = useState<Game[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [gameToCancel, setGameToCancel] = useState<Game | null>(null);
   const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
   const [teamLists, setTeamLists] = useState<TeamList[]>([]);
+
+  // Load existing data on component mount and when active team changes
+  useEffect(() => {
+    fetchPlayersFromDB();
+  }, [activeTeam]);
 
   // Check authentication
   useEffect(() => {
@@ -117,21 +153,9 @@ export default function Index() {
     return <TeamOnboarding />;
   }
 
-  const handlePlayerAdded = (playerData: any) => {
-    const newPlayer: Player = {
-      id: Date.now().toString(),
-      name: playerData.name,
-      nickname: playerData.nickname,
-      position: playerData.position,
-      phone: playerData.phone,
-      email: playerData.email,
-      jersey_number: typeof playerData.jersey_number === 'string' 
-        ? (playerData.jersey_number ? parseInt(playerData.jersey_number) : undefined)
-        : playerData.jersey_number,
-      profile_image: playerData.profile_image,
-      checkedIn: false
-    };
-    setPlayers([...players, newPlayer]);
+  const handlePlayerAdded = (player: any) => {
+    // Refresh players from database instead of updating local state
+    fetchPlayersFromDB();
   };
 
   const handleGameCreated = (gameData: { 

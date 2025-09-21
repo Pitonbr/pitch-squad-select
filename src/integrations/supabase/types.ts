@@ -1185,12 +1185,15 @@ export type Database = {
         Args: { _team_id: string }
         Returns: {
           created_at: string
+          email: string
           id: string
+          jersey_number: number
           name: string
           nickname: string
           phone: string
           position: string
           profile_id: string
+          profile_image: string
           team_id: string
           updated_at: string
         }[]

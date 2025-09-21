@@ -95,27 +95,105 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
       if (!profileImageUrl) return;
     }
 
-    const playerData = {
-      ...formData,
-      profile_image: profileImageUrl
-    };
+    try {
+      // Get current user's profile  
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    onPlayerAdded(playerData);
-    
-    setFormData({
-      name: "",
-      nickname: "", 
-      position: "",
-      phone: "",
-      email: "",
-      jersey_number: ""
-    });
-    setImageFile(null);
+      // Get user's profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-    toast({
-      title: "Jogador cadastrado!",
-      description: `${formData.name} foi adicionado à lista de jogadores.`,
-    });
+      if (!profile) {
+        toast({
+          title: "Erro",
+          description: "Profile do usuário não encontrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get current active team
+      const { data: teamMemberships } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('profile_id', profile.id);
+
+      if (!teamMemberships || teamMemberships.length === 0) {
+        toast({
+          title: "Erro",
+          description: "Nenhum time encontrado para este usuário",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const activeTeamId = teamMemberships[0].team_id; // Use first team for now
+
+      // Save player to database
+      const { data: newPlayer, error } = await supabase
+        .from('players')
+        .insert({
+          team_id: activeTeamId,
+          profile_id: profile.id,
+          name: formData.name,
+          nickname: formData.nickname,
+          position: formData.position,
+          phone: formData.phone,
+          email: formData.email,
+          jersey_number: formData.jersey_number ? Number(formData.jersey_number) : undefined,
+          profile_image: profileImageUrl,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving player:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar jogador no banco de dados",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call callback with saved player data
+      onPlayerAdded(newPlayer);
+      
+      // Reset form
+      setFormData({
+        name: "",
+        nickname: "", 
+        position: "",
+        phone: "",
+        email: "",
+        jersey_number: ""
+      });
+      setImageFile(null);
+
+      toast({
+        title: "Jogador cadastrado!",
+        description: `${formData.name} foi adicionado à lista de jogadores.`,
+      });
+
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao adicionar jogador",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
