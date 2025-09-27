@@ -1,7 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, Edit, Send, Timer } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Edit, Send, Timer, UserPlus } from "lucide-react";
+import { GameInviteLink } from "./GameInviteLink";
+import { GamePlayerManager } from "./GamePlayerManager";
+import { useState } from "react";
+
+interface Player {
+  id: string;
+  name: string;
+  nickname: string;
+  position: string;
+  phone: string;
+  email?: string;
+  checkedIn?: boolean;
+}
 
 interface GameDetailsCardProps {
   id: string;
@@ -18,6 +31,10 @@ interface GameDetailsCardProps {
   onInvite?: () => void;
   onJoin?: () => void;
   isAdmin?: boolean;
+  allPlayers?: Player[];
+  invitedPlayers?: Player[];
+  createdByName?: string;
+  onPlayersUpdate?: (updatedPlayers: Player[]) => void;
 }
 
 const statusConfig = {
@@ -57,8 +74,14 @@ export function GameDetailsCard({
   onEdit,
   onInvite,
   onJoin,
-  isAdmin = false
+  isAdmin = false,
+  allPlayers = [],
+  invitedPlayers = [],
+  createdByName = "Administrador",
+  onPlayersUpdate
 }: GameDetailsCardProps) {
+  const [showInviteLink, setShowInviteLink] = useState(false);
+  const [showPlayerManager, setShowPlayerManager] = useState(false);
   return (
     <Card className="smooth-transition hover:field-shadow">
       <CardHeader className="pb-3">
@@ -71,7 +94,7 @@ export function GameDetailsCard({
           </div>
           
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {onEdit && (
                 <Button
                   variant="outline"
@@ -83,17 +106,24 @@ export function GameDetailsCard({
                   Editar
                 </Button>
               )}
-              {onInvite && status !== "cancelled" && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={onInvite}
-                  className="gap-2 field-gradient"
-                >
-                  <Send className="h-4 w-4" />
-                  Convidar
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPlayerManager(!showPlayerManager)}
+                className="gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Jogadores
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowInviteLink(!showInviteLink)}
+                className="gap-2 field-gradient"
+              >
+                <Send className="h-4 w-4" />
+                Convites
+              </Button>
             </div>
           )}
         </div>
@@ -144,6 +174,29 @@ export function GameDetailsCard({
           <Button className="w-full field-gradient font-semibold" onClick={onJoin}>
             Participar do Jogo
           </Button>
+        )}
+
+        {/* Game Invite Link Section */}
+        {isAdmin && showInviteLink && (
+          <div className="mt-6">
+            <GameInviteLink
+              game={{ id, title, date, time, location, description }}
+              invitedPlayers={invitedPlayers}
+              createdByName={createdByName}
+            />
+          </div>
+        )}
+
+        {/* Player Manager Section */}
+        {isAdmin && showPlayerManager && onPlayersUpdate && (
+          <div className="mt-6">
+            <GamePlayerManager
+              gameId={id}
+              allPlayers={allPlayers}
+              invitedPlayers={invitedPlayers}
+              onPlayersUpdate={onPlayersUpdate}
+            />
+          </div>
         )}
       </CardContent>
     </Card>

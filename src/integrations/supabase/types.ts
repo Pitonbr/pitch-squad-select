@@ -183,12 +183,14 @@ export type Database = {
       games: {
         Row: {
           away_score: number | null
+          checkin_deadline_minutes: number | null
           created_at: string
           current_half: number | null
           date: string
           description: string | null
           home_score: number | null
           id: string
+          invite_link: string | null
           is_match_active: boolean | null
           location: string
           match_duration_minutes: number | null
@@ -203,12 +205,14 @@ export type Database = {
         }
         Insert: {
           away_score?: number | null
+          checkin_deadline_minutes?: number | null
           created_at?: string
           current_half?: number | null
           date: string
           description?: string | null
           home_score?: number | null
           id?: string
+          invite_link?: string | null
           is_match_active?: boolean | null
           location: string
           match_duration_minutes?: number | null
@@ -223,12 +227,14 @@ export type Database = {
         }
         Update: {
           away_score?: number | null
+          checkin_deadline_minutes?: number | null
           created_at?: string
           current_half?: number | null
           date?: string
           description?: string | null
           home_score?: number | null
           id?: string
+          invite_link?: string | null
           is_match_active?: boolean | null
           location?: string
           match_duration_minutes?: number | null

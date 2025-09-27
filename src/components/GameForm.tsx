@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, AlarmClock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PlayerSelector } from "./PlayerSelector";
 
@@ -31,6 +32,7 @@ interface GameFormData {
   location: string;
   description?: string;
   invitedPlayerIds: string[];
+  checkinDeadlineMinutes: number;
 }
 
 interface GameFormProps {
@@ -55,7 +57,8 @@ export function GameForm({
     time: "",
     location: "",
     description: "",
-    invitedPlayerIds: []
+    invitedPlayerIds: [],
+    checkinDeadlineMinutes: 30
   });
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
@@ -95,7 +98,8 @@ export function GameForm({
       time: "",
       location: "",
       description: "",
-      invitedPlayerIds: []
+      invitedPlayerIds: [],
+      checkinDeadlineMinutes: 30
     });
     setSelectedPlayerIds([]);
 
@@ -184,6 +188,31 @@ export function GameForm({
               className="w-full"
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="checkinDeadline" className="flex items-center space-x-1">
+              <AlarmClock className="h-3 w-3" />
+              <span>Prazo para Check-in *</span>
+            </Label>
+            <Select
+              value={formData.checkinDeadlineMinutes.toString()}
+              onValueChange={(value) => setFormData({ ...formData, checkinDeadlineMinutes: parseInt(value) })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione o prazo" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 59 }, (_, i) => i + 1).map((minutes) => (
+                  <SelectItem key={minutes} value={minutes.toString()}>
+                    {minutes} minuto{minutes > 1 ? 's' : ''} antes do jogo
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Após este prazo, o check-in será fechado e apenas jogadores confirmados poderão participar da seleção de times.
+            </p>
           </div>
 
           <PlayerSelector
