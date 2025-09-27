@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, MessageCircle, Mail, Share2 } from "lucide-react";
 
@@ -17,8 +18,12 @@ interface Game {
 interface Player {
   id: string;
   name: string;
+  nickname: string;
+  position: string;
   phone: string;
   email?: string;
+  profile_image?: string;
+  checkedIn?: boolean;
 }
 
 interface GameInviteLinkProps {
@@ -143,7 +148,13 @@ Nos vemos no campo, jogador!!!
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {invitedPlayers.map((player) => (
                 <div key={player.id} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                  <span className="text-sm font-medium">{player.name}</span>
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                      <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">{player.name}</span>
+                  </div>
                   <div className="flex space-x-2">
                     <Button
                       size="sm"

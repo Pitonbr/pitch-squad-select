@@ -13,6 +13,7 @@ interface Player {
   position: string;
   phone: string;
   email?: string;
+  profile_image?: string;
   checkedIn?: boolean;
 }
 

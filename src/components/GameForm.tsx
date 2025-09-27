@@ -15,6 +15,7 @@ interface Player {
   nickname: string;
   position: string;
   phone: string;
+  profile_image?: string;
   checkedIn?: boolean;
 }
 

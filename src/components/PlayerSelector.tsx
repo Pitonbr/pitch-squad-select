@@ -17,6 +17,7 @@ interface Player {
   nickname: string;
   position: string;
   phone: string;
+  profile_image?: string;
   checkedIn?: boolean;
 }
 
@@ -168,7 +169,7 @@ export function PlayerSelector({
                     onChange={() => handlePlayerToggle(player.id)}
                   />
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                    <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
                     <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

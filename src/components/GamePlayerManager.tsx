@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Search, UserPlus, UserMinus } from "lucide-react";
 
@@ -14,6 +15,7 @@ interface Player {
   position: string;
   phone: string;
   email?: string;
+  profile_image?: string;
   checkedIn?: boolean;
 }
 
@@ -128,6 +130,10 @@ export function GamePlayerManager({
                   checked={isSelected}
                   onCheckedChange={(checked) => handlePlayerToggle(player.id, checked as boolean)}
                 />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                  <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
                     <p className="font-medium text-sm truncate">{player.name}</p>
