@@ -28,6 +28,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
+import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 interface Player {
   id: string;
@@ -69,6 +71,34 @@ export default function Index() {
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
+
+  // Enable realtime notifications
+  useRealtimeNotifications(activeTeam?.id);
+
+  // Listen for player changes in real-time
+  useRealtime({
+    table: 'players',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: (event) => {
+      console.log('[Index] Player event received:', event);
+      // Refresh players when there are changes
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        fetchPlayersFromDB();
+      }
+    }
+  });
+
+  // Auto-save players data
+  useAutoSave({
+    data: players,
+    saveFunction: async (playersData) => {
+      // This is handled by individual operations, but we can add backup logic here
+      console.log('[AutoSave] Players data synchronized');
+    },
+    enabled: false, // Disabled as players are already saved individually
+    interval: 1000
+  });
   
   // Function to fetch players from database
   const fetchPlayersFromDB = async () => {

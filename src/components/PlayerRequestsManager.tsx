@@ -7,6 +7,7 @@ import { CheckCircle, XCircle, Users, Clock, Mail, Phone, MapPin, Hash } from "l
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/hooks/useTeams";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface PlayerRequest {
   id: string;
@@ -27,6 +28,33 @@ export function PlayerRequestsManager() {
   const [requests, setRequests] = useState<PlayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+
+  // Listen for realtime updates on player requests
+  useRealtime({
+    table: 'player_requests',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: (event) => {
+      console.log('[PlayerRequestsManager] Realtime event:', event);
+      
+      if (event.eventType === 'INSERT' && event.new) {
+        // Add new request to the list
+        setRequests(prev => [event.new, ...prev]);
+        toast({
+          title: "Nova Solicitação",
+          description: `${event.new.name} solicitou entrar no time`,
+        });
+      } else if (event.eventType === 'UPDATE' && event.new) {
+        // Update existing request
+        setRequests(prev => prev.map(req => 
+          req.id === event.new.id ? event.new : req
+        ));
+      } else if (event.eventType === 'DELETE' && event.old) {
+        // Remove deleted request
+        setRequests(prev => prev.filter(req => req.id !== event.old.id));
+      }
+    }
+  });
 
   const fetchRequests = async () => {
     if (!activeTeam?.id) return;

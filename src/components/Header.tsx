@@ -6,6 +6,7 @@ import { TeamSelector } from "@/components/TeamSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { VersionIndicator } from "@/components/VersionIndicator";
+import { RealtimeIndicator } from "@/components/RealtimeIndicator";
 import { 
   Trophy, 
   Users, 
@@ -129,6 +130,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
               </DropdownMenu>
               
               <VersionIndicator />
+              <RealtimeIndicator />
               
               <Badge className="field-gradient text-white">
                 Beta

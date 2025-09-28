@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +14,8 @@ import {
   CheckCircle,
   TrendingUp,
   Users,
-  Plus
+  Plus,
+  Bell
 } from "lucide-react";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 import { AuditLogs } from "@/components/AuditLogs";
@@ -21,6 +23,8 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamSearch } from "@/components/TeamSearch";
+import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
+import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 
 export function Dashboard() {
   const { activeTeam, teams, isTeamAdmin } = useTeams();
@@ -30,12 +34,65 @@ export function Dashboard() {
   const [playerStats, setPlayerStats] = useState<any>(null);
   const [recentGames, setRecentGames] = useState<any[]>([]);
   const [nextGame, setNextGame] = useState<any>(null);
+  const [pendingRequests, setPendingRequests] = useState<number>(0);
+  const [showRequests, setShowRequests] = useState(false);
+
+  // Enable realtime notifications for this team
+  useRealtimeNotifications(activeTeam?.id);
+
+  // Listen for realtime updates on games
+  useRealtime({
+    table: 'games',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: (event) => {
+      console.log('[Dashboard] Game event received:', event);
+      // Refresh games data when there are changes
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        fetchRecentGames();
+        fetchNextGame();
+      }
+    }
+  });
+
+  // Listen for player requests (admin only)
+  useRealtime({
+    table: 'player_requests',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id && isTeamAdmin(activeTeam.id),
+    onEvent: (event) => {
+      console.log('[Dashboard] Player request event received:', event);
+      if (event.eventType === 'INSERT') {
+        setPendingRequests(prev => prev + 1);
+      } else if (event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        fetchPendingRequestsCount();
+      }
+    }
+  });
 
   useEffect(() => {
     if (activeTeam && user) {
       fetchDashboardData();
+      if (isTeamAdmin(activeTeam.id)) {
+        fetchPendingRequestsCount();
+      }
     }
   }, [activeTeam, user]);
+
+  const fetchPendingRequestsCount = async () => {
+    if (!activeTeam?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .rpc('get_pending_player_requests', { _team_id: activeTeam.id });
+      
+      if (!error && data) {
+        setPendingRequests(data.length);
+      }
+    } catch (error) {
+      console.error('Error fetching pending requests count:', error);
+    }
+  };
 
   // Se não tem time ativo, mostra versão limitada do dashboard
   if (!activeTeam || teams.length === 0) {
@@ -245,9 +302,44 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Audit Logs for Team Admins */}
+        {/* Admin Controls */}
         {activeTeam && isTeamAdmin(activeTeam.id) && (
-          <AuditLogs teamId={activeTeam.id} />
+          <div className="space-y-4">
+            {/* Pending Requests Alert */}
+            {pendingRequests > 0 && (
+              <Card className="border-orange-200 bg-orange-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Bell className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <p className="font-medium text-orange-900">
+                          {pendingRequests} nova(s) solicitação(ões) de jogador
+                        </p>
+                        <p className="text-sm text-orange-700">
+                          Clique para revisar e aprovar/rejeitar
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowRequests(!showRequests)}
+                      className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                    >
+                      {showRequests ? 'Ocultar' : 'Ver Solicitações'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Player Requests Manager */}
+            {showRequests && <PlayerRequestsManager />}
+            
+            {/* Audit Logs */}
+            <AuditLogs teamId={activeTeam.id} />
+          </div>
         )}
       </div>
     );
@@ -427,9 +519,44 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Audit Logs for Team Admins */}
+      {/* Admin Controls */}
       {activeTeam && isTeamAdmin(activeTeam.id) && (
-        <AuditLogs teamId={activeTeam.id} />
+        <div className="space-y-4">
+          {/* Pending Requests Alert */}
+          {pendingRequests > 0 && (
+            <Card className="border-orange-200 bg-orange-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Bell className="h-5 w-5 text-orange-600" />
+                    <div>
+                      <p className="font-medium text-orange-900">
+                        {pendingRequests} nova(s) solicitação(ões) de jogador
+                      </p>
+                      <p className="text-sm text-orange-700">
+                        Clique para revisar e aprovar/rejeitar
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowRequests(!showRequests)}
+                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                  >
+                    {showRequests ? 'Ocultar' : 'Ver Solicitações'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Player Requests Manager */}
+          {showRequests && <PlayerRequestsManager />}
+          
+          {/* Audit Logs */}
+          <AuditLogs teamId={activeTeam.id} />
+        </div>
       )}
     </div>
   );
