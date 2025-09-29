@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,14 +21,15 @@ interface UseRealtimeOptions {
 export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealtimeOptions) {
   const { toast } = useToast();
   const channelRef = useRef<any>(null);
+  const toastShownRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !onEvent) return;
 
-    console.log(`[Realtime] Setting up listener for table: ${table}`);
+    console.log(`[Realtime] Setting up listener for table: ${table}, filter: ${filter || 'none'}`);
 
     // Create unique channel name
-    const channelName = `realtime-${table}-${filter || 'all'}`;
+    const channelName = `realtime-${table}-${filter || 'all'}-${Date.now()}`;
     
     const channel = supabase
       .channel(channelName)
@@ -41,7 +42,7 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
           ...(filter && { filter })
         },
         (payload) => {
-          console.log(`[Realtime] Event received for ${table}:`, payload);
+          console.log(`[Realtime] Event received for ${table}:`, payload.eventType);
           
           const event: RealtimeEvent = {
             eventType: payload.eventType as RealtimeEventType,
@@ -54,12 +55,14 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
         }
       )
       .subscribe((status) => {
-        console.log(`[Realtime] ${table} subscription status:`, status);
+        console.log(`[Realtime] ${channelName} subscription status:`, status);
         
         if (status === 'SUBSCRIBED') {
           console.log(`[Realtime] Successfully subscribed to ${table} changes`);
-        } else if (status === 'CHANNEL_ERROR') {
+          toastShownRef.current = false;
+        } else if (status === 'CHANNEL_ERROR' && !toastShownRef.current) {
           console.error(`[Realtime] Error subscribing to ${table}`);
+          toastShownRef.current = true;
           toast({
             title: "Erro de Conexão",
             description: "Falha ao conectar atualizações em tempo real",
@@ -77,7 +80,7 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
         channelRef.current = null;
       }
     };
-  }, [table, filter, onEvent, enabled, toast]);
+  }, [table, filter, onEvent, enabled]);
 
   return {
     cleanup: () => {
@@ -93,19 +96,40 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
 export function useRealtimeNotifications(teamId?: string) {
   const { toast } = useToast();
 
+  // Stabilize callbacks with useCallback to prevent re-subscriptions
+  const handlePlayerRequest = useCallback((event: RealtimeEvent) => {
+    if (event.eventType === 'INSERT' && event.new) {
+      toast({
+        title: "Nova Solicitação de Jogador",
+        description: `${event.new.name} solicitou entrar no time`,
+      });
+    }
+  }, [toast]);
+
+  const handleTeamMember = useCallback((event: RealtimeEvent) => {
+    if (event.eventType === 'INSERT' && event.new) {
+      toast({
+        title: "Novo Membro no Time",
+        description: "Um novo jogador foi adicionado ao time",
+      });
+    }
+  }, [toast]);
+
+  const handleGame = useCallback((event: RealtimeEvent) => {
+    if (event.eventType === 'INSERT' && event.new) {
+      toast({
+        title: "Novo Jogo Criado",
+        description: `${event.new.title} foi agendado`,
+      });
+    }
+  }, [toast]);
+
   // Listen for player requests
   useRealtime({
     table: 'player_requests',
     filter: teamId ? `team_id=eq.${teamId}` : undefined,
     enabled: !!teamId,
-    onEvent: (event) => {
-      if (event.eventType === 'INSERT' && event.new) {
-        toast({
-          title: "Nova Solicitação de Jogador",
-          description: `${event.new.name} solicitou entrar no time`,
-        });
-      }
-    }
+    onEvent: handlePlayerRequest
   });
 
   // Listen for new team members
@@ -113,14 +137,7 @@ export function useRealtimeNotifications(teamId?: string) {
     table: 'team_members',
     filter: teamId ? `team_id=eq.${teamId}` : undefined,
     enabled: !!teamId,
-    onEvent: (event) => {
-      if (event.eventType === 'INSERT' && event.new) {
-        toast({
-          title: "Novo Membro no Time",
-          description: "Um novo jogador foi adicionado ao time",
-        });
-      }
-    }
+    onEvent: handleTeamMember
   });
 
   // Listen for new games
@@ -128,13 +145,6 @@ export function useRealtimeNotifications(teamId?: string) {
     table: 'games',
     filter: teamId ? `team_id=eq.${teamId}` : undefined,
     enabled: !!teamId,
-    onEvent: (event) => {
-      if (event.eventType === 'INSERT' && event.new) {
-        toast({
-          title: "Novo Jogo Criado",
-          description: `${event.new.title} foi agendado`,
-        });
-      }
-    }
+    onEvent: handleGame
   });
 }

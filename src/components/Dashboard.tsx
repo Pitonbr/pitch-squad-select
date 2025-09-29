@@ -37,38 +37,8 @@ export function Dashboard() {
   const [pendingRequests, setPendingRequests] = useState<number>(0);
   const [showRequests, setShowRequests] = useState(false);
 
-  // Enable realtime notifications for this team
+  // Enable realtime notifications for this team (consolidated listener)
   useRealtimeNotifications(activeTeam?.id);
-
-  // Listen for realtime updates on games
-  useRealtime({
-    table: 'games',
-    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
-    enabled: !!activeTeam?.id,
-    onEvent: (event) => {
-      console.log('[Dashboard] Game event received:', event);
-      // Refresh games data when there are changes
-      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        fetchRecentGames();
-        fetchNextGame();
-      }
-    }
-  });
-
-  // Listen for player requests (admin only)
-  useRealtime({
-    table: 'player_requests',
-    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
-    enabled: !!activeTeam?.id && isTeamAdmin(activeTeam.id),
-    onEvent: (event) => {
-      console.log('[Dashboard] Player request event received:', event);
-      if (event.eventType === 'INSERT') {
-        setPendingRequests(prev => prev + 1);
-      } else if (event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        fetchPendingRequestsCount();
-      }
-    }
-  });
 
   useEffect(() => {
     if (activeTeam && user) {

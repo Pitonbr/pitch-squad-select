@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,37 +29,12 @@ export function PlayerRequestsManager() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
 
-  // Listen for realtime updates on player requests
-  useRealtime({
-    table: 'player_requests',
-    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
-    enabled: !!activeTeam?.id,
-    onEvent: (event) => {
-      console.log('[PlayerRequestsManager] Realtime event:', event);
-      
-      if (event.eventType === 'INSERT' && event.new) {
-        // Add new request to the list
-        setRequests(prev => [event.new, ...prev]);
-        toast({
-          title: "Nova Solicitação",
-          description: `${event.new.name} solicitou entrar no time`,
-        });
-      } else if (event.eventType === 'UPDATE' && event.new) {
-        // Update existing request
-        setRequests(prev => prev.map(req => 
-          req.id === event.new.id ? event.new : req
-        ));
-      } else if (event.eventType === 'DELETE' && event.old) {
-        // Remove deleted request
-        setRequests(prev => prev.filter(req => req.id !== event.old.id));
-      }
-    }
-  });
-
-  const fetchRequests = async () => {
+  // Stabilize fetchRequests with useCallback
+  const fetchRequests = useCallback(async () => {
     if (!activeTeam?.id) return;
 
     try {
+      console.log('[PlayerRequestsManager] Fetching requests for team:', activeTeam.id);
       const { data, error } = await supabase
         .rpc('get_pending_player_requests', { _team_id: activeTeam.id });
 
@@ -67,9 +42,10 @@ export function PlayerRequestsManager() {
         throw error;
       }
 
+      console.log('[PlayerRequestsManager] Requests loaded:', data?.length || 0);
       setRequests(data || []);
     } catch (error: any) {
-      console.error('Error fetching requests:', error);
+      console.error('[PlayerRequestsManager] Error fetching requests:', error);
       toast({
         title: "Erro ao carregar solicitações",
         description: error.message,
@@ -78,11 +54,37 @@ export function PlayerRequestsManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTeam?.id, toast]);
+
+  // Stabilize realtime event handler with useCallback
+  const handleRealtimeEvent = useCallback((event: any) => {
+    console.log('[PlayerRequestsManager] Realtime event:', event.eventType);
+    
+    if (event.eventType === 'INSERT' && event.new) {
+      // Add new request to the list
+      setRequests(prev => [event.new, ...prev]);
+    } else if (event.eventType === 'UPDATE' && event.new) {
+      // Update existing request
+      setRequests(prev => prev.map(req => 
+        req.id === event.new.id ? event.new : req
+      ));
+    } else if (event.eventType === 'DELETE' && event.old) {
+      // Remove deleted request
+      setRequests(prev => prev.filter(req => req.id !== event.old.id));
+    }
+  }, []);
+
+  // Listen for realtime updates on player requests
+  useRealtime({
+    table: 'player_requests',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handleRealtimeEvent
+  });
 
   useEffect(() => {
     fetchRequests();
-  }, [activeTeam?.id]);
+  }, [fetchRequests]);
 
   const handleApprove = async (requestId: string) => {
     setProcessing(requestId);
