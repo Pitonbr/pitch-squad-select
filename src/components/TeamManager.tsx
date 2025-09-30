@@ -7,19 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus, Crown, Copy, UserPlus, Share } from "lucide-react";
+import { ImageCropper } from "@/components/ImageCropper";
+import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera } from "lucide-react";
 
 export function TeamManager() {
-  const { createTeam, joinTeamByCode, userTeams, isTeamAdmin } = useTeams();
+  const { createTeam, joinTeamByCode, userTeams, isTeamAdmin, uploadTeamLogo } = useTeams();
   const { profile } = useAuth();
   const { toast } = useToast();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -55,6 +60,42 @@ export function TeamManager() {
         setJoinCode("");
         setIsJoinDialogOpen(false);
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>, teamId: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O tamanho máximo permitido é 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelectedImage(e.target?.result as string);
+        setSelectedTeamId(teamId);
+        setIsCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    if (!selectedTeamId) return;
+
+    setIsLoading(true);
+    try {
+      const file = new File([blob], 'team-logo.jpg', { type: 'image/jpeg' });
+      await uploadTeamLogo(selectedTeamId, file);
+      setIsCropperOpen(false);
+      setSelectedImage(null);
+      setSelectedTeamId(null);
     } finally {
       setIsLoading(false);
     }
@@ -195,7 +236,7 @@ export function TeamManager() {
           {userTeams.map((team) => (
             <Card key={team.id}>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <CardTitle className="flex items-center space-x-2">
                     <Users className="h-5 w-5" />
                     <span>{team.name}</span>
@@ -206,6 +247,32 @@ export function TeamManager() {
                       Admin
                     </Badge>
                   )}
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="relative group">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={team.logo_url || ''} alt={team.name} />
+                      <AvatarFallback className="text-xl">
+                        {team.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isTeamAdmin(team.id) && (
+                      <label 
+                        htmlFor={`logo-upload-${team.id}`}
+                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
+                      >
+                        <Camera className="h-6 w-6 text-white" />
+                        <input
+                          id={`logo-upload-${team.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleLogoSelect(e, team.id)}
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -254,6 +321,19 @@ export function TeamManager() {
             </Card>
           ))}
         </div>
+      )}
+      
+      {selectedImage && (
+        <ImageCropper
+          isOpen={isCropperOpen}
+          onClose={() => {
+            setIsCropperOpen(false);
+            setSelectedImage(null);
+            setSelectedTeamId(null);
+          }}
+          imageSrc={selectedImage}
+          onCropComplete={handleCropComplete}
+        />
       )}
     </div>
   );

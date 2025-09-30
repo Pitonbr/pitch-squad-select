@@ -10,6 +10,7 @@ interface Team {
   admin_id: string;
   treasurer_id: string | null;
   invite_code: string;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +33,7 @@ interface TeamsContextType {
   joinTeamByCode: (inviteCode: string) => Promise<boolean>;
   refreshTeams: () => Promise<void>;
   isTeamAdmin: (teamId: string) => boolean;
+  uploadTeamLogo: (teamId: string, file: File) => Promise<boolean>;
 }
 
 const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
@@ -82,6 +84,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             admin_id,
             treasurer_id,
             invite_code,
+            logo_url,
             created_at,
             updated_at
           )
@@ -203,13 +206,14 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       }
       
       // Fallback - create a team object if not found in userTeams yet
-      const fallbackTeam = {
+      const fallbackTeam: Team = {
         id: result.team_id,
         name: result.team_name,
         description: description || null,
         admin_id: profile?.id || '',
         treasurer_id: null,
         invite_code: '', // Will be loaded when teams refresh
+        logo_url: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -277,6 +281,62 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     return team?.admin_id === profile.id;
   };
 
+  const uploadTeamLogo = async (teamId: string, file: File): Promise<boolean> => {
+    if (!profile || !isTeamAdmin(teamId)) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem atualizar o logo do time.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${teamId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('team-logos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('team-logos')
+        .getPublicUrl(filePath);
+
+      // Update team with logo URL
+      const { error: updateError } = await supabase
+        .from('teams')
+        .update({ logo_url: publicUrl })
+        .eq('id', teamId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Logo atualizado!",
+        description: "O logo do time foi atualizado com sucesso."
+      });
+
+      await refreshTeams();
+      return true;
+    } catch (error: any) {
+      console.error('Error uploading team logo:', error);
+      toast({
+        title: "Erro ao atualizar logo",
+        description: error.message || "Não foi possível atualizar o logo do time.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   const value = {
     teams,
     activeTeam,
@@ -286,7 +346,8 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     createTeam,
     joinTeamByCode,
     refreshTeams,
-    isTeamAdmin
+    isTeamAdmin,
+    uploadTeamLogo
   };
 
   return (
