@@ -918,6 +918,7 @@ export type Database = {
           id: string
           invite_code: string
           is_public: boolean | null
+          logo_url: string | null
           name: string
           public_description: string | null
           state: string | null
@@ -932,6 +933,7 @@ export type Database = {
           id?: string
           invite_code?: string
           is_public?: boolean | null
+          logo_url?: string | null
           name: string
           public_description?: string | null
           state?: string | null
@@ -946,6 +948,7 @@ export type Database = {
           id?: string
           invite_code?: string
           is_public?: boolean | null
+          logo_url?: string | null
           name?: string
           public_description?: string | null
           state?: string | null
