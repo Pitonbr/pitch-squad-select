@@ -18,6 +18,25 @@ interface EmailRequest {
   retryAttempt?: number;
 }
 
+// Input validation
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+function validateUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeInput(input: string, maxLength: number = 255): string {
+  return input.trim().substring(0, maxLength);
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -25,13 +44,39 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { to, confirmationUrl, displayName, retryAttempt = 0 }: EmailRequest & { retryAttempt?: number } = await req.json();
+    const body = await req.json();
+    const { to, confirmationUrl, displayName, retryAttempt = 0 }: EmailRequest & { retryAttempt?: number } = body;
+
+    // Validate inputs
+    if (!to || !validateEmail(to)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!confirmationUrl || !validateUrl(confirmationUrl)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid confirmation URL" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (retryAttempt < 0 || retryAttempt > 5) {
+      return new Response(
+        JSON.stringify({ error: "Invalid retry attempt" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const sanitizedTo = sanitizeInput(to, 255);
+    const sanitizedDisplayName = sanitizeInput(displayName || "Jogador", 100);
 
     console.log("📧 Email request received:", { 
-      to, 
-      displayName, 
+      to: sanitizedTo, 
+      displayName: sanitizedDisplayName, 
       retryAttempt,
-      domain: to.split('@')[1],
+      domain: sanitizedTo.split('@')[1],
       timestamp: new Date().toISOString()
     });
 
@@ -48,24 +93,23 @@ const handler = async (req: Request): Promise<Response> => {
     const html = await renderAsync(
       React.createElement(WelcomeEmail, {
         confirmationUrl,
-        displayName: displayName || "Jogador",
+        displayName: sanitizedDisplayName,
       })
     );
 
     console.log("✅ Email template rendered successfully");
 
     // Enhanced email sending with better configuration
+    const emailDomain = sanitizedTo.split('@')[1].toLowerCase();
     const emailRequest = {
       from: "Soccer Manager <noreply@resend.dev>",
-      to: [to],
+      to: [sanitizedTo],
       subject: "⚽ Bem-vindo ao Soccer Manager - Confirme seu cadastro",
       html,
-      // Add headers to improve deliverability
       headers: {
         'X-Entity-Ref-ID': `soccer-manager-${Date.now()}`,
         'List-Unsubscribe': '<mailto:unsubscribe@resend.dev>',
       },
-      // Use tags for better tracking
       tags: [
         { name: 'type', value: 'email-verification' },
         { name: 'domain', value: emailDomain },

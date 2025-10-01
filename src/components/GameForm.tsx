@@ -8,6 +8,7 @@ import { Calendar, Clock, MapPin, Plus, AlarmClock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PlayerSelector } from "./PlayerSelector";
+import { gameFormSchema, formatZodError } from "@/lib/validation";
 
 interface Player {
   id: string;
@@ -66,11 +67,20 @@ export function GameForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.date || !formData.time || !formData.location) {
+    // Validate form data with zod
+    const validation = gameFormSchema.safeParse({
+      title: formData.title,
+      location: formData.location,
+      description: formData.description || "",
+      date: formData.date,
+      time: formData.time,
+    });
+
+    if (!validation.success) {
       toast({
-        title: "Erro na criação",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
+        title: "Erro de validação",
+        description: formatZodError(validation.error),
+        variant: "destructive",
       });
       return;
     }

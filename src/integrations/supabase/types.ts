@@ -671,6 +671,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          phone: string
+          window_start: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          phone: string
+          window_start?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          phone?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       sms_verification_codes: {
         Row: {
           attempts: number
@@ -1172,6 +1202,23 @@ export type Database = {
           player_position: string
           profile_image: string
           requested_by_name: string
+        }[]
+      }
+      get_player_secure: {
+        Args: { _player_id: string; _team_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          jersey_number: number
+          name: string
+          nickname: string
+          phone: string
+          player_position: string
+          profile_id: string
+          profile_image: string
+          team_id: string
+          updated_at: string
         }[]
       }
       get_team_financial_summary: {

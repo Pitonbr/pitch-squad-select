@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, Phone, User, MapPin, Mail, Hash, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { playerFormSchema, formatZodError } from "@/lib/validation";
 
 interface PlayerFormData {
   name: string;
@@ -80,11 +81,21 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.nickname || !formData.position || !formData.phone || !formData.email) {
+    // Validate form data with zod
+    const validation = playerFormSchema.safeParse({
+      name: formData.name,
+      nickname: formData.nickname,
+      position: formData.position,
+      phone: formData.phone,
+      email: formData.email || "",
+      jersey_number: formData.jersey_number ? parseInt(formData.jersey_number as string) : undefined,
+    });
+
+    if (!validation.success) {
       toast({
-        title: "Erro no cadastro",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
+        title: "Erro de validação",
+        description: formatZodError(validation.error),
+        variant: "destructive",
       });
       return;
     }
