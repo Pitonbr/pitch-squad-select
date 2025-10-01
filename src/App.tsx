@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import UpdatePrompt from "./components/UpdatePrompt";
+import MobileOptimized from "./components/MobileOptimized";
 import { AuthProvider } from "./hooks/useAuth";
 import { TeamsProvider } from "./hooks/useTeams";
 import { SafeProvider } from "./components/SafeProvider";
@@ -51,22 +52,24 @@ const App = () => {
         <TooltipProvider>
           <AuthProvider>
             <TeamsProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <PWAInstallPrompt />
-                {updateAvailable && updateInfo && (
-                  <UpdatePrompt 
-                    onUpdateComplete={() => applyUpdate(updateInfo)}
-                  />
-                )}
-              </BrowserRouter>
+              <MobileOptimized className="min-h-screen no-overflow">
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <PWAInstallPrompt />
+                  {updateAvailable && updateInfo && (
+                    <UpdatePrompt 
+                      onUpdateComplete={() => applyUpdate(updateInfo)}
+                    />
+                  )}
+                </BrowserRouter>
+              </MobileOptimized>
             </TeamsProvider>
           </AuthProvider>
         </TooltipProvider>

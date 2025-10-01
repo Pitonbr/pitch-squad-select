@@ -4,13 +4,13 @@
   "description": "Sistema completo de gestão de partidas de futebol com cadastro de jogadores, check-in automático e formação de times equilibradas.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#2e7d32",
   "theme_color": "#4caf50",
-  "orientation": "portrait-primary",
-  "categories": ["sports", "games", "productivity"],
-  "lang": "pt-BR",
   "scope": "/",
   "prefer_related_applications": false,
+  "categories": ["sports", "games", "productivity"],
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
