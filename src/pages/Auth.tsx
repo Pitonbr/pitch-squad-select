@@ -11,8 +11,9 @@ import { Loader2, Eye, EyeOff, Mail, User, Phone, MessageSquare } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { SMSVerification } from "@/components/SMSVerification";
 import { EmailVerification } from "@/components/EmailVerification";
+import { WhatsAppVerification } from "@/components/WhatsAppVerification";
 
-type VerificationMethod = 'email' | 'sms' | null;
+type VerificationMethod = 'email' | 'sms' | 'whatsapp' | null;
 type AuthStep = 'auth' | 'verification';
 
 const Auth = () => {
@@ -159,6 +160,22 @@ const Auth = () => {
             email={signupData.email}
             password={signupData.password}
             displayName={signupData.displayName}
+            onSuccess={handleVerificationSuccess}
+            onBack={handleBackToAuth}
+          />
+        </div>
+      );
+    }
+
+    if (verificationMethod === 'whatsapp') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+          <WhatsAppVerification
+            phone={signupData.phone}
+            email={signupData.email}
+            password={signupData.password}
+            displayName={signupData.displayName}
+            inviteCode={inviteCode || undefined}
             onSuccess={handleVerificationSuccess}
             onBack={handleBackToAuth}
           />
@@ -357,10 +374,26 @@ const Auth = () => {
                       type="button"
                       variant="outline"
                       className="w-full h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() => handleVerificationMethodSelect('sms')}
+                      onClick={() => handleVerificationMethodSelect('whatsapp')}
                       disabled={!signupData.phone || !signupData.email || !signupData.password || !signupData.displayName}
                     >
                       <MessageSquare className="h-6 w-6 text-green-600" />
+                      <div className="text-center">
+                        <div className="font-medium">Por WhatsApp</div>
+                        <div className="text-sm text-muted-foreground">
+                          Receba um código instantâneo
+                        </div>
+                      </div>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
+                      onClick={() => handleVerificationMethodSelect('sms')}
+                      disabled={!signupData.phone || !signupData.email || !signupData.password || !signupData.displayName}
+                    >
+                      <Phone className="h-6 w-6 text-purple-600" />
                       <div className="text-center">
                         <div className="font-medium">Por SMS</div>
                         <div className="text-sm text-muted-foreground">
