@@ -103,6 +103,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_delivery_logs_new: {
+        Row: {
+          attempt_number: number | null
+          created_at: string | null
+          delivery_time_ms: number | null
+          email_domain: string | null
+          error_message: string | null
+          id: string
+          provider_response: string | null
+          recipient_email: string
+          status: string
+        }
+        Insert: {
+          attempt_number?: number | null
+          created_at?: string | null
+          delivery_time_ms?: number | null
+          email_domain?: string | null
+          error_message?: string | null
+          id?: string
+          provider_response?: string | null
+          recipient_email: string
+          status: string
+        }
+        Update: {
+          attempt_number?: number | null
+          created_at?: string | null
+          delivery_time_ms?: number | null
+          email_domain?: string | null
+          error_message?: string | null
+          id?: string
+          provider_response?: string | null
+          recipient_email?: string
+          status?: string
+        }
+        Relationships: []
+      }
       financial_periods: {
         Row: {
           created_at: string
@@ -1116,6 +1152,45 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_verification_codes: {
+        Row: {
+          attempts: number | null
+          code: string
+          created_at: string | null
+          error_message: string | null
+          expires_at: string
+          id: string
+          phone: string
+          sent_at: string | null
+          status: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          code: string
+          created_at?: string | null
+          error_message?: string | null
+          expires_at: string
+          id?: string
+          phone: string
+          sent_at?: string | null
+          status?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          code?: string
+          created_at?: string | null
+          error_message?: string | null
+          expires_at?: string
+          id?: string
+          phone?: string
+          sent_at?: string | null
+          status?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1257,6 +1332,10 @@ export type Database = {
       has_financial_admin_access: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
+      }
+      increment_verification_attempts: {
+        Args: { verification_id: string }
+        Returns: undefined
       }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
