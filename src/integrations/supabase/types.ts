@@ -66,40 +66,37 @@ export type Database = {
       }
       email_delivery_logs: {
         Row: {
-          created_at: string
-          delivery_status: string
-          email_address: string
-          email_domain: string
-          email_provider: string | null
+          attempt_number: number | null
+          created_at: string | null
+          delivery_time_ms: number | null
+          email_domain: string | null
           error_message: string | null
           id: string
-          retry_count: number | null
-          updated_at: string
-          user_id: string | null
+          provider_response: string | null
+          recipient_email: string
+          status: string
         }
         Insert: {
-          created_at?: string
-          delivery_status: string
-          email_address: string
-          email_domain: string
-          email_provider?: string | null
+          attempt_number?: number | null
+          created_at?: string | null
+          delivery_time_ms?: number | null
+          email_domain?: string | null
           error_message?: string | null
           id?: string
-          retry_count?: number | null
-          updated_at?: string
-          user_id?: string | null
+          provider_response?: string | null
+          recipient_email: string
+          status: string
         }
         Update: {
-          created_at?: string
-          delivery_status?: string
-          email_address?: string
-          email_domain?: string
-          email_provider?: string | null
+          attempt_number?: number | null
+          created_at?: string | null
+          delivery_time_ms?: number | null
+          email_domain?: string | null
           error_message?: string | null
           id?: string
-          retry_count?: number | null
-          updated_at?: string
-          user_id?: string | null
+          provider_response?: string | null
+          recipient_email?: string
+          status?: string
         }
         Relationships: []
       }
@@ -1217,6 +1214,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_verifications: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
