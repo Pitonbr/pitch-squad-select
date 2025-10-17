@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const body = await req.json();
     const { to, confirmationUrl, displayName, retryAttempt = 0 }: EmailRequest & { retryAttempt?: number } = body;
-    const emailDomain = to.split('@')[1]?.toLowerCase();
+    const emailDomain = to?.split('@')[1]?.toLowerCase();
 
     // Validate inputs
     if (!to || !validateEmail(to)) {
@@ -78,12 +78,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     const sanitizedTo = sanitizeInput(to, 255);
     const sanitizedDisplayName = sanitizeInput(displayName || "Jogador", 100);
+    const sanitizedConfirmationUrl = sanitizeInput(confirmationUrl, 500);
 
     console.log(`📧 Preparing to send email to ${sanitizedTo} (domain: ${emailDomain}, attempt ${retryAttempt})`);
 
     // Log attempt to database
     const logId = crypto.randomUUID();
-    await supabase.from("email_delivery_logs_new").insert({
+    await supabase.from("email_delivery_logs").insert({
       id: logId,
       recipient_email: sanitizedTo,
       email_domain: emailDomain,
@@ -91,11 +92,17 @@ const handler = async (req: Request): Promise<Response> => {
       status: "attempting",
     });
 
+    // Check for common problematic domains
+    const problematicDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com'];
+    if (problematicDomains.includes(emailDomain)) {
+      console.warn(`⚠️ Sending to potentially problematic domain: ${emailDomain}`);
+    }
+
     // Render the email template
     console.log("🔄 Rendering email template...");
     const html = await renderAsync(
       React.createElement(WelcomeEmail, {
-        confirmationUrl,
+        confirmationUrl: sanitizedConfirmationUrl,
         displayName: sanitizedDisplayName,
       })
     );
@@ -103,15 +110,14 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("✅ Email template rendered successfully");
 
     // Determine "from" email based on configuration
-    // If CUSTOM_EMAIL_DOMAIN is set, use it. Otherwise, use default Resend domain
     const customDomain = Deno.env.get("CUSTOM_EMAIL_DOMAIN");
     const fromEmail = customDomain 
       ? `Soccer Manager <noreply@${customDomain}>`
-      : "Soccer Manager <noreply@resend.dev>";
+      : "Soccer Manager <onboarding@resend.dev>";
 
-    console.log(`📤 Sending from: ${fromEmail} to ${sanitizedTo}`);
+    console.log(`📤 Sending from: ${fromEmail}`);
 
-    // Enhanced email sending with better configuration
+    // Enhanced email sending with metadata
     const emailRequest = {
       from: fromEmail,
       to: [sanitizedTo],
@@ -135,10 +141,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const duration = Date.now() - startTime;
-    console.log(`✅ Email sent successfully via Resend in ${duration}ms:`, emailResponse);
+    console.log(`✅ Email sent successfully via Resend in ${duration}ms:`, emailResponse.data?.id);
 
     // Update log with success
-    await supabase.from("email_delivery_logs_new").update({
+    await supabase.from("email_delivery_logs").update({
       status: "delivered",
       provider_response: emailResponse.data?.id,
       delivery_time_ms: duration,
@@ -173,7 +179,7 @@ const handler = async (req: Request): Promise<Response> => {
       const domain = email?.split('@')[1];
       
       if (email) {
-        await supabase.from("email_delivery_logs_new").insert({
+        await supabase.from("email_delivery_logs").insert({
           recipient_email: email,
           email_domain: domain,
           status: "failed",
@@ -185,12 +191,11 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to log error:", logError);
     }
 
-    // Check if this is a retryable error (rate limiting, timeouts)
-    const isRetryable = error.message?.includes("rate limit") || 
-                       error.message?.includes("timeout") ||
-                       error.message?.includes("network");
-
-    const statusCode = isRetryable ? 429 : 500;
+    // Determine if this is a retryable error
+    const isRetryable = error.message?.includes('rate limit') || 
+                       error.message?.includes('timeout') ||
+                       error.message?.includes('network') ||
+                       error.message?.includes('temporary');
 
     return new Response(
       JSON.stringify({ 
@@ -200,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
         duration
       }),
       {
-        status: statusCode,
+        status: isRetryable ? 429 : 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
