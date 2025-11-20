@@ -54,10 +54,13 @@ export function GameCard({
   isAdmin = false
 }: GameCardProps) {
   return (
-    <Card className="smooth-transition hover:field-shadow">
+    <Card 
+      variant="dark" 
+      className="smooth-transition hover:shadow-[0_0_20px_rgba(63,184,175,0.3)] backdrop-blur-md"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold">{title}</CardTitle>
+          <CardTitle className="text-lg font-bold text-white">{title}</CardTitle>
           <div className="flex items-center gap-2">
             <Badge className={statusConfig[status].badge}>
               {statusConfig[status].text}
@@ -67,7 +70,7 @@ export function GameCard({
                 variant="ghost"
                 size="sm"
                 onClick={onCancelGame}
-                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/20"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -78,28 +81,28 @@ export function GameCard({
       
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Calendar className="h-4 w-4 text-primary" />
             <span>{date}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Clock className="h-4 w-4 text-primary" />
             <span>{time}</span>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 text-sm">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center space-x-2 text-sm text-white/80">
+          <MapPin className="h-4 w-4 text-primary" />
           <span>{location}</span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm">
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Users className="h-4 w-4 text-primary" />
             <span>{playersCheckedIn}/{totalPlayers} jogadores</span>
-            <div className="w-20 bg-muted rounded-full h-2">
+            <div className="w-20 bg-black/40 rounded-full h-2 border border-primary/30">
               <div 
-                className="field-gradient h-2 rounded-full transition-all duration-300" 
+                className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${(playersCheckedIn / totalPlayers) * 100}%` }}
               />
             </div>
@@ -114,7 +117,10 @@ export function GameCard({
         )}
         
         {onJoinGame && status === "checkin" && (
-          <Button className="w-full field-gradient font-semibold" onClick={onJoinGame}>
+          <Button 
+            className="w-full bg-primary hover:bg-accent text-white font-semibold transition-colors" 
+            onClick={onJoinGame}
+          >
             Participar do Jogo
           </Button>
         )}

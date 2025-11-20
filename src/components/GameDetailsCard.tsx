@@ -84,11 +84,14 @@ export function GameDetailsCard({
   const [showInviteLink, setShowInviteLink] = useState(false);
   const [showPlayerManager, setShowPlayerManager] = useState(false);
   return (
-    <Card className="smooth-transition hover:field-shadow">
+    <Card 
+      variant="dark" 
+      className="smooth-transition hover:shadow-[0_0_20px_rgba(63,184,175,0.3)] backdrop-blur-md"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-xl font-bold mb-2">{title}</CardTitle>
+            <CardTitle className="text-xl font-bold mb-2 text-white">{title}</CardTitle>
             <Badge className={statusConfig[status].badge}>
               {statusConfig[status].text}
             </Badge>
@@ -101,7 +104,7 @@ export function GameDetailsCard({
                   variant="outline"
                   size="sm"
                   onClick={onEdit}
-                  className="gap-2"
+                  className="gap-2 border-primary/50 text-white hover:bg-primary/20"
                 >
                   <Edit className="h-4 w-4" />
                   Editar
@@ -111,7 +114,7 @@ export function GameDetailsCard({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowPlayerManager(!showPlayerManager)}
-                className="gap-2"
+                className="gap-2 border-primary/50 text-white hover:bg-primary/20"
               >
                 <UserPlus className="h-4 w-4" />
                 Jogadores
@@ -120,7 +123,7 @@ export function GameDetailsCard({
                 variant="default"
                 size="sm"
                 onClick={() => setShowInviteLink(!showInviteLink)}
-                className="gap-2 field-gradient"
+                className="gap-2 bg-primary hover:bg-accent text-white transition-colors"
               >
                 <Send className="h-4 w-4" />
                 Convites
@@ -132,33 +135,33 @@ export function GameDetailsCard({
       
       <CardContent className="space-y-4">
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm text-white/70">{description}</p>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Calendar className="h-4 w-4 text-primary" />
             <span>{date}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Clock className="h-4 w-4 text-primary" />
             <span>{time}</span>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 text-sm">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center space-x-2 text-sm text-white/80">
+          <MapPin className="h-4 w-4 text-primary" />
           <span>{location}</span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm">
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center space-x-2 text-sm text-white/80">
+            <Users className="h-4 w-4 text-primary" />
             <span>{playersCheckedIn}/{totalPlayers} jogadores confirmados</span>
           </div>
-          <div className="w-24 bg-muted rounded-full h-2">
+          <div className="w-24 bg-black/40 rounded-full h-2 border border-primary/30">
             <div 
-              className="field-gradient h-2 rounded-full transition-all duration-300" 
+              className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300" 
               style={{ width: `${Math.min((playersCheckedIn / totalPlayers) * 100, 100)}%` }}
             />
           </div>
@@ -172,7 +175,10 @@ export function GameDetailsCard({
         )}
         
         {onJoin && status === "checkin" && !isAdmin && (
-          <Button className="w-full field-gradient font-semibold" onClick={onJoin}>
+          <Button 
+            className="w-full bg-primary hover:bg-accent text-white font-semibold transition-colors" 
+            onClick={onJoin}
+          >
             Participar do Jogo
           </Button>
         )}
