@@ -9,6 +9,7 @@ import {
   Text,
   Section,
   Button,
+  Img,
 } from 'npm:@react-email/components@0.0.22';
 import * as React from 'npm:react@18.3.1';
 
@@ -23,18 +24,24 @@ export const WelcomeEmail = ({
 }: WelcomeEmailProps) => (
   <Html>
     <Head />
-    <Preview>Confirme seu cadastro no Soccer Manager</Preview>
+    <Preview>Confirme seu cadastro no Soccer Squad</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <div style={logo}>⚽</div>
-          <Heading style={h1}>Soccer Manager</Heading>
+          <Img
+            src="https://fupqwyzwjvlnklbazqjm.supabase.co/storage/v1/object/public/assets/soccer-squad-logo.jpeg"
+            alt="Soccer Squad Logo"
+            width="120"
+            height="120"
+            style={logoImage}
+          />
+          <Heading style={h1}>Soccer Squad</Heading>
         </Section>
         
         <Section style={content}>
           <Heading style={h2}>Bem-vindo, {displayName}!</Heading>
           <Text style={text}>
-            Obrigado por se cadastrar no Soccer Manager, o aplicativo definitivo para gerenciar seu time de futebol!
+            Obrigado por se cadastrar no Soccer Squad, o aplicativo definitivo para gerenciar seu time de futebol!
           </Text>
           
           <Text style={text}>
@@ -59,13 +66,13 @@ export const WelcomeEmail = ({
           </Text>
           
           <Text style={smallText}>
-            Se você não se cadastrou no Soccer Manager, pode ignorar este email com segurança.
+            Se você não se cadastrou no Soccer Squad, pode ignorar este email com segurança.
           </Text>
         </Section>
         
         <Section style={footer}>
           <Text style={footerText}>
-            © 2024 Soccer Manager - Gerencie seu time com facilidade
+            © 2025 Soccer Squad - Gerencie seu time com facilidade
           </Text>
         </Section>
       </Container>
@@ -92,13 +99,13 @@ const header = {
   padding: '32px 0',
 };
 
-const logo = {
-  fontSize: '48px',
-  marginBottom: '16px',
+const logoImage = {
+  margin: '0 auto 16px',
+  borderRadius: '12px',
 };
 
 const h1 = {
-  color: '#16a34a',
+  color: '#3FB8AF',
   fontSize: '32px',
   fontWeight: 'bold',
   margin: '0',
@@ -130,7 +137,7 @@ const buttonContainer = {
 };
 
 const button = {
-  backgroundColor: '#16a34a',
+  backgroundColor: '#3FB8AF',
   borderRadius: '8px',
   color: '#ffffff',
   fontSize: '16px',
@@ -150,7 +157,7 @@ const smallText = {
 };
 
 const linkText = {
-  color: '#16a34a',
+  color: '#3FB8AF',
   fontSize: '14px',
   textDecoration: 'underline',
   wordBreak: 'break-all' as const,
