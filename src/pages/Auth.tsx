@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Eye, EyeOff, Mail, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EmailVerification } from "@/components/EmailVerification";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import logoImage from "@/assets/soccer-squad-logo.jpeg";
 
 type AuthStep = 'auth' | 'verification';
 
@@ -28,6 +30,9 @@ const Auth = () => {
     displayName: ""
   });
   const [authStep, setAuthStep] = useState<AuthStep>('auth');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   // Check for existing session and invite code
   useEffect(() => {
@@ -143,6 +148,45 @@ const Auth = () => {
     setAuthStep('auth');
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail || !resetEmail.includes('@')) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, insira um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+      });
+      
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar email",
+        description: error.message || "Ocorreu um erro ao processar sua solicitação.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   // Render email verification step
   if (authStep === 'verification') {
     return (
@@ -161,13 +205,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-full mb-4">
-            <span className="text-2xl">⚽</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Soccer Manager</h1>
-          <p className="text-gray-600 mt-2">Gerencie seu time de futebol</p>
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center space-y-4">
+          <img 
+            src={logoImage} 
+            alt="Soccer Squad" 
+            className="h-24 w-24 mx-auto rounded-full object-cover shadow-lg"
+          />
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            Soccer Squad
+          </h1>
+          <p className="text-muted-foreground">Gerencie seu time de futebol</p>
         </div>
 
         <Card>
@@ -223,15 +271,25 @@ const Auth = () => {
                           <Eye className="h-4 w-4 text-gray-400" />
                         )}
                       </Button>
-                    </div>
-                  </div>
+                     </div>
+                   </div>
 
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Entrar
-                  </Button>
-                </form>
-              </TabsContent>
+                   <div className="text-center">
+                     <button
+                       type="button"
+                       onClick={() => setShowForgotPassword(true)}
+                       className="text-sm text-primary hover:underline"
+                     >
+                       Esqueci minha senha
+                     </button>
+                   </div>
+
+                   <Button type="submit" className="w-full" disabled={loading}>
+                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                     Entrar
+                   </Button>
+                 </form>
+               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4">
                 <div className="space-y-4">
@@ -314,6 +372,38 @@ const Auth = () => {
             </CardContent>
           </Tabs>
         </Card>
+
+        <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Recuperar Senha</DialogTitle>
+              <DialogDescription>
+                Digite seu email cadastrado e enviaremos um link para redefinir sua senha.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isResettingPassword}
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={isResettingPassword}>
+                {isResettingPassword ? "Enviando..." : "Enviar Link de Recuperação"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
