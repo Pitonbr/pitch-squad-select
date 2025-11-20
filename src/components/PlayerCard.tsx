@@ -53,18 +53,23 @@ export function PlayerCard({
   };
 
   return (
-    <Card className={`smooth-transition hover:team-shadow ${checkedIn ? 'ring-2 ring-success' : ''}`}>
+    <Card 
+      variant="dark" 
+      className={`smooth-transition hover:shadow-[0_0_20px_rgba(63,184,175,0.3)] backdrop-blur-md ${
+        checkedIn ? 'ring-2 ring-success shadow-[0_0_20px_rgba(34,197,94,0.4)]' : ''
+      }`}
+    >
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0 text-center">
-            <Avatar className="h-12 w-12 mx-auto">
+            <Avatar className="h-12 w-12 mx-auto ring-2 ring-primary/30">
               <AvatarImage src={profile_image} alt={name} />
-              <AvatarFallback className="text-sm font-semibold">
+              <AvatarFallback className="text-sm font-semibold bg-primary/20 text-white">
                 {jersey_number || name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             {jersey_number && (
-              <Badge variant="outline" className="text-xs font-bold mt-1">
+              <Badge variant="outline" className="text-xs font-bold mt-1 border-accent text-accent">
                 #{jersey_number}
               </Badge>
             )}
@@ -72,7 +77,7 @@ export function PlayerCard({
           
           <div className="flex-grow min-w-0">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="font-semibold text-sm truncate">{name}</h3>
+              <h3 className="font-semibold text-sm truncate text-white">{name}</h3>
               <Badge 
                 variant="secondary" 
                 className={`text-xs ${positionColors[position] || 'bg-muted'}`}
@@ -82,16 +87,16 @@ export function PlayerCard({
               </Badge>
             </div>
             
-            <p className="text-xs text-muted-foreground mb-2">"{nickname}"</p>
+            <p className="text-xs text-white/70 mb-2">"{nickname}"</p>
             
-            <div className="space-y-1 text-xs text-muted-foreground mb-3">
+            <div className="space-y-1 text-xs text-white/60 mb-3">
               <div className="flex items-center">
-                <Phone className="h-3 w-3 mr-1" />
+                <Phone className="h-3 w-3 mr-1 text-primary" />
                 {phone}
               </div>
               {email && (
                 <div className="flex items-center">
-                  <Mail className="h-3 w-3 mr-1" />
+                  <Mail className="h-3 w-3 mr-1 text-primary" />
                   <span className="truncate">{email}</span>
                 </div>
               )}
@@ -102,7 +107,7 @@ export function PlayerCard({
                 <Button 
                   size="sm" 
                   variant="default"
-                  className="field-gradient text-xs h-7"
+                  className="bg-primary hover:bg-accent text-white text-xs h-7 transition-colors"
                   onClick={() => onCheckIn(id)}
                 >
                   <Clock className="h-3 w-3 mr-1" />
@@ -110,7 +115,7 @@ export function PlayerCard({
                 </Button>
               )}
               {checkedIn && (
-                <Badge variant="default" className="bg-success text-success-foreground text-xs">
+                <Badge variant="default" className="bg-success text-white text-xs">
                   ✓ Confirmado
                 </Badge>
               )}
@@ -119,7 +124,7 @@ export function PlayerCard({
                 variant="outline"
                 size="sm"
                 onClick={handleWhatsApp}
-                className="text-xs h-7"
+                className="text-xs h-7 border-primary/50 text-white hover:bg-primary/20"
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
                 WhatsApp
@@ -130,7 +135,7 @@ export function PlayerCard({
                   variant="outline"
                   size="sm"
                   onClick={handleEmail}
-                  className="text-xs h-7"
+                  className="text-xs h-7 border-primary/50 text-white hover:bg-primary/20"
                 >
                   <Mail className="h-3 w-3 mr-1" />
                   Email
