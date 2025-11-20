@@ -105,33 +105,33 @@ export function Rankings() {
     icon: any; 
     valueLabel: string;
   }) => (
-    <Card>
+    <Card variant="dark" className="backdrop-blur-md">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="flex items-center space-x-2 text-white">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {players.map((player, index) => (
-          <div key={player.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 smooth-transition">
+          <div key={player.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 smooth-transition border border-primary/20">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center">
                 {getRankingIcon(index + 1)}
               </div>
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-8 w-8 ring-2 ring-primary/30">
                         <AvatarImage src={player.profile_image} alt={player.name} />
-                        <AvatarFallback className="text-xs">
+                        <AvatarFallback className="text-xs bg-primary/20 text-white">
                           {player.nickname.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
               <div>
-                <p className="font-semibold text-sm">{player.nickname}</p>
-                <p className="text-xs text-muted-foreground">{player.name}</p>
+                <p className="font-semibold text-sm text-white">{player.nickname}</p>
+                <p className="text-xs text-white/60">{player.name}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-accent text-accent">
                 {player.position}
               </Badge>
               <Badge className={getRankingBadgeColor(index + 1)}>
@@ -175,52 +175,52 @@ export function Rankings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold mb-2">Rankings e Estatísticas</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold text-white">Rankings e Estatísticas</h2>
+        <p className="text-white/70">
           Estatísticas completas, rankings e histórico de jogos
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="stats">Estatísticas dos Jogadores</TabsTrigger>
-          <TabsTrigger value="recent">Jogos Recentes</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-primary/30">
+          <TabsTrigger value="stats" className="data-[state=active]:bg-primary data-[state=active]:text-white">Estatísticas dos Jogadores</TabsTrigger>
+          <TabsTrigger value="recent" className="data-[state=active]:bg-primary data-[state=active]:text-white">Jogos Recentes</TabsTrigger>
         </TabsList>
 
         {/* Player Statistics Tab */}
         <TabsContent value="stats" className="space-y-6">
           {players.length > 0 ? (
             <div className="grid lg:grid-cols-2 gap-6">
-              <Card>
+              <Card variant="dark" className="backdrop-blur-md">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-white">
                     <Users className="h-5 w-5 text-primary" />
                     <span>Jogadores do Time</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {players.map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 smooth-transition">
+                    <div key={player.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 smooth-transition border border-primary/20">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center justify-center">
-                          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">
+                          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-white/70">
                             #{index + 1}
                           </span>
                         </div>
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-8 w-8 ring-2 ring-primary/30">
                           <AvatarImage src={player.profile_image} alt={player.name} />
-                          <AvatarFallback className="text-xs">
+                          <AvatarFallback className="text-xs bg-primary/20 text-white">
                             {player.nickname.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-sm">{player.nickname}</p>
-                          <p className="text-xs text-muted-foreground">{player.name}</p>
+                          <p className="font-semibold text-sm text-white">{player.nickname}</p>
+                          <p className="text-xs text-white/60">{player.name}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-accent text-accent">
                           {player.position}
                         </Badge>
                       </div>
@@ -229,22 +229,22 @@ export function Rankings() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card variant="dark" className="backdrop-blur-md">
                 <CardContent className="text-center py-12">
-                  <Trophy className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Estatísticas em Desenvolvimento</h3>
-                  <p className="text-muted-foreground">
+                  <Trophy className="h-16 w-16 mx-auto text-primary mb-4" />
+                  <h3 className="text-lg font-semibold mb-2 text-white">Estatísticas em Desenvolvimento</h3>
+                  <p className="text-white/70">
                     Rankings de gols, assistências e outras estatísticas serão exibidos aqui quando começarem os jogos.
                   </p>
                 </CardContent>
               </Card>
             </div>
           ) : (
-            <Card>
+            <Card variant="dark" className="backdrop-blur-md">
               <CardContent className="text-center py-12">
-                <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum jogador encontrado</h3>
-                <p className="text-muted-foreground">
+                <Users className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-white">Nenhum jogador encontrado</h3>
+                <p className="text-white/70">
                   Adicione jogadores ao time para ver as estatísticas aqui.
                 </p>
               </CardContent>
@@ -257,7 +257,7 @@ export function Rankings() {
           {recentGames.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Performance Summary */}
-              <Card className="field-gradient text-white">
+              <Card className="bg-gradient-to-br from-primary to-accent text-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
@@ -279,30 +279,30 @@ export function Rankings() {
 
               {/* Recent Games List */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card variant="dark" className="backdrop-blur-md">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Calendar className="h-5 w-5 text-primary" />
                       Histórico de Jogos
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {recentGames.map((game, index) => (
-                        <div key={game.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div key={game.id} className="flex items-center justify-between p-3 border border-primary/30 rounded-lg hover:bg-white/5 transition-colors">
                           <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="w-8 text-center">
+                            <Badge variant="outline" className="w-8 text-center border-accent text-accent">
                               {index + 1}
                             </Badge>
                             <div>
-                              <p className="font-medium text-sm">{game.title}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="font-medium text-sm text-white">{game.title}</p>
+                              <p className="text-xs text-white/60">
                                 {new Date(game.date).toLocaleDateString('pt-BR')} • {game.location}
                               </p>
                             </div>
                           </div>
                           
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="border-primary/50 text-white">
                             {game.status}
                           </Badge>
                         </div>
@@ -313,11 +313,11 @@ export function Rankings() {
               </div>
             </div>
           ) : (
-            <Card>
+            <Card variant="dark" className="backdrop-blur-md">
               <CardContent className="text-center py-12">
-                <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum jogo encontrado</h3>
-                <p className="text-muted-foreground">
+                <Calendar className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-white">Nenhum jogo encontrado</h3>
+                <p className="text-white/70">
                   Quando jogos forem realizados, o histórico aparecerá aqui.
                 </p>
               </CardContent>

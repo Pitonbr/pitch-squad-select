@@ -100,11 +100,11 @@ const LiveGameContent: React.FC = () => {
 
   if (availableGames.length === 0) {
     return (
-      <Card>
+      <Card variant="dark" className="backdrop-blur-md">
         <CardContent className="pt-6">
           <div className="text-center">
-            <p className="text-muted-foreground mb-4">Nenhum jogo programado para hoje.</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-white/70 mb-4">Nenhum jogo programado para hoje.</p>
+            <p className="text-sm text-white/60">
               Jogos agendados aparecerão aqui quando estiverem próximos de começar.
             </p>
           </div>
@@ -117,31 +117,31 @@ const LiveGameContent: React.FC = () => {
   if (!selectedGame) {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Jogos de Hoje</h2>
+        <h2 className="text-2xl font-bold text-white">Jogos de Hoje</h2>
         {availableGames.map((game) => (
-          <Card key={game.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
+          <Card key={game.id} variant="dark" className="cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-2">
-                    <h3 className="font-semibold text-lg">{game.title}</h3>
+                    <h3 className="font-semibold text-lg text-white">{game.title}</h3>
                     <Badge variant={game.status === 'in_progress' ? 'default' : 'secondary'}>
                       {game.status === 'scheduled' ? 'Agendado' : 'Em Andamento'}
                     </Badge>
                     {game.referee_id && (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="border-accent text-accent">
                         Juiz Designado
                       </Badge>
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-4 text-muted-foreground">
+                  <div className="flex items-center gap-4 text-white/70">
                     <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 text-primary" />
                       <span>{game.time}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
+                      <MapPin className="w-4 h-4 text-primary" />
                       <span>{game.location}</span>
                     </div>
                     {game.is_match_active && (
@@ -154,7 +154,7 @@ const LiveGameContent: React.FC = () => {
                 
                 <Button 
                   onClick={() => setSelectedGame(game)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-primary hover:bg-accent text-white"
                 >
                   <Play className="w-4 h-4" />
                   {game.is_match_active ? 'Continuar' : 'Gerenciar'}
@@ -175,7 +175,7 @@ const LiveGameContent: React.FC = () => {
           variant="outline" 
           size="sm"
           onClick={() => setSelectedGame(null)}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-primary/50 text-white hover:bg-primary/20"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar para jogos
@@ -192,19 +192,19 @@ const LiveGameContent: React.FC = () => {
         )}
       </div>
 
-      <Card>
+      <Card variant="dark" className="backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="text-2xl">{selectedGame.title}</CardTitle>
-          <CardDescription className="flex items-center gap-4">
+          <CardTitle className="text-2xl text-white">{selectedGame.title}</CardTitle>
+          <CardDescription className="flex items-center gap-4 text-white/70">
             <span className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4 text-primary" />
               {selectedGame.location}
             </span>
             <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+              <Clock className="w-4 h-4 text-primary" />
               {selectedGame.time}
             </span>
-            <span className="text-2xl font-bold">
+            <span className="text-2xl font-bold text-white">
               {selectedGame.home_score} - {selectedGame.away_score}
             </span>
           </CardDescription>
