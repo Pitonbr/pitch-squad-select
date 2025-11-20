@@ -7,13 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Eye, EyeOff, Mail, User, Phone, MessageSquare } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { SMSVerification } from "@/components/SMSVerification";
 import { EmailVerification } from "@/components/EmailVerification";
-import { WhatsAppVerification } from "@/components/WhatsAppVerification";
 
-type VerificationMethod = 'email' | 'sms' | 'whatsapp' | null;
 type AuthStep = 'auth' | 'verification';
 
 const Auth = () => {
@@ -28,11 +25,9 @@ const Auth = () => {
   const [signupData, setSignupData] = useState({ 
     email: "", 
     password: "", 
-    displayName: "", 
-    phone: "" 
+    displayName: ""
   });
   const [authStep, setAuthStep] = useState<AuthStep>('auth');
-  const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>(null);
 
   // Check for existing session and invite code
   useEffect(() => {
@@ -99,8 +94,7 @@ const Auth = () => {
     }
   };
 
-  const handleVerificationMethodSelect = (method: VerificationMethod) => {
-    setVerificationMethod(method);
+  const handleStartEmailVerification = () => {
     setAuthStep('verification');
   };
 
@@ -147,56 +141,22 @@ const Auth = () => {
 
   const handleBackToAuth = () => {
     setAuthStep('auth');
-    setVerificationMethod(null);
   };
 
-  // Render verification step
+  // Render email verification step
   if (authStep === 'verification') {
-    if (verificationMethod === 'sms') {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
-          <SMSVerification
-            phone={signupData.phone}
-            email={signupData.email}
-            password={signupData.password}
-            displayName={signupData.displayName}
-            onSuccess={handleVerificationSuccess}
-            onBack={handleBackToAuth}
-          />
-        </div>
-      );
-    }
-
-    if (verificationMethod === 'whatsapp') {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
-          <WhatsAppVerification
-            phone={signupData.phone}
-            email={signupData.email}
-            password={signupData.password}
-            displayName={signupData.displayName}
-            inviteCode={inviteCode || undefined}
-            onSuccess={handleVerificationSuccess}
-            onBack={handleBackToAuth}
-          />
-        </div>
-      );
-    }
-
-    if (verificationMethod === 'email') {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
-          <EmailVerification
-            email={signupData.email}
-            password={signupData.password}
-            displayName={signupData.displayName}
-            inviteCode={inviteCode || undefined}
-            onSuccess={handleVerificationSuccess}
-            onBack={handleBackToAuth}
-          />
-        </div>
-      );
-    }
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+        <EmailVerification
+          email={signupData.email}
+          password={signupData.password}
+          displayName={signupData.displayName}
+          inviteCode={inviteCode || undefined}
+          onSuccess={handleVerificationSuccess}
+          onBack={handleBackToAuth}
+        />
+      </div>
+    );
   }
 
   return (
@@ -307,21 +267,6 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Telefone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="signup-phone"
-                        type="tel"
-                        placeholder="+55 11 99999-9999"
-                        value={signupData.phone}
-                        onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Senha</Label>
@@ -351,57 +296,19 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-4">
-                    <Label className="text-base font-medium">Como deseja confirmar seu cadastro?</Label>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() => handleVerificationMethodSelect('email')}
-                      disabled={!signupData.email || !signupData.password || !signupData.displayName}
-                    >
-                      <Mail className="h-6 w-6 text-blue-600" />
-                      <div className="text-center">
-                        <div className="font-medium">Por Email</div>
-                        <div className="text-sm text-muted-foreground">
-                          Receba um link de confirmação
-                        </div>
-                      </div>
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() => handleVerificationMethodSelect('whatsapp')}
-                      disabled={!signupData.phone || !signupData.email || !signupData.password || !signupData.displayName}
-                    >
-                      <MessageSquare className="h-6 w-6 text-green-600" />
-                      <div className="text-center">
-                        <div className="font-medium">Por WhatsApp</div>
-                        <div className="text-sm text-muted-foreground">
-                          Receba um código instantâneo
-                        </div>
-                      </div>
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-auto p-4 flex flex-col items-center gap-2"
-                      onClick={() => handleVerificationMethodSelect('sms')}
-                      disabled={!signupData.phone || !signupData.email || !signupData.password || !signupData.displayName}
-                    >
-                      <Phone className="h-6 w-6 text-purple-600" />
-                      <div className="text-center">
-                        <div className="font-medium">Por SMS</div>
-                        <div className="text-sm text-muted-foreground">
-                          Receba um código no seu celular
-                        </div>
-                      </div>
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    className="w-full mt-4"
+                    onClick={handleStartEmailVerification}
+                    disabled={!signupData.email || !signupData.password || !signupData.displayName}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Cadastrar via Email
+                  </Button>
+                  
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Você receberá um link de confirmação no seu email
+                  </p>
                 </div>
               </TabsContent>
             </CardContent>
