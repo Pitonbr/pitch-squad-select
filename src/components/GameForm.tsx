@@ -124,9 +124,9 @@ export function GameForm({
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <Card>
+    <Card variant="dark" className="backdrop-blur-md">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="flex items-center space-x-2 text-white">
           <Plus className="h-5 w-5 text-primary" />
           <span>Criar Novo Jogo</span>
         </CardTitle>
@@ -134,20 +134,20 @@ export function GameForm({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Nome do Jogo *</Label>
+            <Label htmlFor="title" className="text-white">Nome do Jogo *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Ex: Pelada da Galera - Sábado"
-              className="w-full"
+              className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date" className="flex items-center space-x-1">
-                <Calendar className="h-3 w-3" />
+              <Label htmlFor="date" className="flex items-center space-x-1 text-white">
+                <Calendar className="h-3 w-3 text-primary" />
                 <span>Data *</span>
               </Label>
               <Input
@@ -156,13 +156,13 @@ export function GameForm({
                 min={today}
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="time" className="flex items-center space-x-1">
-                <Clock className="h-3 w-3" />
+              <Label htmlFor="time" className="flex items-center space-x-1 text-white">
+                <Clock className="h-3 w-3 text-primary" />
                 <span>Horário *</span>
               </Label>
               <Input
@@ -170,14 +170,14 @@ export function GameForm({
                 type="time"
                 value={formData.time}
                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center space-x-1">
-              <MapPin className="h-3 w-3" />
+            <Label htmlFor="location" className="flex items-center space-x-1 text-white">
+              <MapPin className="h-3 w-3 text-primary" />
               <span>Local *</span>
             </Label>
             <Input
@@ -185,32 +185,32 @@ export function GameForm({
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               placeholder="Ex: Campo Central - Rua das Flores, 123"
-              className="w-full"
+              className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Observações</Label>
+            <Label htmlFor="description" className="text-white">Observações</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Informações adicionais sobre o jogo..."
-              className="w-full"
+              className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="checkinDeadline" className="flex items-center space-x-1">
-              <AlarmClock className="h-3 w-3" />
+            <Label htmlFor="checkinDeadline" className="flex items-center space-x-1 text-white">
+              <AlarmClock className="h-3 w-3 text-primary" />
               <span>Prazo para Check-in *</span>
             </Label>
             <Select
               value={formData.checkinDeadlineMinutes.toString()}
               onValueChange={(value) => setFormData({ ...formData, checkinDeadlineMinutes: parseInt(value) })}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-background/50 border-primary/30 text-white">
                 <SelectValue placeholder="Selecione o prazo" />
               </SelectTrigger>
               <SelectContent>
@@ -221,7 +221,7 @@ export function GameForm({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               Após este prazo, o check-in será fechado e apenas jogadores confirmados poderão participar da seleção de times.
             </p>
           </div>

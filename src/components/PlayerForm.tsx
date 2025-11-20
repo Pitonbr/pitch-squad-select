@@ -208,9 +208,9 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
   };
 
   return (
-    <Card>
+    <Card variant="dark" className="backdrop-blur-md">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="flex items-center space-x-2 text-white">
           <UserPlus className="h-5 w-5 text-primary" />
           <span>Cadastrar Novo Jogador</span>
         </CardTitle>
@@ -219,8 +219,8 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center space-x-1">
-                <User className="h-3 w-3" />
+              <Label htmlFor="name" className="flex items-center space-x-1 text-white">
+                <User className="h-3 w-3 text-primary" />
                 <span>Nome Completo *</span>
               </Label>
               <Input
@@ -228,30 +228,30 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: João Silva"
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="nickname">Apelido/Nome de Guerra *</Label>
+              <Label htmlFor="nickname" className="text-white">Apelido/Nome de Guerra *</Label>
               <Input
                 id="nickname"
                 value={formData.nickname}
                 onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                 placeholder="Ex: Joãozinho"
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="flex items-center space-x-1">
-                <MapPin className="h-3 w-3" />
+              <Label className="flex items-center space-x-1 text-white">
+                <MapPin className="h-3 w-3 text-primary" />
                 <span>Posição *</span>
               </Label>
               <Select value={formData.position} onValueChange={(value) => setFormData({ ...formData, position: value })}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background/50 border-primary/30 text-white">
                   <SelectValue placeholder="Selecione uma posição" />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,8 +265,8 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center space-x-1">
-                <Phone className="h-3 w-3" />
+              <Label htmlFor="phone" className="flex items-center space-x-1 text-white">
+                <Phone className="h-3 w-3 text-primary" />
                 <span>Celular *</span>
               </Label>
               <Input
@@ -275,15 +275,15 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(11) 99999-9999"
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center space-x-1">
-                <Mail className="h-3 w-3" />
+              <Label htmlFor="email" className="flex items-center space-x-1 text-white">
+                <Mail className="h-3 w-3 text-primary" />
                 <span>Email *</span>
               </Label>
               <Input
@@ -292,13 +292,13 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="jogador@email.com"
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="jersey" className="flex items-center space-x-1">
-                <Hash className="h-3 w-3" />
+              <Label htmlFor="jersey" className="flex items-center space-x-1 text-white">
+                <Hash className="h-3 w-3 text-primary" />
                 <span>Número da Camisa</span>
               </Label>
               <Input
@@ -309,14 +309,14 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
                 placeholder="10"
                 min="1"
                 max="99"
-                className="w-full"
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image" className="flex items-center space-x-1">
-              <Upload className="h-3 w-3" />
+            <Label htmlFor="image" className="flex items-center space-x-1 text-white">
+              <Upload className="h-3 w-3 text-primary" />
               <span>Foto do Jogador</span>
             </Label>
             <Input
@@ -324,10 +324,10 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
               type="file"
               accept="image/*"
               onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              className="w-full"
+              className="w-full bg-background/50 border-primary/30 text-white file:text-white"
             />
             {imageFile && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/60">
                 Arquivo selecionado: {imageFile.name}
               </p>
             )}
