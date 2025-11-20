@@ -238,11 +238,11 @@ export function Dashboard() {
     return (
       <div className="space-y-6">
         <Card className="relative overflow-hidden">
-          <div 
-            className="h-32 bg-cover bg-center relative"
-            style={{ backgroundImage: `url(${soccerFieldHero})` }}
-          >
-            <div className="absolute inset-0 bg-black/40" />
+        <div 
+          className="h-32 bg-cover bg-center relative"
+          style={{ backgroundImage: `url(${soccerFieldHero})` }}
+        >
+          <div className="absolute inset-0 bg-black/60" />
           </div>
           <CardContent className="relative -mt-8 pb-6 text-center">
             <div className="flex flex-col items-center space-y-4">
@@ -259,14 +259,14 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardContent className="text-center py-12">
-            <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum perfil de jogador encontrado</h3>
-            <p className="text-muted-foreground mb-4">
+            <Users className="h-16 w-16 mx-auto text-primary mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">Nenhum perfil de jogador encontrado</h3>
+            <p className="text-white/70 mb-4">
               Para ver suas estatísticas, você precisa ser adicionado como jogador pelo administrador do time.
             </p>
-            <Badge variant="outline">
+            <Badge variant="outline" className="border-primary/50 text-white">
               Entre em contato com o administrador
             </Badge>
           </CardContent>
@@ -323,7 +323,7 @@ export function Dashboard() {
           className="h-32 bg-cover bg-center relative"
           style={{ backgroundImage: `url(${soccerFieldHero})` }}
         >
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/60" />
         </div>
         <CardContent className="relative -mt-8 pb-6">
           <div className="flex items-center space-x-4">

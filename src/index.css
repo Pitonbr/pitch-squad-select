@@ -6,15 +6,15 @@
 
 @layer base {
   :root {
-    /* Soccer Squad Theme - Light Mode */
-    --background: 0 0% 98%;
-    --foreground: 207 33% 17%;
+    /* Soccer Squad Theme - Dark Stadium Theme */
+    --background: 207 33% 12%;
+    --foreground: 0 0% 98%;
 
     --card: 0 0% 100%;
     --card-foreground: 207 33% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 207 33% 17%;
+    --popover: 207 33% 17%;
+    --popover-foreground: 0 0% 95%;
 
     /* Cyan blue as primary */
     --primary: 176 51% 49%;
@@ -24,8 +24,8 @@
     --secondary: 76 68% 64%;
     --secondary-foreground: 207 33% 17%;
 
-    --muted: 207 20% 94%;
-    --muted-foreground: 207 15% 45%;
+    --muted: 207 20% 20%;
+    --muted-foreground: 207 10% 70%;
 
     --accent: 76 68% 64%;
     --accent-foreground: 207 33% 17%;
@@ -36,17 +36,17 @@
     --team-b: 76 68% 64%;
     --team-b-foreground: 207 33% 17%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 83% 57%;
+    --warning-foreground: 45 30% 15%;
 
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 207 20% 85%;
-    --input: 207 20% 88%;
+    --border: 176 51% 49% / 0.3;
+    --input: 0 0% 0% / 0.3;
     --ring: 176 51% 49%;
 
     --radius: 0.5rem;
@@ -80,9 +80,9 @@
   }
 
   .dark {
-    /* Soccer Squad Theme - Dark Mode */
+    /* Soccer Squad Theme - Dark Mode (Same as default now) */
     --background: 207 33% 12%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 98%;
 
     --card: 207 33% 17%;
     --card-foreground: 0 0% 95%;
@@ -90,7 +90,7 @@
     --popover: 207 33% 17%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 176 51% 55%;
+    --primary: 176 51% 49%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 176 51% 70%;
 
@@ -98,12 +98,12 @@
     --secondary-foreground: 207 33% 17%;
 
     --muted: 207 20% 20%;
-    --muted-foreground: 207 10% 60%;
+    --muted-foreground: 207 10% 70%;
 
     --accent: 76 68% 64%;
     --accent-foreground: 207 33% 17%;
 
-    --team-a: 176 51% 55%;
+    --team-a: 176 51% 49%;
     --team-a-foreground: 0 0% 100%;
     --team-b: 76 68% 64%;
     --team-b-foreground: 207 33% 17%;
@@ -114,12 +114,12 @@
     --warning: 45 83% 57%;
     --warning-foreground: 45 30% 15%;
 
-    --destructive: 0 75% 70%;
+    --destructive: 0 75% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 207 20% 25%;
-    --input: 207 20% 22%;
-    --ring: 176 51% 55%;
+    --border: 176 51% 49% / 0.3;
+    --input: 0 0% 0% / 0.3;
+    --ring: 176 51% 49%;
 
     --radius: 0.5rem;
 
@@ -328,5 +328,35 @@
     body {
       overscroll-behavior: none;
     }
+  }
+  
+  /* Stadium background utility */
+  .stadium-bg {
+    background-image: linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url('/src/assets/soccer-field-hero.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+  
+  /* Dark card with blur effect */
+  .card-dark-blur {
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid hsl(var(--primary) / 0.3);
+  }
+  
+  /* Text with cyan glow */
+  .text-glow-cyan {
+    text-shadow: 0 0 25px rgba(63, 184, 175, 0.5);
+  }
+  
+  /* Button gradient */
+  .button-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+  
+  .button-gradient:hover {
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
   }
 }
