@@ -220,11 +220,11 @@ export const FinancialControl: React.FC = () => {
       <TreasurerSelector />
 
       {/* Period Navigation and View Mode */}
-      <Card>
+      <Card variant="dark" className="backdrop-blur-md">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Calendar className="h-5 w-5 text-primary" />
               Período Financeiro
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -287,61 +287,61 @@ export const FinancialControl: React.FC = () => {
 
       {/* Financial Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-white">Receita Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-400">
               R$ {summary.totalIncome.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               Jogadores: R$ {summary.playerIncome.toFixed(2)} | Extras: R$ {summary.extraRevenue.toFixed(2)}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Esperada</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-white">Receita Esperada</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               R$ {summary.expectedIncome.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               {summary.totalPlayers} jogador(es)
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesas</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-white">Despesas</CardTitle>
+            <TrendingDown className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-red-400">
               R$ {summary.totalExpenses.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               {teamExpenses.filter(e => e.paid).length} despesa(s) paga(s)
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-white">Saldo</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold ${summary.balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               R$ {summary.balance.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               Receita - Despesas
             </p>
           </CardContent>
@@ -349,10 +349,10 @@ export const FinancialControl: React.FC = () => {
       </div>
 
       {/* Payment Progress */}
-      <Card>
+      <Card variant="dark" className="backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <TrendingUp className="h-5 w-5 text-primary" />
             Progresso dos Pagamentos
           </CardTitle>
         </CardHeader>
@@ -373,10 +373,10 @@ export const FinancialControl: React.FC = () => {
 
       {/* Player Payment Status */}
       {isFinancialAdmin ? (
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Users className="h-5 w-5 text-primary" />
               Gestão de Pagamentos
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -406,19 +406,19 @@ export const FinancialControl: React.FC = () => {
               </div>
             ) : playerPayments.length === 0 ? (
               <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <p className="text-white/70">
                   {currentPeriod ? 'Clique em "Gerar Pagamentos" para começar' : 'Nenhum período financeiro encontrado'}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {playerPayments.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={payment.id} className="flex items-center justify-between p-3 border border-primary/30 rounded-lg hover:bg-white/5 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div>
-                        <p className="font-medium">{payment.player?.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">
+                        <p className="font-medium text-white">{payment.player?.name}</p>
+                        <p className="text-sm text-white/60 capitalize">
                           {payment.payment_type === 'monthly_fee' ? 'Mensalidade' : 'Taxa do jogo'}
                         </p>
                       </div>

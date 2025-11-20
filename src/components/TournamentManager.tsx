@@ -173,24 +173,25 @@ export function TournamentManager() {
 
       {/* Create Tournament Form */}
       {showCreateForm && !selectedTournament && (
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardHeader>
-            <CardTitle>Criar Novo Campeonato</CardTitle>
+            <CardTitle className="text-white">Criar Novo Campeonato</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="tournament-name">Nome do Campeonato</Label>
+                <Label htmlFor="tournament-name" className="text-white">Nome do Campeonato</Label>
                 <Input
                   id="tournament-name"
                   value={tournamentName}
                   onChange={(e) => setTournamentName(e.target.value)}
                   placeholder="Ex: Copa Primavera 2024"
+                  className="bg-black/30 border-primary/50 text-white placeholder:text-white/50"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="tournament-type">Tipo de Campeonato</Label>
+                <Label htmlFor="tournament-type" className="text-white">Tipo de Campeonato</Label>
                 <Select value={tournamentType} onValueChange={(value: 'single_elimination' | 'round_robin') => setTournamentType(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo" />
@@ -204,18 +205,19 @@ export function TournamentManager() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tournament-description">Descrição</Label>
+              <Label htmlFor="tournament-description" className="text-white">Descrição</Label>
               <Textarea
                 id="tournament-description"
                 value={tournamentDescription}
                 onChange={(e) => setTournamentDescription(e.target.value)}
                 placeholder="Descrição opcional do campeonato..."
                 rows={3}
+                className="bg-black/30 border-primary/50 text-white placeholder:text-white/50"
               />
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Selecionar Jogadores do Time</h4>
+              <h4 className="font-semibold text-white">Selecionar Jogadores do Time</h4>
               <PlayerSelector
                 allPlayers={teamPlayers}
                 selectedPlayerIds={selectedPlayerIds}
@@ -231,7 +233,7 @@ export function TournamentManager() {
               <Button 
                 onClick={handleCreateTournament}
                 disabled={!tournamentName.trim() || selectedPlayerIds.length < 4}
-                className="field-gradient text-white"
+                className="bg-primary hover:bg-accent text-white transition-colors"
               >
                 <Trophy className="h-4 w-4 mr-2" />
                 Criar Campeonato
@@ -239,13 +241,14 @@ export function TournamentManager() {
               <Button 
                 variant="outline"
                 onClick={() => setShowCreateForm(false)}
+                className="border-primary/50 text-white hover:bg-primary/20"
               >
                 Cancelar
               </Button>
             </div>
             
             {selectedPlayerIds.length > 0 && selectedPlayerIds.length < 4 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/70">
                 Mínimo de 4 jogadores necessário para criar um campeonato.
               </p>
             )}
@@ -257,12 +260,12 @@ export function TournamentManager() {
       {!selectedTournament && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tournaments.map((tournament) => (
-            <Card key={tournament.id} className="smooth-transition hover:field-shadow">
+            <Card key={tournament.id} variant="dark" className="smooth-transition hover:shadow-[0_0_20px_rgba(63,184,175,0.3)] backdrop-blur-md">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">{tournament.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <CardTitle className="text-lg text-white">{tournament.name}</CardTitle>
+                    <p className="text-sm text-white/70 mt-1">
                       {tournament.description || "Sem descrição"}
                     </p>
                   </div>
@@ -291,7 +294,7 @@ export function TournamentManager() {
               </CardHeader>
               
               <CardContent className="space-y-3">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-white/70">
                   Criado em: {new Date(tournament.created_at).toLocaleDateString('pt-BR')}
                 </div>
                 
@@ -300,7 +303,7 @@ export function TournamentManager() {
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedTournament(tournament)}
-                    className="flex-1"
+                    className="flex-1 border-primary/50 text-white hover:bg-primary/20"
                   >
                     <Trophy className="h-4 w-4 mr-2" />
                     Ver Chaveamento
@@ -314,15 +317,15 @@ export function TournamentManager() {
 
       {/* Empty State */}
       {tournaments.length === 0 && !showCreateForm && !selectedTournament && (
-        <Card>
+        <Card variant="dark" className="backdrop-blur-md">
           <CardContent className="text-center py-12">
-            <Trophy className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum campeonato criado</h3>
-            <p className="text-muted-foreground mb-4">
+            <Trophy className="h-16 w-16 mx-auto mb-4 text-primary opacity-50" />
+            <h3 className="text-lg font-semibold mb-2 text-white">Nenhum campeonato criado</h3>
+            <p className="text-white/70 mb-4">
               Crie seu primeiro campeonato para organizar torneios do seu time
             </p>
             {isTeamAdmin(activeTeam?.id) && (
-              <Button onClick={() => setShowCreateForm(true)} className="field-gradient text-white">
+              <Button onClick={() => setShowCreateForm(true)} className="bg-primary hover:bg-accent text-white transition-colors">
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeiro Campeonato
               </Button>
