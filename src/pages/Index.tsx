@@ -150,10 +150,10 @@ export default function Index() {
 
   if (loading || teamsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen stadium-bg flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Carregando...</p>
+          <p className="text-white">Carregando...</p>
         </div>
       </div>
     );
@@ -161,14 +161,14 @@ export default function Index() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
-        <Card className="w-full max-w-md text-center">
+      <div className="min-h-screen stadium-bg flex items-center justify-center p-4">
+        <Card variant="dark" className="w-full max-w-md text-center backdrop-blur-md">
           <CardContent className="p-6">
-            <h1 className="text-2xl font-bold mb-4">⚽ Soccer Manager</h1>
-            <p className="text-muted-foreground mb-6">
+            <h1 className="text-2xl font-bold text-white text-glow-cyan mb-4">⚽ Soccer Squad</h1>
+            <p className="text-white/70 mb-6">
               Faça login para acessar o sistema de gerenciamento de futebol
             </p>
-            <Button onClick={() => navigate("/auth")} className="w-full">
+            <Button onClick={() => navigate("/auth")} className="w-full bg-primary hover:bg-accent text-white">
               <LogIn className="h-4 w-4 mr-2" />
               Fazer Login
             </Button>
@@ -407,7 +407,7 @@ export default function Index() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen stadium-bg">
       <Header 
         currentView={currentView} 
         onViewChange={setCurrentView}
