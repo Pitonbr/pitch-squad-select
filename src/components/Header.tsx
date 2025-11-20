@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { VersionIndicator } from "@/components/VersionIndicator";
 import { RealtimeIndicator } from "@/components/RealtimeIndicator";
+import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import { 
   Trophy, 
   Users, 
@@ -82,9 +83,11 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2 hero-gradient rounded-xl">
-              <Trophy className="h-6 w-6 text-white" />
-            </div>
+            <img 
+              src={logoImage} 
+              alt="Soccer Squad Logo" 
+              className="h-12 w-12 rounded-xl object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold">Soccer Squad</h1>
               <p className="text-xs text-muted-foreground">Gestão de Partidas</p>
