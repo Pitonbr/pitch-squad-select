@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "Soccer Squad <noreply@soccersquad.com>", // Use verified domain
+      from: "Soccer Squad <onboarding@resend.dev>", // Using Resend test domain temporarily
       to: [email],
       subject: "Recuperação de Senha - Soccer Squad",
       html,
