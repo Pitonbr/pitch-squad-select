@@ -44,16 +44,28 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "Soccer Squad <onboarding@resend.dev>",
+      from: "Soccer Squad <noreply@soccersquad.com>", // Use verified domain
       to: [email],
       subject: "Recuperação de Senha - Soccer Squad",
       html,
     });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+    // Check if Resend returned an error
+    if (emailResponse.error) {
+      console.error("Resend error in send-password-reset:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          error: emailResponse.error.message || "Erro ao enviar email",
+          details: emailResponse.error 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
-    // Log the delivery attempt (optional, if you want to track this)
-    // You could add a call to your email_delivery_logs table here
+    console.log("Password reset email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
