@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { EmailVerification } from "@/components/EmailVerification";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
+import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 
 type AuthStep = 'auth' | 'verification';
 
@@ -190,7 +191,15 @@ const Auth = () => {
   // Render email verification step
   if (authStep === 'verification') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{
+          backgroundImage: `linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url(${soccerFieldHero})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <EmailVerification
           email={signupData.email}
           password={signupData.password}
@@ -204,26 +213,34 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundImage: `linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url(${soccerFieldHero})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-4">
           <img 
             src={logoImage} 
             alt="Soccer Squad" 
-            className="h-24 w-24 mx-auto rounded-full object-cover shadow-lg"
+            className="h-24 w-24 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
           />
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
             Soccer Squad
           </h1>
-          <p className="text-muted-foreground">Gerencie seu time de futebol</p>
+          <p className="text-cyan-100/80">Gerencie seu time de futebol</p>
         </div>
 
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-md border-2 border-primary/30">
           <Tabs defaultValue="login" value={inviteCode ? "signup" : undefined}>
             <CardHeader>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-black/50 border border-primary/20">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-white">Entrar</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-white">Cadastrar</TabsTrigger>
               </TabsList>
             </CardHeader>
 
@@ -231,23 +248,23 @@ const Auth = () => {
               <TabsContent value="login" className="space-y-4">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email" className="text-white font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
                       <Input
                         id="login-email"
                         type="email"
                         placeholder="seu@email.com"
                         value={loginData.email}
                         onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                        className="pl-10"
+                        className="pl-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Senha</Label>
+                    <Label htmlFor="login-password" className="text-white font-medium">Senha</Label>
                     <div className="relative">
                       <Input
                         id="login-password"
@@ -255,7 +272,7 @@ const Auth = () => {
                         placeholder="Sua senha"
                         value={loginData.password}
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        className="pr-10"
+                        className="pr-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                         required
                       />
                       <Button
@@ -266,9 +283,9 @@ const Auth = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400" />
+                          <EyeOff className="h-4 w-4 text-primary" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-400" />
+                          <Eye className="h-4 w-4 text-primary" />
                         )}
                       </Button>
                      </div>
@@ -278,13 +295,13 @@ const Auth = () => {
                      <button
                        type="button"
                        onClick={() => setShowForgotPassword(true)}
-                       className="text-sm text-primary hover:underline"
+                       className="text-sm text-primary hover:text-accent transition-colors"
                      >
                        Esqueci minha senha
                      </button>
                    </div>
 
-                   <Button type="submit" className="w-full" disabled={loading}>
+                   <Button type="submit" className="w-full bg-primary hover:bg-accent text-white font-medium transition-colors" disabled={loading}>
                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                      Entrar
                    </Button>
@@ -294,32 +311,32 @@ const Auth = () => {
               <TabsContent value="signup" className="space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome</Label>
+                    <Label htmlFor="signup-name" className="text-white font-medium">Nome</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-accent" />
                       <Input
                         id="signup-name"
                         type="text"
                         placeholder="Seu nome"
                         value={signupData.displayName}
                         onChange={(e) => setSignupData({ ...signupData, displayName: e.target.value })}
-                        className="pl-10"
+                        className="pl-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-white font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="seu@email.com"
                         value={signupData.email}
                         onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                        className="pl-10"
+                        className="pl-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                         required
                       />
                     </div>
@@ -327,7 +344,7 @@ const Auth = () => {
 
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
+                    <Label htmlFor="signup-password" className="text-white font-medium">Senha</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -335,7 +352,7 @@ const Auth = () => {
                         placeholder="Sua senha"
                         value={signupData.password}
                         onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                        className="pr-10"
+                        className="pr-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                         required
                       />
                       <Button
@@ -346,9 +363,9 @@ const Auth = () => {
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400" />
+                          <EyeOff className="h-4 w-4 text-accent" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-400" />
+                          <Eye className="h-4 w-4 text-accent" />
                         )}
                       </Button>
                     </div>
@@ -356,7 +373,7 @@ const Auth = () => {
 
                   <Button
                     type="button"
-                    className="w-full mt-4"
+                    className="w-full mt-4 bg-primary hover:bg-accent text-white font-medium transition-colors"
                     onClick={handleStartEmailVerification}
                     disabled={!signupData.email || !signupData.password || !signupData.displayName}
                   >
@@ -364,7 +381,7 @@ const Auth = () => {
                     Cadastrar via Email
                   </Button>
                   
-                  <p className="text-xs text-center text-muted-foreground mt-2">
+                  <p className="text-xs text-center text-cyan-100/70 mt-2">
                     Você receberá um link de confirmação no seu email
                   </p>
                 </div>
@@ -374,31 +391,31 @@ const Auth = () => {
         </Card>
 
         <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-          <DialogContent>
+          <DialogContent className="bg-black/90 backdrop-blur-md border-2 border-primary/30">
             <DialogHeader>
-              <DialogTitle>Recuperar Senha</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">Recuperar Senha</DialogTitle>
+              <DialogDescription className="text-cyan-100/70">
                 Digite seu email cadastrado e enviaremos um link para redefinir sua senha.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
+                <Label htmlFor="reset-email" className="text-white font-medium">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
                   <Input
                     id="reset-email"
                     type="email"
                     placeholder="seu@email.com"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-black/30 border-primary/50 text-white placeholder:text-gray-400 focus:border-accent focus:ring-accent/20"
                     required
                     disabled={isResettingPassword}
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isResettingPassword}>
+              <Button type="submit" className="w-full bg-primary hover:bg-accent text-white font-medium transition-colors" disabled={isResettingPassword}>
                 {isResettingPassword ? "Enviando..." : "Enviar Link de Recuperação"}
               </Button>
             </form>
