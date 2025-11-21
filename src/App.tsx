@@ -15,6 +15,7 @@ import { TeamsProvider } from "./hooks/useTeams";
 import { SafeProvider } from "./components/SafeProvider";
 import { useErrorDetection } from "./components/SafeProvider";
 import { useUpdateService } from "./hooks/useUpdateService";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,40 +44,42 @@ const App = () => {
   const { updateAvailable, updateInfo, applyUpdate } = useUpdateService();
   
   return (
-    <SafeProvider
-      onError={(error, errorInfo) => {
-        console.error('App-level error caught:', { error: error.message, errorInfo });
-        // You could send this to an error reporting service here
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <TeamsProvider>
-              <MobileOptimized className="min-h-screen no-overflow">
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <PWAInstallPrompt />
-                  {updateAvailable && updateInfo && (
-                    <UpdatePrompt 
-                      onUpdateComplete={() => applyUpdate(updateInfo)}
-                    />
-                  )}
-                </BrowserRouter>
-              </MobileOptimized>
-            </TeamsProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </SafeProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="soccer-squad-theme">
+      <SafeProvider
+        onError={(error, errorInfo) => {
+          console.error('App-level error caught:', { error: error.message, errorInfo });
+          // You could send this to an error reporting service here
+        }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              <TeamsProvider>
+                <MobileOptimized className="min-h-screen no-overflow">
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <PWAInstallPrompt />
+                    {updateAvailable && updateInfo && (
+                      <UpdatePrompt 
+                        onUpdateComplete={() => applyUpdate(updateInfo)}
+                      />
+                    )}
+                  </BrowserRouter>
+                </MobileOptimized>
+              </TeamsProvider>
+            </AuthProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </SafeProvider>
+    </ThemeProvider>
   );
 };
 
