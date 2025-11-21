@@ -7,6 +7,7 @@ interface Profile {
   user_id: string;
   display_name: string | null;
   phone: string | null;
+  theme_preference: 'light' | 'dark' | 'system';
   created_at: string;
   updated_at: string;
 }
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       console.log('useAuth: Profile fetched successfully', profileData);
-      setProfile(profileData);
+      setProfile(profileData as Profile);
     } catch (error) {
       console.error('useAuth: Exception fetching profile:', error);
     } finally {
