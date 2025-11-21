@@ -90,7 +90,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
             />
             <div>
               <h1 className="text-xl font-bold text-white text-glow-cyan">Soccer Squad</h1>
-              <p className="text-xs text-cyan-100/70">Gestão de Partidas</p>
+              <p className="text-xs text-cyan-100/95">Gestão de Partidas</p>
             </div>
           </div>
           
@@ -146,7 +146,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
         {activeTeam && (
           <div className="mb-4 p-2 bg-black/40 backdrop-blur-sm rounded-lg border border-primary/20">
             <p className="text-sm text-center">
-              <span className="text-cyan-100/70">Time ativo:</span>{" "}
+              <span className="text-cyan-100/95">Time ativo:</span>{" "}
               <span className="font-medium text-white">{activeTeam.name}</span>
             </p>
           </div>
@@ -158,10 +158,10 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
             <Button
               key={item.key}
               variant={currentView === item.key ? "default" : "ghost"}
-              className={`flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              className={`flex items-center space-x-2 whitespace-nowrap transition-colors font-medium ${
                 currentView === item.key 
-                  ? "bg-primary text-white shadow-[0_0_15px_rgba(63,184,175,0.4)]" 
-                  : "text-white/70 hover:text-white hover:bg-white/10"
+                  ? "bg-primary text-white shadow-[0_0_20px_rgba(63,184,175,0.5)] border-b-2 border-accent" 
+                  : "text-white/90 hover:text-white hover:bg-white/20"
               }`}
               onClick={() => onViewChange(item.key)}
             >

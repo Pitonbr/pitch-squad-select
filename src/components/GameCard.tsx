@@ -81,26 +81,26 @@ export function GameCard({
       
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2 text-sm text-white/80">
+          <div className="flex items-center space-x-2 text-sm text-white/95">
             <Calendar className="h-4 w-4 text-primary" />
             <span>{date}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-white/80">
+          <div className="flex items-center space-x-2 text-sm text-white/95">
             <Clock className="h-4 w-4 text-primary" />
             <span>{time}</span>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 text-sm text-white/80">
+        <div className="flex items-center space-x-2 text-sm text-white/95">
           <MapPin className="h-4 w-4 text-primary" />
           <span>{location}</span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm text-white/80">
+          <div className="flex items-center space-x-2 text-sm text-white/95">
             <Users className="h-4 w-4 text-primary" />
             <span>{playersCheckedIn}/{totalPlayers} jogadores</span>
-            <div className="w-20 bg-black/40 rounded-full h-2 border border-primary/30">
+            <div className="w-20 bg-black/40 rounded-full h-2 border-2 border-primary/50">
               <div 
                 className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${(playersCheckedIn / totalPlayers) * 100}%` }}

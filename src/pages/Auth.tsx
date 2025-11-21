@@ -250,7 +250,7 @@ const Auth = () => {
           <h1 className="text-4xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
             Soccer Squad
           </h1>
-          <p className="text-cyan-100/80">Gerencie seu time de futebol</p>
+          <p className="text-cyan-100/95">Gerencie seu time de futebol</p>
         </div>
 
         <Card className="bg-black/40 backdrop-blur-md border-2 border-primary/30">
@@ -399,7 +399,7 @@ const Auth = () => {
                     Cadastrar via Email
                   </Button>
                   
-                  <p className="text-xs text-center text-cyan-100/70 mt-2">
+                  <p className="text-xs text-center text-cyan-100/90 mt-2">
                     Você receberá um link de confirmação no seu email
                   </p>
                 </div>
@@ -412,7 +412,7 @@ const Auth = () => {
           <DialogContent className="bg-black/90 backdrop-blur-md border-2 border-primary/30">
             <DialogHeader>
               <DialogTitle className="text-white">Recuperar Senha</DialogTitle>
-              <DialogDescription className="text-cyan-100/70">
+              <DialogDescription className="text-cyan-100/90">
                 Digite seu email cadastrado e enviaremos um link para redefinir sua senha.
               </DialogDescription>
             </DialogHeader>

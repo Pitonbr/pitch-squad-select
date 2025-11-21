@@ -87,9 +87,9 @@ export function PlayerCard({
               </Badge>
             </div>
             
-            <p className="text-xs text-white/70 mb-2">"{nickname}"</p>
+            <p className="text-xs text-white/90 mb-2">"{nickname}"</p>
             
-            <div className="space-y-1 text-xs text-white/60 mb-3">
+            <div className="space-y-1 text-xs text-white/85 mb-3">
               <div className="flex items-center">
                 <Phone className="h-3 w-3 mr-1 text-primary" />
                 {phone}
