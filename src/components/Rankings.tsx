@@ -176,7 +176,7 @@ export function Rankings() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-white">Rankings e Estatísticas</h2>
-        <p className="text-white/70">
+        <p className="text-white/90">
           Estatísticas completas, rankings e histórico de jogos
         </p>
       </div>
@@ -216,7 +216,7 @@ export function Rankings() {
                         </Avatar>
                         <div>
                           <p className="font-semibold text-sm text-white">{player.nickname}</p>
-                          <p className="text-xs text-white/60">{player.name}</p>
+                          <p className="text-xs text-white/85">{player.name}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -233,7 +233,7 @@ export function Rankings() {
                 <CardContent className="text-center py-12">
                   <Trophy className="h-16 w-16 mx-auto text-primary mb-4" />
                   <h3 className="text-lg font-semibold mb-2 text-white">Estatísticas em Desenvolvimento</h3>
-                  <p className="text-white/70">
+                  <p className="text-white/90">
                     Rankings de gols, assistências e outras estatísticas serão exibidos aqui quando começarem os jogos.
                   </p>
                 </CardContent>
@@ -244,7 +244,7 @@ export function Rankings() {
               <CardContent className="text-center py-12">
                 <Users className="h-16 w-16 mx-auto text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-white">Nenhum jogador encontrado</h3>
-                <p className="text-white/70">
+                <p className="text-white/90">
                   Adicione jogadores ao time para ver as estatísticas aqui.
                 </p>
               </CardContent>
@@ -296,7 +296,7 @@ export function Rankings() {
                             </Badge>
                             <div>
                               <p className="font-medium text-sm text-white">{game.title}</p>
-                              <p className="text-xs text-white/60">
+                              <p className="text-xs text-white/85">
                                 {new Date(game.date).toLocaleDateString('pt-BR')} • {game.location}
                               </p>
                             </div>
@@ -317,7 +317,7 @@ export function Rankings() {
               <CardContent className="text-center py-12">
                 <Calendar className="h-16 w-16 mx-auto text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-white">Nenhum jogo encontrado</h3>
-                <p className="text-white/70">
+                <p className="text-white/90">
                   Quando jogos forem realizados, o histórico aparecerá aqui.
                 </p>
               </CardContent>

@@ -25,7 +25,7 @@
     --secondary-foreground: 207 33% 17%;
 
     --muted: 207 20% 20%;
-    --muted-foreground: 207 10% 70%;
+    --muted-foreground: 207 10% 85%;
 
     --accent: 76 68% 64%;
     --accent-foreground: 207 33% 17%;
@@ -45,9 +45,11 @@
     --destructive: 0 75% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 176 51% 49% / 0.3;
-    --input: 0 0% 0% / 0.3;
+    --border: 176 51% 49% / 0.5;
+    --input: 207 20% 25%;
     --ring: 176 51% 49%;
+    
+    --placeholder: 207 15% 65%;
 
     --radius: 0.5rem;
 
@@ -98,7 +100,7 @@
     --secondary-foreground: 207 33% 17%;
 
     --muted: 207 20% 20%;
-    --muted-foreground: 207 10% 70%;
+    --muted-foreground: 207 10% 85%;
 
     --accent: 76 68% 64%;
     --accent-foreground: 207 33% 17%;
@@ -117,9 +119,11 @@
     --destructive: 0 75% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 176 51% 49% / 0.3;
-    --input: 0 0% 0% / 0.3;
+    --border: 176 51% 49% / 0.5;
+    --input: 207 20% 25%;
     --ring: 176 51% 49%;
+    
+    --placeholder: 207 15% 65%;
 
     --radius: 0.5rem;
 
@@ -358,5 +362,56 @@
   
   .button-gradient:hover {
     background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
+  }
+  
+  /* Contrast improvements */
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--placeholder)) !important;
+    opacity: 1;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: hsl(var(--primary)) !important;
+    border-width: 2px;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  }
+  
+  .text-high-contrast {
+    color: hsl(0 0% 100%);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+  
+  .bg-high-contrast {
+    background-color: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+  }
+  
+  .border-high-contrast {
+    border-width: 2px;
+    border-color: hsl(var(--primary));
+  }
+  
+  .text-readable {
+    color: hsl(0 0% 95%);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  
+  .label-strong {
+    color: hsl(0 0% 100%);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .badge-outline-strong {
+    border-width: 2px !important;
+    border-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary)) !important;
+    background: hsl(var(--primary) / 0.1);
+    font-weight: 600;
   }
 }
