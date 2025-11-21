@@ -112,8 +112,8 @@ const handler = async (req: Request): Promise<Response> => {
     // Determine "from" email based on configuration
     const customDomain = Deno.env.get("CUSTOM_EMAIL_DOMAIN");
     const fromEmail = customDomain 
-      ? `Soccer Manager <noreply@${customDomain}>`
-      : "Soccer Manager <onboarding@resend.dev>";
+      ? `Soccer Squad <noreply@${customDomain}>`
+      : "Soccer Squad <onboarding@resend.dev>";
 
     console.log(`📤 Sending from: ${fromEmail}`);
 
@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailRequest = {
       from: fromEmail,
       to: [sanitizedTo],
-      subject: "⚽ Bem-vindo ao Soccer Manager - Confirme seu cadastro",
+      subject: "⚽ Bem-vindo ao Soccer Squad - Confirme seu cadastro",
       html,
       headers: {
         'X-Entity-Ref-ID': `soccer-manager-${Date.now()}`,
