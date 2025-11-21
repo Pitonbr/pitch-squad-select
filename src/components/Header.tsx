@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TeamSelector } from "@/components/TeamSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { VersionIndicator } from "@/components/VersionIndicator";
@@ -102,6 +103,8 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
               <Button variant="ghost" size="sm">
                 <Bell className="h-4 w-4" />
               </Button>
+              
+              <ThemeToggle />
               
               {/* User Menu */}
               <DropdownMenu>

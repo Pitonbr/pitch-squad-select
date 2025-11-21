@@ -6,83 +6,76 @@
 
 @layer base {
   :root {
-    /* Soccer Squad Theme - Dark Stadium Theme */
-    --background: 207 33% 12%;
-    --foreground: 0 0% 98%;
+    /* Soccer Squad Theme - Light Mode */
+    --background: 0 0% 98%;
+    --foreground: 207 33% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 207 33% 17%;
+    --card-foreground: 207 33% 15%;
 
-    --popover: 207 33% 17%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 207 33% 15%;
 
-    /* Cyan blue as primary */
-    --primary: 176 51% 49%;
+    /* Primary cyan adjusted for light mode */
+    --primary: 176 65% 40%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 176 51% 65%;
+    --primary-glow: 176 65% 50%;
 
-    --secondary: 76 68% 64%;
-    --secondary-foreground: 207 33% 17%;
+    --secondary: 76 60% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 207 20% 20%;
-    --muted-foreground: 207 10% 85%;
+    --muted: 207 20% 92%;
+    --muted-foreground: 207 10% 40%;
 
-    --accent: 76 68% 64%;
-    --accent-foreground: 207 33% 17%;
+    --accent: 76 60% 45%;
+    --accent-foreground: 0 0% 100%;
 
     /* Team colors */
-    --team-a: 176 51% 49%;
+    --team-a: 176 65% 40%;
     --team-a-foreground: 0 0% 100%;
-    --team-b: 76 68% 64%;
-    --team-b-foreground: 207 33% 17%;
+    --team-b: 76 60% 45%;
+    --team-b-foreground: 0 0% 100%;
 
-    --success: 142 76% 45%;
+    --success: 142 70% 40%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 83% 57%;
+    --warning: 45 90% 50%;
     --warning-foreground: 45 30% 15%;
 
-    --destructive: 0 75% 65%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 176 51% 49% / 0.5;
-    --input: 207 20% 25%;
-    --ring: 176 51% 49%;
+    --border: 207 20% 85%;
+    --input: 0 0% 100%;
+    --ring: 176 65% 40%;
     
-    --placeholder: 207 15% 65%;
+    --placeholder: 207 15% 50%;
 
     --radius: 0.5rem;
 
-    /* Soccer Squad gradients */
-    --gradient-field: linear-gradient(135deg, hsl(176 51% 49%), hsl(76 68% 64%));
-    --gradient-team-a: linear-gradient(135deg, hsl(176 51% 49%), hsl(176 51% 65%));
-    --gradient-team-b: linear-gradient(135deg, hsl(76 68% 64%), hsl(76 68% 75%));
-    --gradient-hero: linear-gradient(135deg, hsl(207 33% 17%), hsl(176 51% 49%));
+    /* Light mode gradients */
+    --gradient-field: linear-gradient(135deg, hsl(176 65% 92%), hsl(76 60% 92%));
+    --gradient-team-a: linear-gradient(135deg, hsl(176 65% 90%), hsl(176 65% 95%));
+    --gradient-team-b: linear-gradient(135deg, hsl(76 60% 90%), hsl(76 60% 95%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%), hsl(176 65% 95%));
 
-    /* Modern effects */
-    --shadow-field: 0 10px 30px -10px hsl(176 51% 49% / 0.3);
-    --shadow-team: 0 4px 20px -4px hsl(176 51% 49% / 0.25);
+    /* Light mode shadows */
+    --shadow-field: 0 10px 30px -10px hsl(176 65% 40% / 0.15);
+    --shadow-team: 0 4px 20px -4px hsl(176 65% 40% / 0.12);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Soccer Squad Theme - Dark Mode (Same as default now) */
+    /* Soccer Squad Theme - Dark Mode */
     --background: 207 33% 12%;
     --foreground: 0 0% 98%;
 
@@ -141,7 +134,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-200;
     box-sizing: border-box;
   }
 
@@ -334,12 +327,14 @@
     }
   }
   
-  /* Stadium background utility */
+  /* Stadium background utility - only in dark mode */
   .stadium-bg {
+    @apply bg-background dark:bg-[url('/src/assets/soccer-field-hero.jpg')] dark:bg-cover dark:bg-center dark:bg-fixed;
+    background-image: var(--gradient-hero);
+  }
+  
+  .dark .stadium-bg {
     background-image: linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url('/src/assets/soccer-field-hero.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
   }
   
   /* Dark card with blur effect */
