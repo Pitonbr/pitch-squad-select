@@ -7,7 +7,7 @@ interface Profile {
   user_id: string;
   display_name: string | null;
   phone: string | null;
-  theme_preference: 'light' | 'dark' | 'system';
+  theme_preference: 'light' | 'dark' | 'system' | 'high-contrast' | 'colorblind';
   created_at: string;
   updated_at: string;
 }

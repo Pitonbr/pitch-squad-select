@@ -130,6 +130,121 @@
     --shadow-field: 0 10px 30px -10px hsl(176 51% 55% / 0.4);
     --shadow-team: 0 4px 20px -4px hsl(176 51% 55% / 0.3);
   }
+
+  .high-contrast {
+    /* High Contrast Mode - WCAG AAA Compliant */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --primary-glow: 0 0% 100%;
+
+    --secondary: 0 0% 85%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 100%;
+
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 0%;
+
+    --team-a: 0 0% 100%;
+    --team-a-foreground: 0 0% 0%;
+    --team-b: 0 0% 85%;
+    --team-b-foreground: 0 0% 0%;
+
+    --success: 0 0% 100%;
+    --success-foreground: 0 0% 0%;
+
+    --warning: 45 100% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --destructive: 0 0% 100%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 0 0% 100%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
+    
+    --placeholder: 0 0% 70%;
+    --radius: 0.5rem;
+
+    /* High contrast gradients */
+    --gradient-field: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 20%));
+    --gradient-team-a: linear-gradient(135deg, hsl(0 0% 15%), hsl(0 0% 25%));
+    --gradient-team-b: linear-gradient(135deg, hsl(0 0% 20%), hsl(0 0% 30%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 15%));
+
+    /* High contrast shadows */
+    --shadow-field: 0 10px 30px -10px hsl(0 0% 100% / 0.3);
+    --shadow-team: 0 4px 20px -4px hsl(0 0% 100% / 0.25);
+  }
+
+  .colorblind {
+    /* Colorblind-Friendly Mode - Uses blue and orange palette */
+    --background: 210 25% 12%;
+    --foreground: 0 0% 98%;
+
+    --card: 210 25% 17%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 210 25% 17%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Blue as primary (safe for all colorblind types) */
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 210 100% 70%;
+
+    /* Orange as secondary (distinguishable from blue) */
+    --secondary: 30 100% 60%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 210 20% 20%;
+    --muted-foreground: 210 10% 85%;
+
+    --accent: 30 100% 60%;
+    --accent-foreground: 0 0% 0%;
+
+    /* Team colors: Blue vs Orange */
+    --team-a: 210 100% 50%;
+    --team-a-foreground: 0 0% 100%;
+    --team-b: 30 100% 60%;
+    --team-b-foreground: 0 0% 0%;
+
+    --success: 210 100% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 45 100% 60%;
+    --warning-foreground: 0 0% 0%;
+
+    --destructive: 0 0% 85%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 210 100% 50% / 0.5;
+    --input: 210 20% 25%;
+    --ring: 210 100% 50%;
+    
+    --placeholder: 210 15% 65%;
+    --radius: 0.5rem;
+
+    /* Colorblind-friendly gradients */
+    --gradient-field: linear-gradient(135deg, hsl(210 100% 55%), hsl(30 100% 65%));
+    --gradient-team-a: linear-gradient(135deg, hsl(210 100% 55%), hsl(210 100% 70%));
+    --gradient-team-b: linear-gradient(135deg, hsl(30 100% 60%), hsl(30 100% 75%));
+    --gradient-hero: linear-gradient(135deg, hsl(210 25% 17%), hsl(210 100% 55%));
+
+    /* Colorblind-friendly shadows */
+    --shadow-field: 0 10px 30px -10px hsl(210 100% 55% / 0.4);
+    --shadow-team: 0 4px 20px -4px hsl(210 100% 55% / 0.3);
+  }
 }
 
 @layer base {
