@@ -16,6 +16,12 @@ import { SafeProvider } from "./components/SafeProvider";
 import { useErrorDetection } from "./components/SafeProvider";
 import { useUpdateService } from "./hooks/useUpdateService";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { useThemeSync } from "./hooks/useThemeSync";
+
+function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
+  useThemeSync();
+  return <>{children}</>;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,27 +60,29 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <AuthProvider>
-              <TeamsProvider>
-                <MobileOptimized className="min-h-screen no-overflow">
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                    <PWAInstallPrompt />
-                    {updateAvailable && updateInfo && (
-                      <UpdatePrompt 
-                        onUpdateComplete={() => applyUpdate(updateInfo)}
-                      />
-                    )}
-                  </BrowserRouter>
-                </MobileOptimized>
-              </TeamsProvider>
+              <ThemeSyncWrapper>
+                <TeamsProvider>
+                  <MobileOptimized className="min-h-screen no-overflow">
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                      <PWAInstallPrompt />
+                      {updateAvailable && updateInfo && (
+                        <UpdatePrompt 
+                          onUpdateComplete={() => applyUpdate(updateInfo)}
+                        />
+                      )}
+                    </BrowserRouter>
+                  </MobileOptimized>
+                </TeamsProvider>
+              </ThemeSyncWrapper>
             </AuthProvider>
           </TooltipProvider>
         </QueryClientProvider>
