@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -22,42 +23,56 @@ const ResetPassword = () => {
   const [hasValidToken, setHasValidToken] = useState(false);
 
   useEffect(() => {
-    // Check if we have a valid recovery token
-    const checkToken = async () => {
-      // First, check if there are tokens in the URL hash
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      
-      if (accessToken && refreshToken) {
-        // Establish session manually with the tokens from URL
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
+    const handlePasswordRecovery = async () => {
+      try {
+        // Check URL parameters (both query string and hash)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        if (!error) {
-          setHasValidToken(true);
-          return;
+        // Supabase can send tokens in different ways
+        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+        const type = urlParams.get('type') || hashParams.get('type');
+        
+        if (type === 'recovery' && accessToken && refreshToken) {
+          // Set the session with the tokens from URL
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (!error) {
+            setHasValidToken(true);
+            return;
+          }
         }
-      }
-      
-      // Fallback: check existing session
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
-        setHasValidToken(true);
-      } else {
+        
+        // Fallback: check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          setHasValidToken(true);
+        } else {
+          toast({
+            title: "Link inválido ou expirado",
+            description: "Por favor, solicite um novo link de recuperação.",
+            variant: "destructive"
+          });
+          setTimeout(() => navigate('/auth'), 2000);
+        }
+      } catch (error) {
+        console.error('Error handling password recovery:', error);
         toast({
-          title: "Link inválido ou expirado",
-          description: "Por favor, solicite um novo link de recuperação de senha.",
-          variant: "destructive",
+          title: "Erro ao processar link",
+          description: "Por favor, solicite um novo link de recuperação.",
+          variant: "destructive"
         });
-        setTimeout(() => navigate('/auth'), 3000);
+        setTimeout(() => navigate('/auth'), 2000);
       }
     };
 
-    checkToken();
-  }, [navigate]);
+    handlePasswordRecovery();
+  }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,9 +104,24 @@ const ResetPassword = () => {
 
       if (error) throw error;
 
+      // Log password reset in audit log
+      try {
+        await supabase.rpc('create_audit_log', {
+          _action: 'PASSWORD_RESET',
+          _resource_type: 'auth',
+          _old_values: null,
+          _new_values: { timestamp: new Date().toISOString() }
+        });
+      } catch (auditError) {
+        console.error('Error logging password reset:', auditError);
+      }
+
+      // Sign out to force user to log in with new password
+      await supabase.auth.signOut();
+
       toast({
         title: "Senha redefinida!",
-        description: "Sua senha foi atualizada com sucesso. Redirecionando...",
+        description: "Faça login com sua nova senha para validar a alteração.",
       });
 
       setTimeout(() => {
