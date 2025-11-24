@@ -113,7 +113,7 @@ export function Header({
           
           <div className="flex items-center space-x-4">
             {/* Team Selector */}
-            
+            <TeamSelector onCreateTeam={() => onViewChange("teamManager")} />
             
             <div className="flex items-center space-x-2">
               
