@@ -16,6 +16,7 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   email: string;
+  redirectTo?: string;
 }
 
 // Helper function to send rate limit notification email
@@ -58,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email }: PasswordResetRequest = await req.json();
+    const { email, redirectTo }: PasswordResetRequest = await req.json();
 
     console.log("Password reset requested for:", email);
 
@@ -192,6 +193,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
+      options: {
+        redirectTo: redirectTo || 'https://soccersquad.com.br/reset-password'
+      }
     });
 
     if (resetError || !resetData) {

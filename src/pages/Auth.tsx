@@ -166,7 +166,10 @@ const Auth = () => {
     try {
       // Call edge function to generate token and send email via Resend
       const { data, error } = await supabase.functions.invoke('send-password-reset', {
-        body: { email: resetEmail },
+        body: { 
+          email: resetEmail,
+          redirectTo: `${window.location.origin}/reset-password`
+        },
       });
 
       if (error) throw error;
