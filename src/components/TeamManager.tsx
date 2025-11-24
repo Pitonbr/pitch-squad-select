@@ -25,6 +25,7 @@ export function TeamManager() {
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [dragTeamId, setDragTeamId] = useState<string | null>(null);
   
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -65,24 +66,61 @@ export function TeamManager() {
     }
   };
 
+  const processImageFile = (file: File, teamId: string) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Arquivo inválido",
+        description: "Por favor, selecione apenas arquivos de imagem.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setSelectedImage(e.target?.result as string);
+      setSelectedTeamId(teamId);
+      setIsCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>, teamId: string) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Arquivo muito grande",
-          description: "O tamanho máximo permitido é 5MB.",
-          variant: "destructive"
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
-        setSelectedTeamId(teamId);
-        setIsCropperOpen(true);
-      };
-      reader.readAsDataURL(file);
+      processImageFile(file, teamId);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, teamId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragTeamId(teamId);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragTeamId(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, teamId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragTeamId(null);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file, teamId);
     }
   };
 
@@ -250,19 +288,35 @@ export function TeamManager() {
                 </div>
                 
                 <div className="flex items-center gap-4">
-                  <div className="relative group">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={team.logo_url || ''} alt={team.name} />
-                      <AvatarFallback className="text-xl">
-                        {team.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {isTeamAdmin(team.id) && (
+                  {isTeamAdmin(team.id) ? (
+                    <div 
+                      className={`relative group border-2 border-dashed rounded-full transition-all ${
+                        dragTeamId === team.id 
+                          ? 'border-primary bg-primary/10 scale-105' 
+                          : 'border-transparent hover:border-primary/50'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, team.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, team.id)}
+                    >
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src={team.logo_url || ''} alt={team.name} />
+                        <AvatarFallback className="text-xl">
+                          {team.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <label 
                         htmlFor={`logo-upload-${team.id}`}
-                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
                       >
-                        <Camera className="h-6 w-6 text-white" />
+                        {dragTeamId === team.id ? (
+                          <Upload className="h-6 w-6 text-white animate-bounce" />
+                        ) : (
+                          <>
+                            <Camera className="h-6 w-6 text-white" />
+                            <span className="text-xs text-white mt-1">Arraste ou clique</span>
+                          </>
+                        )}
                         <input
                           id={`logo-upload-${team.id}`}
                           type="file"
@@ -271,8 +325,15 @@ export function TeamManager() {
                           onChange={(e) => handleLogoSelect(e, team.id)}
                         />
                       </label>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={team.logo_url || ''} alt={team.name} />
+                      <AvatarFallback className="text-xl">
+                        {team.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
