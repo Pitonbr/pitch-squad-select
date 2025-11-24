@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface PlayerRanking {
   id: string;
@@ -52,6 +53,34 @@ export function Rankings() {
       fetchRankingsData();
     }
   }, [activeTeam]);
+
+  // Realtime listeners
+  const handleDataUpdate = useCallback(() => {
+    fetchRankingsData();
+  }, [activeTeam]);
+
+  // Listen to games table changes (for recent games)
+  useRealtime({
+    table: 'games',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handleDataUpdate
+  });
+
+  // Listen to player_statistics table changes
+  useRealtime({
+    table: 'player_statistics',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handleDataUpdate
+  });
+
+  // Listen to match_events table changes (affects player stats)
+  useRealtime({
+    table: 'match_events',
+    enabled: !!activeTeam?.id,
+    onEvent: handleDataUpdate
+  });
 
   const fetchRankingsData = async () => {
     try {
