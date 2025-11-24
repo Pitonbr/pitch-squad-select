@@ -118,6 +118,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`📤 Sending from: ${fromEmail}`);
 
     // Enhanced email sending with metadata
+    // Sanitize domain for tags (only ASCII letters, numbers, underscores, or dashes)
+    const sanitizedDomain = emailDomain?.replace(/[^a-zA-Z0-9_-]/g, '_') || 'unknown';
+    
     const emailRequest = {
       from: fromEmail,
       to: [sanitizedTo],
@@ -129,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       tags: [
         { name: 'type', value: 'email-verification' },
-        { name: 'domain', value: emailDomain },
+        { name: 'domain', value: sanitizedDomain },
         { name: 'retry', value: retryAttempt.toString() }
       ]
     };
