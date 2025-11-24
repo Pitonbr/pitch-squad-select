@@ -34,6 +34,7 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
   // Check for existing session and invite code
   useEffect(() => {
@@ -53,6 +54,12 @@ const Auth = () => {
         title: "Convite Detectado! 🎉",
         description: "Complete seu cadastro para entrar automaticamente no time.",
       });
+    }
+
+    // Check for redirect parameter
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      setRedirectTo(redirect);
     }
   }, [navigate, searchParams, toast]);
 
@@ -88,7 +95,8 @@ const Auth = () => {
         description: "Bem-vindo de volta!"
       });
 
-      navigate("/");
+      // Redirect to specified page or home
+      navigate(redirectTo || "/");
     } catch (error: any) {
       toast({
         title: "Erro no login",
@@ -107,7 +115,7 @@ const Auth = () => {
   const handleVerificationSuccess = () => {
     toast({
       title: "Cadastro concluído!",
-      description: "Bem-vindo ao Soccer Manager!",
+      description: "Bem-vindo ao Soccer Squad!",
     });
     
     // Handle invite code if present
@@ -142,7 +150,8 @@ const Auth = () => {
       }, 1000);
     }
     
-    navigate("/");
+    // Redirect to specified page or home
+    navigate(redirectTo || "/");
   };
 
   const handleBackToAuth = () => {

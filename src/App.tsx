@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import GameInvitePage from "./pages/GameInvitePage";
+import GameCheckInPage from "./pages/GameCheckInPage";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import UpdatePrompt from "./components/UpdatePrompt";
 import MobileOptimized from "./components/MobileOptimized";
@@ -70,6 +72,8 @@ const App = () => {
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/game-invite/:gameId" element={<GameInvitePage />} />
+                        <Route path="/game-checkin/:gameId" element={<GameCheckInPage />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>

@@ -1,0 +1,252 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, Clock, MapPin, Loader2, LogIn, UserPlus, Download } from "lucide-react";
+import logoImage from "@/assets/soccer-squad-logo.jpeg";
+import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
+
+interface Game {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description?: string;
+  status: string;
+  team_id: string;
+}
+
+export default function GameInvitePage() {
+  const { gameId } = useParams<{ gameId: string }>();
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [game, setGame] = useState<Game | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGame = async () => {
+      if (!gameId) {
+        setError("Link de convite inválido");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error: fetchError } = await supabase
+          .from("games")
+          .select("*")
+          .eq("id", gameId)
+          .single();
+
+        if (fetchError || !data) {
+          setError("Jogo não encontrado");
+          return;
+        }
+
+        setGame(data as Game);
+
+        // If user is logged in, redirect to check-in immediately
+        if (user && !authLoading) {
+          navigate(`/game-checkin/${gameId}`);
+        }
+      } catch (err) {
+        console.error("Error fetching game:", err);
+        setError("Erro ao carregar informações do jogo");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGame();
+  }, [gameId, user, authLoading, navigate]);
+
+  const formatGameDate = (date: string, time: string) => {
+    const gameDate = new Date(`${date}T${time}`);
+    return {
+      date: gameDate.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      time: time
+    };
+  };
+
+  const handleLoginRedirect = () => {
+    navigate(`/auth?redirect=/game-checkin/${gameId}`);
+  };
+
+  const handleSignupRedirect = () => {
+    navigate(`/auth?redirect=/game-checkin/${gameId}`);
+  };
+
+  if (loading || authLoading) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url(${soccerFieldHero})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-white">Carregando convite...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !game) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{
+          backgroundImage: `linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url(${soccerFieldHero})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Card className="bg-black/40 backdrop-blur-md border-2 border-destructive/50 w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold text-white mb-2">❌ Convite Inválido</h2>
+            <p className="text-white/70 mb-4">{error}</p>
+            <Button onClick={() => navigate("/")} className="bg-primary hover:bg-accent">
+              Voltar para o início
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const formattedDate = formatGameDate(game.date, game.time);
+
+  return (
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundImage: `linear-gradient(rgba(26, 46, 61, 0.85), rgba(10, 20, 30, 0.9)), url(${soccerFieldHero})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-4">
+          <img 
+            src={logoImage} 
+            alt="Soccer Squad" 
+            className="h-20 w-20 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
+          />
+          <h1 className="text-3xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
+            🎉 Você foi convidado!
+          </h1>
+        </div>
+
+        <Card className="bg-black/40 backdrop-blur-md border-2 border-primary/30">
+          <CardHeader>
+            <CardTitle className="text-white text-center">
+              Você está sendo convidado para o grande jogo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-primary/20 to-accent/20 p-4 rounded-lg border border-primary/30">
+                <h2 className="text-2xl font-bold text-white mb-4 text-center">
+                  ⚽ {game.title}
+                </h2>
+                
+                <div className="space-y-3 text-white/90">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span className="capitalize">{formattedDate.date}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>{formattedDate.time}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>{game.location}</span>
+                  </div>
+                </div>
+
+                {game.description && (
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <p className="text-white/80 text-sm">{game.description}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                <p className="text-white font-semibold text-center mb-2">
+                  👉 Clique aqui e faça sua inscrição para a partida!
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                onClick={handleLoginRedirect}
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium h-12"
+              >
+                <LogIn className="mr-2 h-5 w-5" />
+                Já tenho conta - Fazer Login
+              </Button>
+
+              <Button
+                onClick={handleSignupRedirect}
+                className="w-full bg-accent hover:bg-accent/90 text-white font-medium h-12"
+              >
+                <UserPlus className="mr-2 h-5 w-5" />
+                Criar conta e confirmar presença
+              </Button>
+            </div>
+
+            <div className="bg-black/30 border border-primary/20 rounded-lg p-4 space-y-3">
+              <p className="text-white/90 font-semibold text-sm text-center">
+                📱 Não tem o aplicativo?
+              </p>
+              <div className="space-y-2 text-xs text-white/70">
+                <p className="flex items-start gap-2">
+                  <Download className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Baixe o Soccer Squad e tenha acesso completo ao sistema de gerenciamento</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary font-bold">1.</span>
+                  <span>Instale o aplicativo no seu dispositivo</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary font-bold">2.</span>
+                  <span>Crie sua conta ou faça login</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="text-primary font-bold">3.</span>
+                  <span>Confirme sua presença no jogo automaticamente</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-white/60 text-sm">
+          Nos vemos no campo, jogador! ⚽🔥
+        </p>
+      </div>
+    </div>
+  );
+}

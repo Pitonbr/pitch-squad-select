@@ -179,21 +179,30 @@ export type Database = {
       }
       game_participants: {
         Row: {
+          checked_in_at: string | null
           game_id: string
           id: string
+          invited_at: string | null
           player_id: string
+          profile_id: string | null
           status: string
         }
         Insert: {
+          checked_in_at?: string | null
           game_id: string
           id?: string
+          invited_at?: string | null
           player_id: string
+          profile_id?: string | null
           status?: string
         }
         Update: {
+          checked_in_at?: string | null
           game_id?: string
           id?: string
+          invited_at?: string | null
           player_id?: string
+          profile_id?: string | null
           status?: string
         }
         Relationships: [
@@ -209,6 +218,13 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_participants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
