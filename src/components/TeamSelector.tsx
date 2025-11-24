@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { Users, Crown, Plus } from "lucide-react";
@@ -32,11 +33,29 @@ export function TeamSelector({
         setActiveTeam(team || null);
       }}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Selecione um time" />
+              <SelectValue placeholder="Selecione um time">
+                {activeTeam && (
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={activeTeam.logo_url || undefined} alt={activeTeam.name} />
+                      <AvatarFallback className="text-xs">
+                        {activeTeam.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{activeTeam.name}</span>
+                  </div>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {userTeams.map(team => <SelectItem key={team.id} value={team.id}>
                   <div className="flex items-center space-x-2">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={team.logo_url || undefined} alt={team.name} />
+                      <AvatarFallback className="text-xs">
+                        {team.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     <span>{team.name}</span>
                     {isTeamAdmin(team.id) && <Crown className="h-3 w-3 text-amber-500" />}
                   </div>
