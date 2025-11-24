@@ -164,38 +164,22 @@ const Auth = () => {
     setIsResettingPassword(true);
 
     try {
-      // Generate password reset link using Supabase
-      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Call edge function to generate token and send email via Resend
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: resetEmail },
       });
 
       if (error) throw error;
 
-      // Send custom branded email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-password-reset', {
-        body: {
-          email: resetEmail,
-          resetLink: `${window.location.origin}/reset-password`,
-        },
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
       });
-
-      if (emailError) {
-        console.error("Email sending error:", emailError);
-        // Don't throw here, as the reset link was already generated
-        toast({
-          title: "Link gerado!",
-          description: "O link foi criado. Verifique também sua pasta de spam.",
-        });
-      } else {
-        toast({
-          title: "Email enviado!",
-          description: "Verifique sua caixa de entrada para redefinir sua senha.",
-        });
-      }
       
       setShowForgotPassword(false);
       setResetEmail("");
     } catch (error: any) {
+      console.error("Password reset error:", error);
       toast({
         title: "Erro ao enviar email",
         description: error.message || "Ocorreu um erro ao processar sua solicitação.",
