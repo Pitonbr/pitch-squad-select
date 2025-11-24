@@ -114,8 +114,18 @@ export function Header({
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               
-              
               <ThemeSelector />
+              
+              {/* Manage Team Button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onViewChange("teamManager")}
+                className="flex items-center space-x-2"
+              >
+                <UserCog className="h-4 w-4" />
+                <span className="text-sm">Gerenciar Time</span>
+              </Button>
               
               {/* User Menu */}
               <DropdownMenu>
@@ -130,10 +140,6 @@ export function Header({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onViewChange("teamManager")}>
-                    <UserCog className="h-4 w-4 mr-2" />
-                    Gerenciar Times
-                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="h-4 w-4 mr-2" />
                     Configurações
