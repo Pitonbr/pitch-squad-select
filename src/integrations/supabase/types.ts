@@ -1329,6 +1329,17 @@ export type Database = {
           requested_by_name: string
         }[]
       }
+      get_player_attendance_stats: {
+        Args: { _player_id: string; _team_id: string }
+        Returns: {
+          attendance_percentage: number
+          last_30_days_attended: number
+          last_30_days_invited: number
+          last_30_days_percentage: number
+          total_games_attended: number
+          total_games_invited: number
+        }[]
+      }
       get_player_secure: {
         Args: { _player_id: string; _team_id: string }
         Returns: {
@@ -1344,6 +1355,17 @@ export type Database = {
           profile_image: string
           team_id: string
           updated_at: string
+        }[]
+      }
+      get_team_attendance_stats: {
+        Args: { _team_id: string }
+        Returns: {
+          attendance_percentage: number
+          player_id: string
+          player_name: string
+          player_position: string
+          total_games_attended: number
+          total_games_invited: number
         }[]
       }
       get_team_financial_summary: {

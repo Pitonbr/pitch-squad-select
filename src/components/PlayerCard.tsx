@@ -2,7 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Phone, MapPin, Clock, MessageCircle, Mail } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { User, Phone, MapPin, Clock, MessageCircle, Mail, TrendingUp, Calendar } from "lucide-react";
+import { useAttendanceStats } from "@/hooks/useAttendanceStats";
+import { useTeams } from "@/hooks/useTeams";
 
 interface PlayerCardProps {
   id?: string;
@@ -38,6 +41,9 @@ export function PlayerCard({
   checkedIn, 
   onCheckIn 
 }: PlayerCardProps) {
+  const { activeTeam } = useTeams();
+  const { stats, loading: statsLoading } = useAttendanceStats(id, activeTeam?.id);
+
   const handleWhatsApp = () => {
     const cleanPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent(`Olá ${nickname}! Tudo bem?`);
@@ -50,6 +56,12 @@ export function PlayerCard({
       const body = encodeURIComponent(`Olá ${nickname}!\n\n`);
       window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
     }
+  };
+
+  const getAttendanceColor = (percentage: number) => {
+    if (percentage >= 80) return "text-success";
+    if (percentage >= 60) return "text-warning";
+    return "text-destructive";
   };
 
   return (
@@ -101,6 +113,34 @@ export function PlayerCard({
                 </div>
               )}
             </div>
+
+            {/* Attendance Stats */}
+            {!statsLoading && stats && stats.total_games_invited > 0 && (
+              <div className="mb-3 p-2 bg-black/30 rounded-md border border-primary/20">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-white/70 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3 text-primary" />
+                    Comparecimento
+                  </span>
+                  <span className={`text-xs font-bold ${getAttendanceColor(stats.attendance_percentage || 0)}`}>
+                    {stats.attendance_percentage?.toFixed(0) || 0}%
+                  </span>
+                </div>
+                <Progress 
+                  value={stats.attendance_percentage || 0} 
+                  className="h-1.5 mb-1"
+                />
+                <div className="flex items-center justify-between text-[10px] text-white/60">
+                  <span>{stats.total_games_attended}/{stats.total_games_invited} jogos</span>
+                  {stats.last_30_days_invited > 0 && (
+                    <span className="flex items-center gap-0.5">
+                      <Calendar className="h-2.5 w-2.5" />
+                      30d: {stats.last_30_days_percentage?.toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
             
             <div className="flex flex-wrap gap-1">
               {onCheckIn && id && !checkedIn && (
