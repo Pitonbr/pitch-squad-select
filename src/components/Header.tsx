@@ -112,9 +112,6 @@ export function Header({
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Team Selector */}
-            <TeamSelector onCreateTeam={() => onViewChange("teamManager")} />
-            
             <div className="flex items-center space-x-2">
               
               
@@ -159,13 +156,10 @@ export function Header({
           </div>
         </div>
 
-        {/* Active Team Indicator */}
-        {activeTeam && <div className="mb-4 p-2 bg-black/40 backdrop-blur-sm rounded-lg border border-primary/20">
-            <p className="text-sm text-center">
-              <span className="text-cyan-100/95">Time ativo:</span>{" "}
-              <span className="font-medium text-white">{activeTeam.name}</span>
-            </p>
-          </div>}
+        {/* Team Selector with Active Team */}
+        <div className="mb-3 flex items-center justify-center">
+          <TeamSelector onCreateTeam={() => onViewChange("teamManager")} />
+        </div>
 
         {/* Navigation */}
         <nav className="flex space-x-1 overflow-x-auto">
