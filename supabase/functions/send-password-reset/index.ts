@@ -3,7 +3,7 @@ import { Resend } from "npm:resend@2.0.0";
 import React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ResetPasswordEmail } from "./_templates/reset-password-email.tsx";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.56.1";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -44,10 +44,95 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-    // Check if user exists
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // Get client IP address for rate limiting
+    const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+
+    // Check rate limiting
+    const { data: rateLimitData, error: rateLimitError } = await supabaseAdmin
+      .from("password_reset_rate_limits")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (!rateLimitError && rateLimitData) {
+      const now = new Date();
+      const windowStart = new Date(rateLimitData.window_start);
+      const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+      // Check if blocked
+      if (rateLimitData.blocked_until && new Date(rateLimitData.blocked_until) > now) {
+        console.log(`Email ${email} is blocked until ${rateLimitData.blocked_until}`);
+        // Return success to prevent user enumeration
+        return new Response(
+          JSON.stringify({ success: true }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+
+      // Reset window if older than 1 hour
+      if (windowStart < hourAgo) {
+        await supabaseAdmin
+          .from("password_reset_rate_limits")
+          .update({
+            attempt_count: 1,
+            window_start: now.toISOString(),
+            blocked_until: null,
+          })
+          .eq("email", email);
+      } else if (rateLimitData.attempt_count >= 5) {
+        // Block for 1 hour
+        const blockUntil = new Date(now.getTime() + 60 * 60 * 1000);
+        await supabaseAdmin
+          .from("password_reset_rate_limits")
+          .update({
+            blocked_until: blockUntil.toISOString(),
+          })
+          .eq("email", email);
+
+        console.log(`Email ${email} exceeded rate limit, blocked until ${blockUntil}`);
+        // Return success to prevent user enumeration
+        return new Response(
+          JSON.stringify({ success: true }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      } else {
+        // Increment attempt count
+        await supabaseAdmin
+          .from("password_reset_rate_limits")
+          .update({
+            attempt_count: rateLimitData.attempt_count + 1,
+          })
+          .eq("email", email);
+      }
+    } else {
+      // Create new rate limit entry
+      await supabaseAdmin
+        .from("password_reset_rate_limits")
+        .insert({
+          email,
+          ip_address: clientIp,
+          attempt_count: 1,
+          window_start: new Date().toISOString(),
+        });
+    }
+
+    // Check if user exists using listUsers
+    const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
     
-    if (userError || !userData.user) {
+    if (userError) {
+      console.error("Error listing users:", userError);
+      throw new Error("Erro ao verificar usuário");
+    }
+
+    const user = users.find((u) => u.email === email);
+    
+    if (!user) {
       console.log("User not found, but returning success for security");
       // Return success anyway to prevent user enumeration
       return new Response(
@@ -59,6 +144,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log("User found, generating reset token");
+
     // Generate password reset token
     const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
@@ -66,6 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (resetError || !resetData) {
+      console.error("Error generating reset token:", resetError);
       throw new Error("Erro ao gerar token de recuperação");
     }
 
