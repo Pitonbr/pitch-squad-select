@@ -3,6 +3,7 @@ import { Resend } from "npm:resend@2.0.0";
 import React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ResetPasswordEmail } from "./_templates/reset-password-email.tsx";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.56.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -14,7 +15,6 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   email: string;
-  resetLink: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, resetLink }: PasswordResetRequest = await req.json();
+    const { email }: PasswordResetRequest = await req.json();
 
     console.log("Password reset requested for:", email);
 
@@ -32,14 +32,49 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email inválido");
     }
 
-    if (!resetLink) {
-      throw new Error("Link de recuperação não fornecido");
+    // Create Supabase Admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Check if user exists
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    
+    if (userError || !userData.user) {
+      console.log("User not found, but returning success for security");
+      // Return success anyway to prevent user enumeration
+      return new Response(
+        JSON.stringify({ success: true }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
-    // Render the email template
+    // Generate password reset token
+    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+    });
+
+    if (resetError || !resetData) {
+      throw new Error("Erro ao gerar token de recuperação");
+    }
+
+    console.log("Reset token generated successfully");
+
+    // Render the email template with the reset link
     const html = await renderAsync(
       React.createElement(ResetPasswordEmail, {
-        resetLink,
+        resetLink: resetData.properties.action_link,
       })
     );
 
@@ -72,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Password reset email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
