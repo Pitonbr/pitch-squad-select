@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Determine "from" email based on configuration
     const customDomain = Deno.env.get("CUSTOM_EMAIL_DOMAIN");
     const fromEmail = customDomain 
-      ? `Soccer Squad <noreply@${customDomain}>`
+      ? `Soccer Squad <adm@${customDomain}>`
       : "Soccer Squad <onboarding@resend.dev>";
 
     console.log(`📤 Sending from: ${fromEmail}`);
