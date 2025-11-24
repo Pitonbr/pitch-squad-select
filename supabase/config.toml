@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-password-reset]
 verify_jwt = false
+
+[functions.send-game-confirmation]
+verify_jwt = false
+
+[functions.send-game-summary]
+verify_jwt = false
