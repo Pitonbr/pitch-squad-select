@@ -24,6 +24,7 @@ import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 import { TeamJoinRequests } from "@/components/TeamJoinRequests";
 import { PlayerRemovalDialog } from "@/components/PlayerRemovalDialog";
 import { AuditLogs } from "@/components/AuditLogs";
+import { AttendanceStats } from "@/components/AttendanceStats";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
@@ -282,6 +283,8 @@ export default function Index() {
       </div>
 
       {isTeamAdmin(activeTeam.id) && <PlayerRequestsManager />}
+      
+      <AttendanceStats />
       
       <PlayerForm onPlayerAdded={handlePlayerAdded} />
 
