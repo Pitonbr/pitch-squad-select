@@ -92,6 +92,31 @@ export default function Index() {
     }
   });
 
+  // Listen for game changes in real-time
+  useRealtime({
+    table: 'games',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: (event) => {
+      console.log('[Index] Game event received:', event);
+      // Refresh games when there are changes
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        fetchGamesFromDB();
+      }
+    }
+  });
+
+  // Listen for game_participants changes in real-time
+  useRealtime({
+    table: 'game_participants',
+    enabled: !!activeTeam?.id,
+    onEvent: (event) => {
+      console.log('[Index] Game participant event received:', event);
+      // Refresh games to update participant counts
+      fetchGamesFromDB();
+    }
+  });
+
   // Auto-save players data
   useAutoSave({
     data: players,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { useTeams } from '@/hooks/useTeams';
 import { MatchControlProvider, useMatchControl } from '@/hooks/useMatchControl';
 import { RefereeControls } from './RefereeControls';
 import { RefereeSelector } from './RefereeSelector';
+import { useRealtime } from '@/hooks/useRealtime';
 
 interface Game {
   id: string;
@@ -89,6 +90,40 @@ const LiveGameContent: React.FC = () => {
     fetchAvailableGames();
     fetchTeamPlayers();
   }, [activeTeam]);
+
+  // Realtime listeners
+  const handleGameUpdate = useCallback(() => {
+    fetchAvailableGames();
+  }, [activeTeam]);
+
+  const handleMatchEventUpdate = useCallback(() => {
+    // Refresh current game data if viewing a game
+    if (selectedGame) {
+      fetchAvailableGames();
+    }
+  }, [selectedGame, activeTeam]);
+
+  // Listen to games table changes
+  useRealtime({
+    table: 'games',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handleGameUpdate
+  });
+
+  // Listen to match_events table changes
+  useRealtime({
+    table: 'match_events',
+    enabled: !!selectedGame,
+    onEvent: handleMatchEventUpdate
+  });
+
+  // Listen to match_lineups table changes
+  useRealtime({
+    table: 'match_lineups',
+    enabled: !!selectedGame,
+    onEvent: handleMatchEventUpdate
+  });
 
   if (loading) {
     return (
