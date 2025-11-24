@@ -117,15 +117,7 @@ export function Header({
               <ThemeSelector />
               
               {/* Manage Team Button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onViewChange("teamManager")}
-                className="flex items-center space-x-2"
-              >
-                <UserCog className="h-4 w-4" />
-                <span className="text-sm">Gerenciar Time</span>
-              </Button>
+              
               
               {/* User Menu */}
               <DropdownMenu>
