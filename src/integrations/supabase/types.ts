@@ -413,6 +413,36 @@ export type Database = {
           },
         ]
       }
+      password_reset_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: unknown
+          window_start: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address: unknown
+          window_start?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: unknown
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       payment_reminders: {
         Row: {
           id: string
@@ -1215,6 +1245,7 @@ export type Database = {
       }
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
+      cleanup_password_reset_rate_limits: { Args: never; Returns: undefined }
       create_audit_log: {
         Args: {
           _action: string
