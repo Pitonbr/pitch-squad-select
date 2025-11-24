@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useToast } from "@/hooks/use-toast";
 
 interface Player {
   id: string;
@@ -69,6 +70,7 @@ export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { activeTeam, loading: teamsLoading, isTeamAdmin } = useTeams();
+  const { toast } = useToast();
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
@@ -137,9 +139,45 @@ export default function Index() {
   const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
   const [teamLists, setTeamLists] = useState<TeamList[]>([]);
 
+  // Function to fetch games from database
+  const fetchGamesFromDB = async () => {
+    if (!activeTeam) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('games')
+        .select('*, game_participants(player_id, status)')
+        .eq('team_id', activeTeam.id)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching games:', error);
+        return;
+      }
+
+      const gamesData = data?.map((game: any) => ({
+        id: game.id,
+        title: game.title,
+        date: game.date,
+        time: game.time,
+        location: game.location,
+        description: game.description,
+        status: game.status,
+        playersCheckedIn: game.game_participants?.filter((p: any) => p.status === 'confirmed').length || 0,
+        invitedPlayerIds: game.game_participants?.map((p: any) => p.player_id) || []
+      })) || [];
+
+      setGames(gamesData);
+    } catch (error) {
+      console.error('Error fetching games:', error);
+    }
+  };
+
   // Load existing data on component mount and when active team changes
   useEffect(() => {
     fetchPlayersFromDB();
+    fetchGamesFromDB();
   }, [activeTeam]);
 
   // Check authentication
@@ -189,21 +227,77 @@ export default function Index() {
     fetchPlayersFromDB();
   };
 
-  const handleGameCreated = (gameData: { 
+  const handleGameCreated = async (gameData: { 
     title: string; 
     date: string; 
     time: string; 
     location: string; 
     description?: string; 
-    invitedPlayerIds: string[] 
+    invitedPlayerIds: string[];
+    checkinDeadlineMinutes: number;
   }) => {
-    const newGame: Game = {
-      id: Date.now().toString(),
-      ...gameData,
-      status: "upcoming",
-      playersCheckedIn: 0
-    };
-    setGames([...games, newGame]);
+    if (!activeTeam) return;
+
+    try {
+      // Insert game into database
+      const { data: newGame, error: gameError } = await supabase
+        .from('games')
+        .insert({
+          team_id: activeTeam.id,
+          title: gameData.title,
+          date: gameData.date,
+          time: gameData.time,
+          location: gameData.location,
+          description: gameData.description,
+          checkin_deadline_minutes: gameData.checkinDeadlineMinutes,
+          status: 'scheduled'
+        })
+        .select()
+        .single();
+
+      if (gameError) {
+        console.error('Error creating game:', gameError);
+        toast({
+          title: "Erro ao criar jogo",
+          description: gameError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Add invited players as participants
+      if (gameData.invitedPlayerIds.length > 0) {
+        const participants = gameData.invitedPlayerIds.map(playerId => ({
+          game_id: newGame.id,
+          player_id: playerId,
+          status: 'invited',
+          invited_at: new Date().toISOString()
+        }));
+
+        const { error: participantsError } = await supabase
+          .from('game_participants')
+          .insert(participants);
+
+        if (participantsError) {
+          console.error('Error adding participants:', participantsError);
+        }
+      }
+
+      // Refresh games from database
+      await fetchGamesFromDB();
+
+      toast({
+        title: "Jogo criado!",
+        description: `${gameData.title} foi adicionado ao calendário.`
+      });
+    } catch (error) {
+      console.error('Error in handleGameCreated:', error);
+      toast({
+        title: "Erro ao criar jogo",
+        description: "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePlayerCheckIn = (playerId: string) => {
