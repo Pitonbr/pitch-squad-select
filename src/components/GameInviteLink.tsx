@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, MessageCircle, Mail, Share2 } from "lucide-react";
+import { Copy, MessageCircle, Mail, Share2, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Game {
   id: string;
@@ -53,25 +59,21 @@ export function GameInviteLink({ game, invitedPlayers, createdByName }: GameInvi
   const createInviteMessage = (playerName: string) => {
     const formattedDate = formatGameDate(game.date, game.time);
     
-    return `🏈 Parabéns ${playerName}! 🏈
+    return `🎉 Você está sendo convidado para o grande jogo!
 
-Você foi convidado para participar do jogo:
-
-⚽ *${game.title}*
+⚽ *"${game.title}"*
 📅 ${formattedDate}
 📍 ${game.location}
-${game.description ? `\n💬 ${game.description}` : ''}
+${game.description ? `💬 ${game.description}\n` : ''}
+👉 *Clique aqui e faça sua inscrição para a partida:*
+🔗 ${inviteLink}
 
-Para participar você deve:
-1️⃣ Fazer login na sua conta no Soccer Squad
-2️⃣ Ou baixar e se cadastrar no aplicativo
+📱 Se ainda não tem o app instalado:
+1️⃣ Instale o Soccer Squad
+2️⃣ Cadastre-se ou faça login
+3️⃣ Sua presença será confirmada automaticamente
 
-🔗 *Acesse o jogo:* ${inviteLink}
-
-📱 *Download Android:* https://play.google.com/store/apps/details?id=com.soccersquad
-🍎 *Download iOS:* https://apps.apple.com/app/soccer-squad
-
-Nos vemos no campo, jogador!!!
+Nos vemos no campo! ⚽🔥
 
 ✍️ Convite enviado por: *${createdByName}*`;
   };
@@ -137,9 +139,26 @@ Nos vemos no campo, jogador!!!
           <Button variant="outline" onClick={copyToClipboard}>
             <Copy className="h-4 w-4" />
           </Button>
-          <Button variant="outline" onClick={shareInvite}>
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartilhar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={copyToClipboard}>
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Link
+              </DropdownMenuItem>
+              {navigator.share && (
+                <DropdownMenuItem onClick={shareInvite}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartilhar...
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {invitedPlayers.length > 0 && (
