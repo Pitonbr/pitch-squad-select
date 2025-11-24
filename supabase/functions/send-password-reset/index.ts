@@ -3,6 +3,7 @@ import { Resend } from "npm:resend@2.0.0";
 import React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { ResetPasswordEmail } from "./_templates/reset-password-email.tsx";
+import { RateLimitNotificationEmail } from "./_templates/rate-limit-notification-email.tsx";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -16,6 +17,39 @@ const corsHeaders = {
 interface PasswordResetRequest {
   email: string;
 }
+
+// Helper function to send rate limit notification email
+const sendRateLimitNotification = async (
+  email: string,
+  blockedUntil: string,
+  attemptCount: number
+) => {
+  try {
+    const html = await renderAsync(
+      React.createElement(RateLimitNotificationEmail, {
+        blockedUntil,
+        attemptCount,
+      })
+    );
+
+    const customDomain = Deno.env.get("CUSTOM_EMAIL_DOMAIN");
+    const fromEmail = customDomain 
+      ? `Soccer Squad Security <adm@${customDomain}>`
+      : "Soccer Squad Security <onboarding@resend.dev>";
+
+    await resend.emails.send({
+      from: fromEmail,
+      to: [email],
+      subject: "🔒 Alerta de Segurança - Conta Temporariamente Bloqueada",
+      html,
+    });
+
+    console.log(`Rate limit notification sent to ${email}`);
+  } catch (error) {
+    console.error("Error sending rate limit notification:", error);
+    // Don't throw - we still want to return success to prevent user enumeration
+  }
+};
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -62,6 +96,10 @@ const handler = async (req: Request): Promise<Response> => {
       // Check if blocked
       if (rateLimitData.blocked_until && new Date(rateLimitData.blocked_until) > now) {
         console.log(`Email ${email} is blocked until ${rateLimitData.blocked_until}`);
+        
+        // Send notification email about the block
+        await sendRateLimitNotification(email, rateLimitData.blocked_until, rateLimitData.attempt_count);
+        
         // Return success to prevent user enumeration
         return new Response(
           JSON.stringify({ success: true }),
@@ -93,6 +131,10 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("email", email);
 
         console.log(`Email ${email} exceeded rate limit, blocked until ${blockUntil}`);
+        
+        // Send notification email about the new block
+        await sendRateLimitNotification(email, blockUntil.toISOString(), rateLimitData.attempt_count);
+        
         // Return success to prevent user enumeration
         return new Response(
           JSON.stringify({ success: true }),
