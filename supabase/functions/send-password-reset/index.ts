@@ -43,8 +43,13 @@ const handler = async (req: Request): Promise<Response> => {
       })
     );
 
+    const customDomain = Deno.env.get("CUSTOM_EMAIL_DOMAIN");
+    const fromEmail = customDomain 
+      ? `Soccer Squad <adm@${customDomain}>`
+      : "Soccer Squad <onboarding@resend.dev>";
+
     const emailResponse = await resend.emails.send({
-      from: "Soccer Squad <onboarding@resend.dev>", // Using Resend test domain temporarily
+      from: fromEmail,
       to: [email],
       subject: "Recuperação de Senha - Soccer Squad",
       html,
