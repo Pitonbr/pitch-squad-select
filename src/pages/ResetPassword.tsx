@@ -24,6 +24,25 @@ const ResetPassword = () => {
   useEffect(() => {
     // Check if we have a valid recovery token
     const checkToken = async () => {
+      // First, check if there are tokens in the URL hash
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Establish session manually with the tokens from URL
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (!error) {
+          setHasValidToken(true);
+          return;
+        }
+      }
+      
+      // Fallback: check existing session
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
         setHasValidToken(true);
