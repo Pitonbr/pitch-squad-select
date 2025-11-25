@@ -26,10 +26,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { TeamSearch } from "@/components/TeamSearch";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
+import { useToast } from "@/hooks/use-toast";
 
 export function Dashboard() {
   const { activeTeam, teams, isTeamAdmin, getUserRole } = useTeams();
   const { user } = useAuth();
+  const { toast } = useToast();
   const userRole = activeTeam ? getUserRole(activeTeam.id) : null;
   const [loading, setLoading] = useState(true);
   const [playerProfile, setPlayerProfile] = useState<any>(null);
@@ -41,6 +43,19 @@ export function Dashboard() {
 
   // Enable realtime notifications for this team (consolidated listener)
   useRealtimeNotifications(activeTeam?.id);
+
+  // Listen for game_participants changes to update check-in status
+  useRealtime({
+    table: 'game_participants',
+    enabled: !!activeTeam?.id && !!playerProfile,
+    onEvent: (event: any) => {
+      console.log('[Dashboard] Game participant event:', event);
+      // Refresh next game when someone checks in
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE') {
+        fetchNextGame();
+      }
+    }
+  });
 
   useEffect(() => {
     if (activeTeam && user) {
@@ -184,17 +199,97 @@ export function Dashboard() {
   };
 
   const fetchNextGame = async () => {
+    if (!playerProfile) return;
+
     const { data } = await supabase
       .from('games')
-      .select('*')
+      .select('*, game_participants!inner(player_id, status)')
       .eq('team_id', activeTeam.id)
-      .eq('status', 'scheduled')
+      .in('status', ['scheduled', 'checkin'])
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    setNextGame(data);
+    if (data) {
+      // Check if current player has checked in
+      const playerParticipant = data.game_participants?.find(
+        (p: any) => p.player_id === playerProfile.id
+      );
+      
+      setNextGame({
+        ...data,
+        userCheckedIn: playerParticipant?.status === 'confirmed',
+        participantExists: !!playerParticipant
+      });
+    } else {
+      setNextGame(null);
+    }
+  };
+
+  const handleCheckIn = async (gameId: string) => {
+    if (!playerProfile || !activeTeam) return;
+
+    try {
+      // Check if participant record exists
+      const { data: existingParticipant } = await supabase
+        .from('game_participants')
+        .select('*')
+        .eq('game_id', gameId)
+        .eq('player_id', playerProfile.id)
+        .maybeSingle();
+
+      if (existingParticipant) {
+        // Update existing participant
+        const { error } = await supabase
+          .from('game_participants')
+          .update({
+            status: 'confirmed',
+            checked_in_at: new Date().toISOString()
+          })
+          .eq('game_id', gameId)
+          .eq('player_id', playerProfile.id);
+
+        if (error) throw error;
+      } else {
+        // Get profile for the check-in
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) throw new Error('Profile not found');
+
+        // Create new participant
+        const { error } = await supabase
+          .from('game_participants')
+          .insert({
+            game_id: gameId,
+            player_id: playerProfile.id,
+            profile_id: profile.id,
+            status: 'confirmed',
+            checked_in_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
+
+      // Refresh game data
+      await fetchNextGame();
+      
+      toast({
+        title: "✅ Check-in realizado!",
+        description: "Sua presença foi confirmada no jogo."
+      });
+    } catch (error: any) {
+      console.error('Error checking in:', error);
+      toast({
+        title: "Erro no check-in",
+        description: error.message || "Não foi possível confirmar sua presença.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getResultIcon = (result: string) => {
@@ -420,12 +515,19 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{nextGame.title}</span>
-                <Badge variant="secondary" className="bg-white/20 text-white">
-                  Em breve
-                </Badge>
+                {nextGame.userCheckedIn ? (
+                  <Badge className="bg-accent text-white border-0">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Check-in Confirmado
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    Check-in Disponível
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
@@ -442,6 +544,23 @@ export function Dashboard() {
               </div>
               {nextGame.description && (
                 <p className="text-sm opacity-90">{nextGame.description}</p>
+              )}
+              
+              {/* Check-in Button */}
+              {nextGame.userCheckedIn ? (
+                <div className="bg-accent/20 border-2 border-accent rounded-lg p-4 text-center">
+                  <CheckCircle className="h-8 w-8 text-accent mx-auto mb-2" />
+                  <p className="font-semibold">Presença Confirmada!</p>
+                  <p className="text-xs opacity-80 mt-1">Você já fez check-in neste jogo</p>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => handleCheckIn(nextGame.id)}
+                  className="w-full bg-accent hover:bg-accent/90 text-white font-bold h-12"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Fazer Check-in Agora
+                </Button>
               )}
             </CardContent>
           </Card>
