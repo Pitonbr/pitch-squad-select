@@ -40,11 +40,7 @@ interface GameInviteLinkProps {
 
 export function GameInviteLink({ game, invitedPlayers, createdByName }: GameInviteLinkProps) {
   const { toast } = useToast();
-  const [inviteLink] = useState(() => {
-    // Generate a unique invite link for the game
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/game-invite/${game.id}`;
-  });
+  const inviteLink = `${window.location.origin}/game-invite/${game.id}`;
 
   const formatGameDate = (date: string, time: string) => {
     const gameDate = new Date(`${date}T${time}`);

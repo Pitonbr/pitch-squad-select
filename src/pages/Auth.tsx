@@ -90,13 +90,15 @@ const Auth = () => {
         return;
       }
 
+      console.log('[Auth] Login successful, redirecting to:', redirectTo || '/');
+      
       toast({
-        title: "Login realizado!",
+        title: "✅ Login realizado!",
         description: "Bem-vindo de volta!"
       });
 
-      // Redirect to specified page or home
-      navigate(redirectTo || "/");
+      // Redirect to specified page (like game check-in) or home
+      navigate(redirectTo || "/", { replace: true });
     } catch (error: any) {
       toast({
         title: "Erro no login",
@@ -112,46 +114,54 @@ const Auth = () => {
     setAuthStep('verification');
   };
 
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = async () => {
+    console.log('[Auth] Verification success, handling invite and redirect', { inviteCode, redirectTo });
+    
     toast({
       title: "Cadastro concluído!",
       description: "Bem-vindo ao Soccer Squad!",
     });
     
-    // Handle invite code if present
+    // Handle invite code if present - join team first
     if (inviteCode) {
-      setTimeout(async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("id")
-              .eq("user_id", user.id)
-              .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
 
-            if (profileData) {
-              const { data: joinResult } = await supabase.rpc("join_team_by_invite_code", {
-                _invite_code: inviteCode,
-                _profile_id: profileData.id,
+          if (profileData) {
+            const { data: joinResult } = await supabase.rpc("join_team_by_invite_code", {
+              _invite_code: inviteCode,
+              _profile_id: profileData.id,
+            });
+
+            if (joinResult && joinResult.length > 0 && joinResult[0].success) {
+              console.log('[Auth] Successfully joined team:', joinResult[0].team_name);
+              toast({
+                title: "✅ Entrou no time!",
+                description: `Você foi adicionado ao time ${joinResult[0].team_name}`,
               });
-
-              if (joinResult && joinResult.length > 0 && joinResult[0].success) {
-                toast({
-                  title: "Entrou no time!",
-                  description: `Você foi adicionado ao time ${joinResult[0].team_name}`,
-                });
+              
+              // If no specific redirect (game), go to home to see the team
+              if (!redirectTo) {
+                navigate("/");
+                return;
               }
             }
           }
-        } catch (error) {
-          console.error("Error joining team:", error);
         }
-      }, 1000);
+      } catch (error) {
+        console.error("Error joining team:", error);
+      }
     }
     
-    // Redirect to specified page or home
-    navigate(redirectTo || "/");
+    // Redirect to specified page (like game check-in) or home
+    console.log('[Auth] Navigating to:', redirectTo || '/');
+    navigate(redirectTo || "/", { replace: true });
   };
 
   const handleBackToAuth = () => {
