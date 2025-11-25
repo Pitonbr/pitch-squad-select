@@ -12,7 +12,11 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ImageCropper } from "@/components/ImageCropper";
-import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera } from "lucide-react";
+import { TeamPublicProfile } from "./TeamPublicProfile";
+import { TeamJoinRequests } from "./TeamJoinRequests";
+import { TreasurerSelector } from "./TreasurerSelector";
+import { RoleManagement } from "./RoleManagement";
+import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera, Shield } from "lucide-react";
 
 export function TeamManager() {
   const { createTeam, joinTeamByCode, userTeams, isTeamAdmin, uploadTeamLogo } = useTeams();
@@ -382,6 +386,45 @@ export function TeamManager() {
             </Card>
           ))}
         </div>
+      )}
+      
+      {/* Advanced Team Management Tabs - Only for Admins */}
+      {userTeams.length > 0 && userTeams.some(team => isTeamAdmin(team.id)) && (
+        <Card className="glass-panel">
+          <CardHeader>
+            <CardTitle>Gerenciamento Avançado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="roles" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="roles">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Papéis
+                </TabsTrigger>
+                <TabsTrigger value="treasurer">
+                  <Crown className="h-4 w-4 mr-2" />
+                  Tesoureiro
+                </TabsTrigger>
+                <TabsTrigger value="joinRequests">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Solicitações
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="roles" className="mt-6">
+                <RoleManagement />
+              </TabsContent>
+              
+              <TabsContent value="treasurer" className="mt-6">
+                <TreasurerSelector />
+              </TabsContent>
+              
+              <TabsContent value="joinRequests" className="mt-6">
+                <TeamJoinRequests />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       )}
       
       {selectedImage && (
