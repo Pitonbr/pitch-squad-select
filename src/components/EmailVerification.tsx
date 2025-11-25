@@ -97,22 +97,25 @@ export const EmailVerification = ({
     } catch (error: any) {
       console.error("❌ Error during signup process:", error);
       
-      let errorMessage = "Ocorreu um erro inesperado.";
-      
-      if (error.message?.includes("User already registered")) {
-        errorMessage = "Este email já está cadastrado. Tente fazer login.";
-      } else if (error.message?.includes("Invalid email")) {
-        errorMessage = "Email inválido. Verifique o formato.";
-      } else if (error.message?.includes("Password")) {
-        errorMessage = "Senha deve ter pelo menos 6 caracteres.";
-      }
+      // Use the specific error message from useEmailService
+      const errorMessage = error.message || "Ocorreu um erro inesperado.";
       
       setEmailError(errorMessage);
       toast({
         title: "Erro no cadastro",
         description: errorMessage,
         variant: "destructive",
+        duration: 6000,
       });
+      
+      // If it's a password error, allow user to go back and fix it
+      if (errorMessage.includes("senha") || errorMessage.includes("Password")) {
+        toast({
+          title: "💡 Dica",
+          description: "Clique em 'Voltar' para ajustar sua senha.",
+          duration: 5000,
+        });
+      }
     } finally {
       setLoading(false);
     }

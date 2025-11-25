@@ -153,7 +153,25 @@ export const useEmailService = () => {
 
       if (error) {
         console.error("❌ Supabase auth error:", error);
-        throw error;
+        
+        // Provide specific error messages
+        let userMessage = error.message;
+        
+        if (error.message.includes("Password should be at least")) {
+          userMessage = "A senha deve ter pelo menos 6 caracteres.";
+        } else if (error.message.includes("Password is too weak")) {
+          userMessage = "Senha muito fraca. Use uma combinação de letras, números e caracteres especiais.";
+        } else if (error.message.includes("User already registered")) {
+          userMessage = "Este email já está cadastrado. Tente fazer login.";
+        } else if (error.message.includes("Invalid email")) {
+          userMessage = "Email inválido.";
+        } else if (error.message.includes("Error sending confirmation email")) {
+          userMessage = "Erro ao enviar email de confirmação. Tente novamente em alguns instantes.";
+        }
+        
+        const customError = new Error(userMessage);
+        (customError as any).originalError = error;
+        throw customError;
       }
 
       console.log("✅ Supabase auth signup successful:", { 
