@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -61,7 +61,7 @@ interface Game {
   time: string;
   location: string;
   description?: string;
-  status: "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
+  status: "scheduled" | "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
   playersCheckedIn: number;
   invitedPlayerIds: string[];
 }
@@ -77,61 +77,8 @@ export default function Index() {
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
 
-  // Enable realtime notifications
-  useRealtimeNotifications(activeTeam?.id);
-
-  // Listen for player changes in real-time
-  useRealtime({
-    table: 'players',
-    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
-    enabled: !!activeTeam?.id,
-    onEvent: (event) => {
-      console.log('[Index] Player event received:', event);
-      // Refresh players when there are changes
-      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        fetchPlayersFromDB();
-      }
-    }
-  });
-
-  // Listen for game changes in real-time
-  useRealtime({
-    table: 'games',
-    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
-    enabled: !!activeTeam?.id,
-    onEvent: (event) => {
-      console.log('[Index] Game event received:', event);
-      // Refresh games when there are changes
-      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        fetchGamesFromDB();
-      }
-    }
-  });
-
-  // Listen for game_participants changes in real-time
-  useRealtime({
-    table: 'game_participants',
-    enabled: !!activeTeam?.id,
-    onEvent: (event) => {
-      console.log('[Index] Game participant event received:', event);
-      // Refresh games to update participant counts
-      fetchGamesFromDB();
-    }
-  });
-
-  // Auto-save players data
-  useAutoSave({
-    data: players,
-    saveFunction: async (playersData) => {
-      // This is handled by individual operations, but we can add backup logic here
-      console.log('[AutoSave] Players data synchronized');
-    },
-    enabled: false, // Disabled as players are already saved individually
-    interval: 1000
-  });
-  
   // Function to fetch players from database
-  const fetchPlayersFromDB = async () => {
+  const fetchPlayersFromDB = useCallback(async () => {
     if (!activeTeam) return;
     
     try {
@@ -158,16 +105,10 @@ export default function Index() {
     } catch (error) {
       console.error('Error fetching players:', error);
     }
-  };
-  const [games, setGames] = useState<Game[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [gameToCancel, setGameToCancel] = useState<Game | null>(null);
-  const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
-  const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
-  const [teamLists, setTeamLists] = useState<TeamList[]>([]);
+  }, [activeTeam]);
 
   // Function to fetch games from database
-  const fetchGamesFromDB = async () => {
+  const fetchGamesFromDB = useCallback(async () => {
     if (!activeTeam) return;
     
     try {
@@ -199,7 +140,71 @@ export default function Index() {
     } catch (error) {
       console.error('Error fetching games:', error);
     }
-  };
+  }, [activeTeam]);
+
+  // Enable realtime notifications
+  useRealtimeNotifications(activeTeam?.id);
+
+  // Memoized realtime event handlers
+  const handlePlayerEvent = useCallback((event: any) => {
+    console.log('[Index] Player event received:', event);
+    if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+      fetchPlayersFromDB();
+    }
+  }, [fetchPlayersFromDB]);
+
+  const handleGameEvent = useCallback((event: any) => {
+    console.log('[Index] Game event received:', event);
+    if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+      fetchGamesFromDB();
+    }
+  }, [fetchGamesFromDB]);
+
+  const handleGameParticipantEvent = useCallback((event: any) => {
+    console.log('[Index] Game participant event received:', event);
+    fetchGamesFromDB();
+  }, [fetchGamesFromDB]);
+
+  // Listen for player changes in real-time
+  useRealtime({
+    table: 'players',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handlePlayerEvent
+  });
+
+  // Listen for game changes in real-time
+  useRealtime({
+    table: 'games',
+    filter: activeTeam?.id ? `team_id=eq.${activeTeam.id}` : undefined,
+    enabled: !!activeTeam?.id,
+    onEvent: handleGameEvent
+  });
+
+  // Listen for game_participants changes in real-time
+  useRealtime({
+    table: 'game_participants',
+    enabled: !!activeTeam?.id,
+    onEvent: handleGameParticipantEvent
+  });
+
+  // Auto-save players data
+  useAutoSave({
+    data: players,
+    saveFunction: async (playersData) => {
+      // This is handled by individual operations, but we can add backup logic here
+      console.log('[AutoSave] Players data synchronized');
+    },
+    enabled: false, // Disabled as players are already saved individually
+    interval: 1000
+  });
+  
+  const [games, setGames] = useState<Game[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [gameToCancel, setGameToCancel] = useState<Game | null>(null);
+  const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
+  const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
+  const [teamLists, setTeamLists] = useState<TeamList[]>([]);
 
   // Load existing data on component mount and when active team changes
   useEffect(() => {

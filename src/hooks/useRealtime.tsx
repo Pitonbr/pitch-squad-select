@@ -22,9 +22,15 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
   const { toast } = useToast();
   const channelRef = useRef<any>(null);
   const toastShownRef = useRef(false);
+  const onEventRef = useRef(onEvent);
+
+  // Keep onEvent ref updated without triggering re-subscription
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   useEffect(() => {
-    if (!enabled || !onEvent) return;
+    if (!enabled || !onEventRef.current) return;
 
     console.log(`[Realtime] Setting up listener for table: ${table}, filter: ${filter || 'none'}`);
 
@@ -51,7 +57,10 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
             table: table
           };
           
-          onEvent(event);
+          // Use ref to get latest callback without re-subscribing
+          if (onEventRef.current) {
+            onEventRef.current(event);
+          }
         }
       )
       .subscribe((status) => {
@@ -80,7 +89,7 @@ export function useRealtime({ table, filter, onEvent, enabled = true }: UseRealt
         channelRef.current = null;
       }
     };
-  }, [table, filter, onEvent, enabled]);
+  }, [table, filter, enabled, toast]);
 
   return {
     cleanup: () => {

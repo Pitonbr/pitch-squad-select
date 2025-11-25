@@ -27,7 +27,7 @@ interface GameDetailsCardProps {
   playersCheckedIn: number;
   totalPlayers: number;
   timeLeft?: string;
-  status: "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
+  status: "scheduled" | "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
   onEdit?: () => void;
   onInvite?: () => void;
   onJoin?: () => void;
@@ -39,6 +39,10 @@ interface GameDetailsCardProps {
 }
 
 const statusConfig = {
+  scheduled: {
+    badge: "bg-muted text-muted-foreground",
+    text: "Agendado"
+  },
   upcoming: {
     badge: "bg-muted text-muted-foreground",
     text: "Em Breve"
@@ -92,8 +96,8 @@ export function GameDetailsCard({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-xl font-bold mb-2 text-white">{title}</CardTitle>
-            <Badge className={statusConfig[status].badge}>
-              {statusConfig[status].text}
+            <Badge className={(statusConfig[status] || statusConfig.scheduled).badge}>
+              {(statusConfig[status] || statusConfig.scheduled).text}
             </Badge>
           </div>
           
