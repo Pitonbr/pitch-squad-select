@@ -40,7 +40,7 @@ interface GameInviteLinkProps {
 
 export function GameInviteLink({ game, invitedPlayers, createdByName }: GameInviteLinkProps) {
   const { toast } = useToast();
-  const inviteLink = `${window.location.origin}/game-invite/${game.id}`;
+  const inviteLink = `${window.location.origin}/auth?redirect=/game-checkin/${game.id}`;
 
   const formatGameDate = (date: string, time: string) => {
     const gameDate = new Date(`${date}T${time}`);
