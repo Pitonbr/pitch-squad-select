@@ -9,8 +9,8 @@ import { useTeams } from "@/hooks/useTeams";
 import { VersionIndicator } from "@/components/VersionIndicator";
 import { RealtimeIndicator } from "@/components/RealtimeIndicator";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
-import { Trophy, Users, Plus, Settings, Bell, Play, Award, Gamepad2, DollarSign, LogOut, UserCog, UserPlus, FileText } from "lucide-react";
-type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit";
+import { Trophy, Users, Plus, Settings, Bell, Play, Award, Gamepad2, DollarSign, LogOut, UserCog, UserPlus, FileText, ShieldCheck } from "lucide-react";
+type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management";
 interface HeaderProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
@@ -135,6 +135,15 @@ export function Header({
                     <Settings className="h-4 w-4 mr-2" />
                     Configurações
                   </DropdownMenuItem>
+                  {activeTeam && getUserRole(activeTeam.id) === 'admin' && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onViewChange('management')}>
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Gerenciamento
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />

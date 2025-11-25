@@ -25,6 +25,7 @@ import { TeamJoinRequests } from "@/components/TeamJoinRequests";
 import { PlayerRemovalDialog } from "@/components/PlayerRemovalDialog";
 import { AuditLogs } from "@/components/AuditLogs";
 import { AttendanceStats } from "@/components/AttendanceStats";
+import { ManagementPanel } from "@/components/ManagementPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,7 +65,7 @@ interface Game {
   invitedPlayerIds: string[];
 }
 
-type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit";
+type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -550,6 +551,7 @@ export default function Index() {
         {currentView === "rankings" && <Rankings />}
         {currentView === "finances" && <FinancialControl />}
         {currentView === "teamManager" && <TeamManager />}
+        {currentView === "management" && <ManagementPanel />}
       </main>
 
       <CancelGameDialog

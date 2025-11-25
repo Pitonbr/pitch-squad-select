@@ -5,18 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ImageCropper } from "@/components/ImageCropper";
-import { TeamPublicProfile } from "./TeamPublicProfile";
-import { TeamJoinRequests } from "./TeamJoinRequests";
-import { TreasurerSelector } from "./TreasurerSelector";
-import { RoleManagement } from "./RoleManagement";
-import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera, Shield } from "lucide-react";
+import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera } from "lucide-react";
 
 export function TeamManager() {
   const { createTeam, joinTeamByCode, userTeams, isTeamAdmin, uploadTeamLogo } = useTeams();
@@ -386,45 +381,6 @@ export function TeamManager() {
             </Card>
           ))}
         </div>
-      )}
-      
-      {/* Advanced Team Management Tabs - Only for Admins */}
-      {userTeams.length > 0 && userTeams.some(team => isTeamAdmin(team.id)) && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>Gerenciamento Avançado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="roles" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="roles">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Papéis
-                </TabsTrigger>
-                <TabsTrigger value="treasurer">
-                  <Crown className="h-4 w-4 mr-2" />
-                  Tesoureiro
-                </TabsTrigger>
-                <TabsTrigger value="joinRequests">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Solicitações
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="roles" className="mt-6">
-                <RoleManagement />
-              </TabsContent>
-              
-              <TabsContent value="treasurer" className="mt-6">
-                <TreasurerSelector />
-              </TabsContent>
-              
-              <TabsContent value="joinRequests" className="mt-6">
-                <TeamJoinRequests />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       )}
       
       {selectedImage && (
