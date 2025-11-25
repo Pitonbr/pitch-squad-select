@@ -30,9 +30,15 @@ export default function GameInvitePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('[GameInvitePage] Component loaded', { gameId, user: !!user, authLoading });
+
+  // Fetch game data
   useEffect(() => {
     const fetchGame = async () => {
+      console.log('[GameInvitePage] Fetching game data for:', gameId);
+      
       if (!gameId) {
+        console.error('[GameInvitePage] No gameId provided');
         setError("Link de convite inválido");
         setLoading(false);
         return;
@@ -45,27 +51,35 @@ export default function GameInvitePage() {
           .eq("id", gameId)
           .single();
 
+        console.log('[GameInvitePage] Game fetch result:', { data, error: fetchError });
+
         if (fetchError || !data) {
+          console.error('[GameInvitePage] Game not found:', fetchError);
           setError("Jogo não encontrado");
+          setLoading(false);
           return;
         }
 
+        console.log('[GameInvitePage] Game loaded successfully:', data.title);
         setGame(data as Game);
-
-        // If user is logged in, redirect to check-in immediately
-        if (user && !authLoading) {
-          navigate(`/game-checkin/${gameId}`);
-        }
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching game:", err);
+        console.error("[GameInvitePage] Error fetching game:", err);
         setError("Erro ao carregar informações do jogo");
-      } finally {
         setLoading(false);
       }
     };
 
     fetchGame();
-  }, [gameId, user, authLoading, navigate]);
+  }, [gameId]);
+
+  // Handle auto-redirect for authenticated users
+  useEffect(() => {
+    if (!authLoading && user && game) {
+      console.log('[GameInvitePage] User authenticated, redirecting to check-in:', gameId);
+      navigate(`/game-checkin/${gameId}`, { replace: true });
+    }
+  }, [user, authLoading, game, gameId, navigate]);
 
   const formatGameDate = (date: string, time: string) => {
     const gameDate = new Date(`${date}T${time}`);
