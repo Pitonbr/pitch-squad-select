@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Bell, Lock } from "lucide-react";
+import { NotificationSettings } from "./NotificationSettings";
 
 export function Settings() {
   const { profile, user } = useAuth();
@@ -192,50 +193,7 @@ export function Settings() {
 
             {/* Notifications Tab */}
             <TabsContent value="notifications" className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Notificações por Email</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receba atualizações importantes por email
-                    </p>
-                  </div>
-                  <Switch
-                    checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Lembretes de Jogos</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receba lembretes antes dos jogos agendados
-                    </p>
-                  </div>
-                  <Switch
-                    checked={gameReminders}
-                    onCheckedChange={setGameReminders}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Lembretes de Pagamento</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receba notificações sobre pagamentos pendentes
-                    </p>
-                  </div>
-                  <Switch
-                    checked={paymentReminders}
-                    onCheckedChange={setPaymentReminders}
-                  />
-                </div>
-
-                <Button className="w-full" variant="outline">
-                  Salvar Preferências
-                </Button>
-              </div>
+              <NotificationSettings />
             </TabsContent>
 
             {/* Security Tab */}
