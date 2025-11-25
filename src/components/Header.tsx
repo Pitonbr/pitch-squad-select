@@ -10,7 +10,7 @@ import { VersionIndicator } from "@/components/VersionIndicator";
 import { RealtimeIndicator } from "@/components/RealtimeIndicator";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import { Trophy, Users, Plus, Settings, Bell, Play, Award, Gamepad2, DollarSign, LogOut, UserCog, UserPlus, FileText, ShieldCheck } from "lucide-react";
-type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management";
+type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management" | "settings";
 interface HeaderProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
@@ -131,7 +131,7 @@ export function Header({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewChange('settings')}>
                     <Settings className="h-4 w-4 mr-2" />
                     Configurações
                   </DropdownMenuItem>
