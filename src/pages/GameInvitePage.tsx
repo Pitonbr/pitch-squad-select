@@ -32,7 +32,7 @@ export default function GameInvitePage() {
 
   console.log('[GameInvitePage] Component loaded', { gameId, user: !!user, authLoading });
 
-  // Fetch game data
+  // Fetch game data and check authentication
   useEffect(() => {
     const fetchGame = async () => {
       console.log('[GameInvitePage] Fetching game data for:', gameId);
@@ -49,7 +49,7 @@ export default function GameInvitePage() {
           .from("games")
           .select("*")
           .eq("id", gameId)
-          .single();
+          .maybeSingle();
 
         console.log('[GameInvitePage] Game fetch result:', { data, error: fetchError });
 
@@ -63,6 +63,12 @@ export default function GameInvitePage() {
         console.log('[GameInvitePage] Game loaded successfully:', data.title);
         setGame(data as Game);
         setLoading(false);
+
+        // If user is already authenticated, redirect immediately to check-in
+        if (!authLoading && user) {
+          console.log('[GameInvitePage] User already authenticated, redirecting to check-in');
+          navigate(`/game-checkin/${gameId}`, { replace: true });
+        }
       } catch (err) {
         console.error("[GameInvitePage] Error fetching game:", err);
         setError("Erro ao carregar informações do jogo");
@@ -70,16 +76,10 @@ export default function GameInvitePage() {
       }
     };
 
-    fetchGame();
-  }, [gameId]);
-
-  // Handle auto-redirect for authenticated users
-  useEffect(() => {
-    if (!authLoading && user && game) {
-      console.log('[GameInvitePage] User authenticated, redirecting to check-in:', gameId);
-      navigate(`/game-checkin/${gameId}`, { replace: true });
+    if (!authLoading) {
+      fetchGame();
     }
-  }, [user, authLoading, game, gameId, navigate]);
+  }, [gameId, user, authLoading, navigate]);
 
   const formatGameDate = (date: string, time: string) => {
     const gameDate = new Date(`${date}T${time}`);
