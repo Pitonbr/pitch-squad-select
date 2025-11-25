@@ -23,6 +23,11 @@ interface TeamMember {
   joined_at: string;
 }
 
+interface TeamMembership {
+  teamId: string;
+  role: 'admin' | 'player';
+}
+
 interface TeamsContextType {
   teams: Team[];
   activeTeam: Team | null;
@@ -33,6 +38,8 @@ interface TeamsContextType {
   joinTeamByCode: (inviteCode: string) => Promise<boolean>;
   refreshTeams: () => Promise<void>;
   isTeamAdmin: (teamId: string) => boolean;
+  isTeamPlayer: (teamId: string) => boolean;
+  getUserRole: (teamId: string) => 'admin' | 'player' | null;
   uploadTeamLogo: (teamId: string, file: File) => Promise<boolean>;
 }
 
@@ -45,6 +52,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [userTeams, setUserTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userMemberships, setUserMemberships] = useState<TeamMembership[]>([]);
 
   // Load teams when profile is available
   useEffect(() => {
@@ -92,6 +100,13 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         .eq('profile_id', profile.id);
 
       if (teamMemberships) {
+        // Store memberships with roles
+        const membershipData: TeamMembership[] = teamMemberships.map(m => ({
+          teamId: m.team_id,
+          role: m.role as 'admin' | 'player'
+        }));
+        setUserMemberships(membershipData);
+
         const userTeamsList = teamMemberships
           .map(membership => membership.teams as Team)
           .filter(Boolean);
@@ -275,10 +290,17 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getUserRole = (teamId: string): 'admin' | 'player' | null => {
+    const membership = userMemberships.find(m => m.teamId === teamId);
+    return membership?.role || null;
+  };
+
   const isTeamAdmin = (teamId: string): boolean => {
-    if (!profile) return false;
-    const team = teams.find(t => t.id === teamId);
-    return team?.admin_id === profile.id;
+    return getUserRole(teamId) === 'admin';
+  };
+
+  const isTeamPlayer = (teamId: string): boolean => {
+    return getUserRole(teamId) === 'player';
   };
 
   const uploadTeamLogo = async (teamId: string, file: File): Promise<boolean> => {
@@ -347,6 +369,8 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     joinTeamByCode,
     refreshTeams,
     isTeamAdmin,
+    isTeamPlayer,
+    getUserRole,
     uploadTeamLogo
   };
 

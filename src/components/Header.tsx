@@ -26,7 +26,7 @@ export function Header({
   const {
     activeTeam,
     teams,
-    isTeamAdmin
+    getUserRole
   } = useTeams();
   const navItems = [{
     key: 'dashboard',
@@ -74,23 +74,22 @@ export function Header({
     icon: FileText
   }] as const;
 
-  // Filter navigation items based on team membership and admin status
+  // Filter navigation items based on team membership and role
   const filteredNavItems = navItems.filter(item => {
-    if (!activeTeam) {
-      // Users without a team can only access dashboard, games, rankings, and liveGame
-      return ['dashboard', 'games', 'rankings', 'liveGame'].includes(item.key);
+    if (!activeTeam) return false;
+    
+    const userRole = getUserRole(activeTeam.id);
+    
+    // Admin sees everything
+    if (userRole === 'admin') return true;
+    
+    // Player sees only these items (read-only views)
+    if (userRole === 'player') {
+      const playerAllowedItems = ['dashboard', 'players', 'tournaments', 'liveGame', 'rankings', 'finances'];
+      return playerAllowedItems.includes(item.key);
     }
-
-    // Admin-only features
-    if (['teamManager', 'finances', 'audit'].includes(item.key)) {
-      return isTeamAdmin(activeTeam.id);
-    }
-
-    // Join requests is only for admins
-    if (item.key === 'joinRequests') {
-      return isTeamAdmin(activeTeam.id);
-    }
-    return true;
+    
+    return false;
   });
   const handleSignOut = async () => {
     try {

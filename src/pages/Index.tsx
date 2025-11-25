@@ -69,7 +69,7 @@ type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "t
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { activeTeam, loading: teamsLoading, isTeamAdmin } = useTeams();
+  const { activeTeam, loading: teamsLoading, isTeamAdmin, getUserRole } = useTeams();
   const { toast } = useToast();
   
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
@@ -388,24 +388,28 @@ export default function Index() {
     player.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const renderPlayersView = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Gerenciar Jogadores</h2>
-          <p className="text-muted-foreground">Cadastre e gerencie os jogadores do seu time</p>
-        </div>
-        <Badge variant="outline" className="flex items-center space-x-1">
-          <Users className="h-3 w-3" />
-          <span>{players.length} jogadores</span>
-        </Badge>
-      </div>
+  const renderPlayersView = () => {
+    const userRole = activeTeam ? getUserRole(activeTeam.id) : null;
+    const isPlayer = userRole === 'player';
 
-      {isTeamAdmin(activeTeam.id) && <PlayerRequestsManager />}
-      
-      <AttendanceStats />
-      
-      <PlayerForm onPlayerAdded={handlePlayerAdded} />
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Gerenciar Jogadores</h2>
+            <p className="text-muted-foreground">Cadastre e gerencie os jogadores do seu time</p>
+          </div>
+          <Badge variant="outline" className="flex items-center space-x-1">
+            <Users className="h-3 w-3" />
+            <span>{players.length} jogadores</span>
+          </Badge>
+        </div>
+
+        {!isPlayer && isTeamAdmin(activeTeam.id) && <PlayerRequestsManager />}
+        
+        <AttendanceStats />
+        
+        {!isPlayer && <PlayerForm onPlayerAdded={handlePlayerAdded} />}
 
       <Card>
         <CardHeader>
@@ -450,22 +454,25 @@ export default function Index() {
                     checkedIn={player.checkedIn || false}
                     onCheckIn={handlePlayerCheckIn}
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => handleDeletePlayer(player.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {!isPlayer && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => handleDeletePlayer(player.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </CardContent>
-      </Card>
-    </div>
-  );
+        </Card>
+      </div>
+    );
+  };
 
   const renderGamesView = () => (
     <div className="space-y-6">
