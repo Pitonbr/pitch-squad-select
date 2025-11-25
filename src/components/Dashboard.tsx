@@ -20,6 +20,7 @@ import {
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 import { AuditLogs } from "@/components/AuditLogs";
 import { useTeams } from "@/hooks/useTeams";
+import { PermissionGate } from "./PermissionGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamSearch } from "@/components/TeamSearch";
@@ -27,8 +28,9 @@ import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 
 export function Dashboard() {
-  const { activeTeam, teams, isTeamAdmin } = useTeams();
+  const { activeTeam, teams, isTeamAdmin, getUserRole } = useTeams();
   const { user } = useAuth();
+  const userRole = activeTeam ? getUserRole(activeTeam.id) : null;
   const [loading, setLoading] = useState(true);
   const [playerProfile, setPlayerProfile] = useState<any>(null);
   const [playerStats, setPlayerStats] = useState<any>(null);
