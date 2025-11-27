@@ -2,8 +2,6 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { CacheManager } from './utils/cacheManager'
-import { RealtimeProvider } from './contexts/RealtimeContext'
-import { OfflineQueueProvider } from './contexts/OfflineQueueContext'
 
 // Force complete cache refresh - build 2025-01-18-fixed
 console.log('Main: Soccer Manager v3.0 starting - Error fixes applied...');
@@ -19,13 +17,7 @@ try {
   }
   
   const root = createRoot(rootElement);
-  root.render(
-    <RealtimeProvider>
-      <OfflineQueueProvider>
-        <App />
-      </OfflineQueueProvider>
-    </RealtimeProvider>
-  );
+  root.render(<App />);
 } catch (error) {
   console.error('Critical error in main.tsx:', error);
   
