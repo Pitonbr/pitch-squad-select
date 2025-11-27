@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Crown, UserPlus, Settings } from "lucide-react";
+import { Shield, Crown, UserPlus, Settings, Mail } from "lucide-react";
 import { RoleManagement } from "./RoleManagement";
 import { TreasurerSelector } from "./TreasurerSelector";
 import { TeamJoinRequests } from "./TeamJoinRequests";
+import { TeamBroadcast } from "./TeamBroadcast";
 import { useTeams } from "@/hooks/useTeams";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -44,18 +45,22 @@ export const ManagementPanel = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="roles" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="roles" className="gap-2">
                 <Shield className="h-4 w-4" />
-                <span>Papéis e Permissões</span>
+                <span className="hidden sm:inline">Papéis</span>
               </TabsTrigger>
               <TabsTrigger value="treasurer" className="gap-2">
                 <Crown className="h-4 w-4" />
-                <span>Tesoureiro</span>
+                <span className="hidden sm:inline">Tesoureiro</span>
               </TabsTrigger>
               <TabsTrigger value="joinRequests" className="gap-2">
                 <UserPlus className="h-4 w-4" />
-                <span>Solicitações</span>
+                <span className="hidden sm:inline">Solicitações</span>
+              </TabsTrigger>
+              <TabsTrigger value="broadcast" className="gap-2">
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline">Comunicados</span>
               </TabsTrigger>
             </TabsList>
             
@@ -69,6 +74,10 @@ export const ManagementPanel = () => {
             
             <TabsContent value="joinRequests" className="mt-6">
               <TeamJoinRequests />
+            </TabsContent>
+            
+            <TabsContent value="broadcast" className="mt-6">
+              <TeamBroadcast teamId={activeTeam.id} />
             </TabsContent>
           </Tabs>
         </CardContent>
