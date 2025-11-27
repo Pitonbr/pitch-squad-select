@@ -1524,6 +1524,7 @@ export type Database = {
         Args: { _action: string; _details?: Json }
         Returns: undefined
       }
+      mark_unrealized_games: { Args: never; Returns: undefined }
       mask_phone_number: {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }
         Returns: string
