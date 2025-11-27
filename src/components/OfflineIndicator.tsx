@@ -1,13 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { WifiOff, Wifi, CloudOff, RefreshCw } from 'lucide-react';
+import { WifiOff, Wifi, CloudOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useOfflineQueue } from '@/contexts/OfflineQueueContext';
 
 export function OfflineIndicator() {
-  const { isOnline, queuedCount, isSyncing, syncQueue } = useOfflineQueue();
+  const { isOnline, queuedCount, conflictCount, isSyncing, syncQueue } = useOfflineQueue();
 
-  if (isOnline && queuedCount === 0) {
-    return null; // Don't show indicator when online and no pending actions
+  if (isOnline && queuedCount === 0 && conflictCount === 0) {
+    return null; // Don't show indicator when online and no pending actions or conflicts
   }
 
   return (
@@ -26,6 +26,16 @@ export function OfflineIndicator() {
         >
           <CloudOff className="h-3 w-3" />
           <span>{queuedCount} {queuedCount === 1 ? 'ação pendente' : 'ações pendentes'}</span>
+        </Badge>
+      )}
+
+      {conflictCount > 0 && (
+        <Badge 
+          variant="destructive" 
+          className="flex items-center space-x-1 text-xs animate-pulse"
+        >
+          <AlertTriangle className="h-3 w-3" />
+          <span>{conflictCount} {conflictCount === 1 ? 'conflito' : 'conflitos'}</span>
         </Badge>
       )}
 
