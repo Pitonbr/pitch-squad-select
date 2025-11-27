@@ -61,9 +61,11 @@ interface Game {
   time: string;
   location: string;
   description?: string;
-  status: "scheduled" | "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
+  status: "scheduled" | "upcoming" | "checkin" | "closed" | "ongoing" | "finished" | "not_realized" | "cancelled";
   playersCheckedIn: number;
   invitedPlayerIds: string[];
+  home_score?: number;
+  away_score?: number;
 }
 
 type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management" | "settings";
@@ -124,17 +126,42 @@ export default function Index() {
         return;
       }
 
-      const gamesData = data?.map((game: any) => ({
-        id: game.id,
-        title: game.title,
-        date: game.date,
-        time: game.time,
-        location: game.location,
-        description: game.description,
-        status: game.status,
-        playersCheckedIn: game.game_participants?.filter((p: any) => p.status === 'confirmed').length || 0,
-        invitedPlayerIds: game.game_participants?.map((p: any) => p.player_id) || []
-      })) || [];
+      // Marcar jogos não realizados
+      const now = new Date();
+      const gamesData = data?.map((game: any) => {
+        let gameStatus = game.status;
+        
+        // Verificar se o jogo passou da data/hora e não foi ativado
+        if (gameStatus === 'scheduled') {
+          const gameDateTime = new Date(`${game.date}T${game.time}`);
+          const twoHoursAfter = new Date(gameDateTime.getTime() + (2 * 60 * 60 * 1000));
+          
+          if (now > twoHoursAfter && !game.is_match_active && !game.match_time_started) {
+            gameStatus = 'not_realized';
+            
+            // Atualizar no banco de dados
+            supabase
+              .from('games')
+              .update({ status: 'not_realized' })
+              .eq('id', game.id)
+              .then(() => console.log(`Game ${game.id} marked as not_realized`));
+          }
+        }
+
+        return {
+          id: game.id,
+          title: game.title,
+          date: game.date,
+          time: game.time,
+          location: game.location,
+          description: game.description,
+          status: gameStatus,
+          playersCheckedIn: game.game_participants?.filter((p: any) => p.status === 'confirmed').length || 0,
+          invitedPlayerIds: game.game_participants?.map((p: any) => p.player_id) || [],
+          home_score: game.home_score,
+          away_score: game.away_score
+        };
+      }) || [];
 
       setGames(gamesData);
     } catch (error) {

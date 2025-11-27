@@ -11,7 +11,9 @@ interface GameCardProps {
   playersCheckedIn: number;
   totalPlayers: number;
   timeLeft?: string;
-  status: "upcoming" | "checkin" | "closed" | "ongoing" | "cancelled";
+  status: "upcoming" | "checkin" | "closed" | "ongoing" | "finished" | "not_realized" | "cancelled";
+  homeScore?: number;
+  awayScore?: number;
   onJoinGame?: () => void;
   onCancelGame?: () => void;
   isAdmin?: boolean;
@@ -34,6 +36,14 @@ const statusConfig = {
     badge: "bg-success text-success-foreground",
     text: "Em Andamento"
   },
+  finished: {
+    badge: "bg-success text-success-foreground",
+    text: "Finalizado"
+  },
+  not_realized: {
+    badge: "bg-gray-500 text-white",
+    text: "Não Realizado"
+  },
   cancelled: {
     badge: "bg-destructive text-destructive-foreground",
     text: "Cancelado"
@@ -49,6 +59,8 @@ export function GameCard({
   totalPlayers, 
   timeLeft, 
   status,
+  homeScore,
+  awayScore,
   onJoinGame,
   onCancelGame,
   isAdmin = false
@@ -95,6 +107,16 @@ export function GameCard({
           <MapPin className="h-4 w-4 text-primary" />
           <span>{location}</span>
         </div>
+
+        {/* Show score for finished games */}
+        {status === 'finished' && homeScore !== undefined && awayScore !== undefined && (
+          <div className="text-center p-2 bg-black/40 rounded-lg border border-primary/30">
+            <p className="text-xs text-white/70 mb-1">Placar Final</p>
+            <p className="text-2xl font-bold text-accent">
+              {homeScore} x {awayScore}
+            </p>
+          </div>
+        )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm text-white/95">

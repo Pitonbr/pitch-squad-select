@@ -177,13 +177,38 @@ export function Dashboard() {
   };
 
   const fetchPlayerStats = async (player: any) => {
-    // Por enquanto retorna stats zeradas - implementar quando houver dados reais
-    setPlayerStats({
-      gamesPlayed: 0,
-      ranking: null,
-      checkInRate: 0,
-      winRate: 0
-    });
+    try {
+      // Buscar estatísticas reais do jogador
+      const { data: stats } = await supabase
+        .from('player_statistics')
+        .select('*')
+        .eq('player_id', player.id)
+        .eq('team_id', activeTeam.id)
+        .maybeSingle();
+
+      // Buscar estatísticas de presença
+      const { data: attendanceData } = await supabase
+        .rpc('get_player_attendance_stats', {
+          _player_id: player.id,
+          _team_id: activeTeam.id
+        })
+        .maybeSingle();
+
+      setPlayerStats({
+        gamesPlayed: stats?.games_played || 0,
+        ranking: null, // Implementar ranking depois
+        checkInRate: attendanceData?.attendance_percentage || 0,
+        winRate: 0 // Implementar taxa de vitória depois
+      });
+    } catch (error) {
+      console.error('Error fetching player stats:', error);
+      setPlayerStats({
+        gamesPlayed: 0,
+        ranking: null,
+        checkInRate: 0,
+        winRate: 0
+      });
+    }
   };
 
   const fetchRecentGames = async () => {
@@ -191,7 +216,7 @@ export function Dashboard() {
       .from('games')
       .select('*')
       .eq('team_id', activeTeam.id)
-      .eq('status', 'finished')
+      .in('status', ['finished', 'not_realized'])
       .order('date', { ascending: false })
       .limit(3);
 
@@ -585,19 +610,31 @@ export function Dashboard() {
         <CardContent>
           {recentGames.length > 0 ? (
             <div className="space-y-3">
-              {recentGames.map((game, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              {recentGames.map((game) => (
+                <div key={game.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center space-x-3">
+                    {game.status === 'finished' && getResultIcon("V")}
                     <div>
                       <p className="font-medium text-sm">{game.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(game.date).toLocaleDateString('pt-BR')} • {game.location}
                       </p>
+                      {game.status === 'finished' && game.home_score !== null && game.away_score !== null && (
+                        <p className="text-xs text-accent font-bold mt-1">
+                          {game.home_score} x {game.away_score}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {game.status}
-                  </Badge>
+                  {game.status === 'finished' ? (
+                    <Badge variant="outline" className="border-success/50 text-success">
+                      Finalizado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-gray-500 text-gray-400">
+                      Não Realizado
+                    </Badge>
+                  )}
                 </div>
               ))}
             </div>

@@ -86,22 +86,48 @@ export function Rankings() {
     try {
       setLoading(true);
       
-      // Buscar jogos recentes do time
+      // Buscar jogos recentes e não realizados do time
       const { data: games } = await supabase
         .from('games')
         .select('*')
         .eq('team_id', activeTeam.id)
-        .eq('status', 'finished')
+        .in('status', ['finished', 'not_realized'])
         .order('date', { ascending: false })
         .limit(10);
 
       setRecentGames(games || []);
 
-      // Buscar jogadores do time  
+      // Buscar jogadores do time com estatísticas
       const { data: teamPlayers } = await supabase
         .rpc('get_team_players', { _team_id: activeTeam.id });
 
-      setPlayers(teamPlayers || []);
+      // Buscar estatísticas de cada jogador
+      if (teamPlayers && teamPlayers.length > 0) {
+        const playersWithStats = await Promise.all(
+          teamPlayers.map(async (player: any) => {
+            const { data: stats } = await supabase
+              .from('player_statistics')
+              .select('*')
+              .eq('player_id', player.id)
+              .eq('team_id', activeTeam.id)
+              .maybeSingle();
+            
+            return {
+              ...player,
+              stats: stats || {
+                goals: 0,
+                assists: 0,
+                yellow_cards: 0,
+                red_cards: 0,
+                games_played: 0
+              }
+            };
+          })
+        );
+        setPlayers(playersWithStats);
+      } else {
+        setPlayers([]);
+      }
       
     } catch (error) {
       console.error('Error fetching rankings data:', error);
@@ -258,15 +284,58 @@ export function Rankings() {
                 </CardContent>
               </Card>
 
-              <Card variant="dark" className="backdrop-blur-md">
-                <CardContent className="text-center py-12">
-                  <Trophy className="h-16 w-16 mx-auto text-primary mb-4" />
-                  <h3 className="text-lg font-semibold mb-2 text-white">Estatísticas em Desenvolvimento</h3>
-                  <p className="text-white/90">
-                    Rankings de gols, assistências e outras estatísticas serão exibidos aqui quando começarem os jogos.
-                  </p>
-                </CardContent>
-              </Card>
+              {/* Top Scorers */}
+              {players.some((p: any) => p.stats?.goals > 0) && (
+                <Card variant="dark" className="backdrop-blur-md">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center space-x-2 text-white">
+                      <Target className="h-5 w-5 text-primary" />
+                      <span>Artilheiros</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {players
+                      .filter((p: any) => p.stats?.goals > 0)
+                      .sort((a: any, b: any) => (b.stats?.goals || 0) - (a.stats?.goals || 0))
+                      .slice(0, 5)
+                      .map((player: any, index: number) => (
+                        <div key={player.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 smooth-transition border border-primary/20">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center">
+                              {getRankingIcon(index + 1)}
+                            </div>
+                            <Avatar className="h-8 w-8 ring-2 ring-primary/30">
+                              <AvatarImage src={player.profile_image} alt={player.name} />
+                              <AvatarFallback className="text-xs bg-primary/20 text-white">
+                                {player.nickname.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-sm text-white">{player.nickname}</p>
+                              <p className="text-xs text-white/60">{player.name}</p>
+                            </div>
+                          </div>
+                          <Badge className={getRankingBadgeColor(index + 1)}>
+                            {player.stats?.goals || 0} gols
+                          </Badge>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Statistics placeholder if no data */}
+              {!players.some((p: any) => p.stats?.goals > 0) && (
+                <Card variant="dark" className="backdrop-blur-md">
+                  <CardContent className="text-center py-12">
+                    <Trophy className="h-16 w-16 mx-auto text-primary mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-white">Aguardando Jogos</h3>
+                    <p className="text-white/90">
+                      As estatísticas aparecerão aqui após os primeiros jogos finalizados.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           ) : (
             <Card variant="dark" className="backdrop-blur-md">
@@ -328,12 +397,23 @@ export function Rankings() {
                               <p className="text-xs text-white/85">
                                 {new Date(game.date).toLocaleDateString('pt-BR')} • {game.location}
                               </p>
+                              {game.status === 'finished' && game.home_score !== null && game.away_score !== null && (
+                                <p className="text-xs text-accent font-bold mt-1">
+                                  Placar: {game.home_score} x {game.away_score}
+                                </p>
+                              )}
                             </div>
                           </div>
                           
-                          <Badge variant="outline" className="border-primary/50 text-white">
-                            {game.status}
-                          </Badge>
+                          {game.status === 'finished' ? (
+                            <Badge variant="outline" className="border-success/50 text-success">
+                              Finalizado
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-gray-500 text-gray-400">
+                              Não Realizado
+                            </Badge>
+                          )}
                         </div>
                       ))}
                     </div>
