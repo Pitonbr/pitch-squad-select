@@ -24,7 +24,7 @@ export const WelcomeEmail = ({
 }: WelcomeEmailProps) => (
   <Html>
     <Head />
-    <Preview>Confirme seu cadastro no Soccer Squad</Preview>
+    <Preview>Bem-vindo ao Soccer Squad!</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
@@ -39,14 +39,14 @@ export const WelcomeEmail = ({
         </Section>
         
         <Section style={content}>
-          <Heading style={h2}>Bem-vindo, {displayName}!</Heading>
+          <Heading style={h2}>Bem-vindo, {displayName}! ⚽</Heading>
           <Text style={text}>
             Obrigado por se cadastrar no Soccer Squad, o aplicativo definitivo para gerenciar seu time de futebol!
           </Text>
           
           <Text style={text}>
-            Para completar seu cadastro e começar a usar todas as funcionalidades do app, 
-            clique no botão abaixo para confirmar seu email:
+            Seu cadastro foi concluído com sucesso e você já pode fazer login no aplicativo 
+            para começar a usar todas as funcionalidades.
           </Text>
           
           <Section style={buttonContainer}>
@@ -54,15 +54,28 @@ export const WelcomeEmail = ({
               href={confirmationUrl}
               style={button}
             >
-              Confirmar Cadastro
+              Acessar o App
             </Button>
           </Section>
           
-          <Text style={smallText}>
-            Ou copie e cole este link no seu navegador:
+          <Text style={featuresTitle}>
+            🎯 O que você pode fazer no Soccer Squad:
           </Text>
-          <Text style={linkText}>
-            {confirmationUrl}
+          
+          <Text style={featureItem}>
+            ⚽ <strong>Gerenciar jogos:</strong> Organize partidas e acompanhe confirmações de presença
+          </Text>
+          <Text style={featureItem}>
+            👥 <strong>Gerenciar jogadores:</strong> Adicione jogadores ao seu time
+          </Text>
+          <Text style={featureItem}>
+            📊 <strong>Rankings e estatísticas:</strong> Acompanhe o desempenho do time
+          </Text>
+          <Text style={featureItem}>
+            💰 <strong>Controle financeiro:</strong> Gerencie mensalidades e despesas
+          </Text>
+          <Text style={featureItem}>
+            🏆 <strong>Torneios:</strong> Crie e participe de campeonatos
           </Text>
           
           <Text style={smallText}>
@@ -73,6 +86,9 @@ export const WelcomeEmail = ({
         <Section style={footer}>
           <Text style={footerText}>
             © 2025 Soccer Squad - Gerencie seu time com facilidade
+          </Text>
+          <Text style={footerText}>
+            Dúvidas? Entre em contato conosco através do app
           </Text>
         </Section>
       </Container>
@@ -163,6 +179,21 @@ const linkText = {
   wordBreak: 'break-all' as const,
   textAlign: 'center' as const,
   margin: '0 0 24px',
+};
+
+const featuresTitle = {
+  color: '#1f2937',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  margin: '32px 0 16px',
+};
+
+const featureItem = {
+  color: '#374151',
+  fontSize: '15px',
+  lineHeight: '24px',
+  margin: '8px 0',
+  paddingLeft: '8px',
 };
 
 const footer = {

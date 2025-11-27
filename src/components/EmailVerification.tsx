@@ -42,63 +42,92 @@ export const EmailVerification = ({
     }
   }, [timeLeft, emailSent]);
 
-  // Enhanced email sending with better error handling
+  // Send custom welcome email after signup
   const sendConfirmationEmail = async () => {
+    if (emailSent) return;
+    
     setLoading(true);
     setEmailError(null);
     
     try {
-      console.log(`📧 Starting email verification process for: ${email}`);
+      console.log(`📧 Starting signup process for: ${email}`);
       
-      // First, handle Supabase auth signup
-      const authData = await sendSupabaseAuthEmail(email, password, displayName, inviteCode);
+      // Step 1: Create user with Supabase Auth (no native email confirmation)
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
+        },
+      });
+
+      if (signupError) {
+        throw new Error(signupError.message);
+      }
+
+      if (!data.user) {
+        throw new Error("Falha ao criar usuário");
+      }
+
+      console.log("✅ User created successfully, sending custom welcome email...");
       
-      if (authData.user && !authData.user.email_confirmed_at) {
-        console.log("👤 User created, sending custom confirmation email...");
+      // Step 2: Send custom welcome email via edge function
+      const confirmationUrl = `${window.location.origin}/`;
+      
+      const emailResult = await sendCustomEmail(
+        email,
+        confirmationUrl,
+        displayName,
+        3 // max retries
+      );
+
+      if (emailResult.success) {
+        console.log("✅ Welcome email sent successfully");
+        setEmailSent(true);
+        setTimeLeft(60);
+        setCanResend(false);
+        setRetryCount(0);
         
-        const confirmationUrl = `${window.location.origin}/auth?confirm=true`;
-        
-        // Use enhanced email service
-        const emailResult = await sendCustomEmail(email, confirmationUrl, displayName);
-        
-        if (emailResult.success) {
-          setEmailSent(true);
-          setTimeLeft(60);
-          setCanResend(false);
-          setRetryCount(0);
-          
-          // Domain-specific success messages are handled in useEmailService
-        } else {
-          // Custom email failed, log but don't fail the whole process
-          console.warn("❌ Custom email failed:", emailResult.error);
-          setEmailError(emailResult.error || "Falha no envio do email personalizado");
-          
-          // Still mark as sent since Supabase auth worked
-          setEmailSent(true);
-          setTimeLeft(60);
-          setCanResend(false);
-          
-          toast({
-            title: "Cadastro realizado!",
-            description: `Verifique sua caixa de entrada. ${emailResult.error || ''}`,
-            variant: emailResult.retryable ? "default" : "destructive",
-          });
-        }
-      } else if (authData.user?.email_confirmed_at) {
-        // Email already confirmed
-        console.log("✅ Email already confirmed");
         toast({
-          title: "Email já confirmado!",
-          description: "Redirecionando...",
+          title: "Cadastro realizado!",
+          description: "Email de boas-vindas enviado. Você já pode fazer login!",
         });
-        setTimeout(onSuccess, 1000);
+        
+        // Redirect to success after a short delay
+        setTimeout(() => onSuccess(), 2000);
+      } else {
+        // Email failed but user was created successfully
+        console.warn("⚠️ Welcome email failed but user was created:", emailResult.error);
+        setEmailError(emailResult.error || "Falha no envio do email");
+        
+        toast({
+          title: "Cadastro realizado!",
+          description: "Usuário criado com sucesso, mas houve um problema ao enviar o email de boas-vindas. Você já pode fazer login!",
+          duration: 6000,
+        });
+        
+        // Still redirect to success
+        setTimeout(() => onSuccess(), 2000);
       }
       
     } catch (error: any) {
       console.error("❌ Error during signup process:", error);
       
-      // Use the specific error message from useEmailService
-      const errorMessage = error.message || "Ocorreu um erro inesperado.";
+      let errorMessage = "Ocorreu um erro inesperado.";
+      
+      if (error.message?.includes("User already registered")) {
+        errorMessage = "Este email já está cadastrado. Tente fazer login.";
+      } else if (error.message?.includes("Password should be at least")) {
+        errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+      } else if (error.message?.includes("Password is too weak")) {
+        errorMessage = "Senha muito fraca. Use uma combinação de letras, números e caracteres especiais.";
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Email inválido.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       setEmailError(errorMessage);
       toast({
@@ -126,27 +155,8 @@ export const EmailVerification = ({
     sendConfirmationEmail();
   }, []);
 
-  // Check for email confirmation
-  useEffect(() => {
-    const checkConfirmation = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.email_confirmed_at) {
-        onSuccess();
-      }
-    };
-
-    // Check immediately
-    checkConfirmation();
-
-    // Set up listener for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-        onSuccess();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [onSuccess]);
+  // No need to check for email confirmation since it's disabled in Supabase
+  // User can login immediately after signup
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -160,19 +170,19 @@ export const EmailVerification = ({
             )}
           </div>
         </div>
-        <CardTitle>Confirme seu email</CardTitle>
+        <CardTitle>Cadastro realizado!</CardTitle>
         <CardDescription>
-          Enviamos um link de confirmação para<br />
+          Email de boas-vindas enviado para<br />
           <span className="font-medium">{email}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Clique no link do email para confirmar sua conta.
+            Você já pode fazer login na aplicação!
           </p>
           <p className="text-xs text-muted-foreground">
-            Não esqueça de verificar a pasta de spam!
+            Enviamos um email de boas-vindas. Verifique sua caixa de entrada!
           </p>
         </div>
 
