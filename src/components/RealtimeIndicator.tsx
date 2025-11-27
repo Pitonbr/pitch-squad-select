@@ -1,26 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useRealtimeContext } from '@/contexts/RealtimeContext';
 
 export function RealtimeIndicator() {
-  const [isConnected, setIsConnected] = useState(false);
+  const { isConnected } = useRealtimeContext();
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
-    // Create a test channel to monitor connection status
-    const channel = supabase
-      .channel('connection-test')
-      .subscribe((status) => {
-        console.log('[RealtimeIndicator] Connection status:', status);
-        
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-          setLastUpdate(new Date());
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setIsConnected(false);
-        }
-      });
+    if (isConnected) {
+      setLastUpdate(new Date());
+    }
 
     // Update timestamp every 30 seconds if connected
     const interval = setInterval(() => {
@@ -30,10 +20,9 @@ export function RealtimeIndicator() {
     }, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, []);
+  }, [isConnected]);
 
   const formatLastUpdate = (date: Date) => {
     const now = new Date();
