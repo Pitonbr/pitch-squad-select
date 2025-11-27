@@ -534,36 +534,45 @@ export default function Index() {
           <CardTitle>Próximos Jogos</CardTitle>
         </CardHeader>
         <CardContent>
-          {games.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum jogo agendado.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {games.map((game) => (
-                <GameDetailsCard
-                  key={game.id}
-                  id={game.id}
-                  title={game.title}
-                  date={new Date(game.date).toLocaleDateString('pt-BR')}
-                  time={game.time}
-                  location={game.location}
-                  description={game.description}
-                  playersCheckedIn={game.playersCheckedIn || 0}
-                  totalPlayers={game.invitedPlayerIds?.length || 22}
-                  status={game.status}
-                  timeLeft={game.status === "checkin" ? "2h 30min" : undefined}
-                  isAdmin={true}
-                  onEdit={() => setGameToEdit(game)}
-                  onInvite={() => setGameToInvite(game)}
-                  onJoin={game.status === "checkin" ? () => {
-                    console.log("Participar do jogo", game.id);
-                  } : undefined}
-                />
-              ))}
-            </div>
-          )}
+          {(() => {
+            // Filtrar apenas jogos futuros (excluir finalizados e não realizados)
+            const upcomingGames = games.filter(game => 
+              !['finished', 'not_realized', 'cancelled'].includes(game.status)
+            );
+
+            return upcomingGames.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum jogo agendado.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {upcomingGames.map((game) => (
+                  <GameDetailsCard
+                    key={game.id}
+                    id={game.id}
+                    title={game.title}
+                    date={new Date(game.date).toLocaleDateString('pt-BR')}
+                    time={game.time}
+                    location={game.location}
+                    description={game.description}
+                    playersCheckedIn={game.playersCheckedIn || 0}
+                    totalPlayers={game.invitedPlayerIds?.length || 22}
+                    status={game.status}
+                    timeLeft={game.status === "checkin" ? "2h 30min" : undefined}
+                    isAdmin={true}
+                    onEdit={() => setGameToEdit(game)}
+                    onInvite={() => setGameToInvite(game)}
+                    onJoin={game.status === "checkin" ? () => {
+                      console.log("Participar do jogo", game.id);
+                    } : undefined}
+                    homeScore={game.home_score}
+                    awayScore={game.away_score}
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
