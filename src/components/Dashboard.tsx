@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 import { AuditLogs } from "@/components/AuditLogs";
+import { AttendanceStats } from "./AttendanceStats";
+import { GameNotifications } from "./GameNotifications";
 import { useTeams } from "@/hooks/useTeams";
 import { PermissionGate } from "./PermissionGate";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +29,8 @@ import { TeamSearch } from "@/components/TeamSearch";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export function Dashboard() {
   const { activeTeam, teams, isTeamAdmin, getUserRole } = useTeams();
@@ -195,18 +199,20 @@ export function Dashboard() {
         .maybeSingle();
 
       setPlayerStats({
+        goals: stats?.goals || 0,
+        assists: stats?.assists || 0,
         gamesPlayed: stats?.games_played || 0,
-        ranking: null, // Implementar ranking depois
-        checkInRate: attendanceData?.attendance_percentage || 0,
-        winRate: 0 // Implementar taxa de vitória depois
+        ranking: null,
+        attendanceRate: Math.round(attendanceData?.attendance_percentage || 0)
       });
     } catch (error) {
       console.error('Error fetching player stats:', error);
       setPlayerStats({
+        goals: 0,
+        assists: 0,
         gamesPlayed: 0,
         ranking: null,
-        checkInRate: 0,
-        winRate: 0
+        attendanceRate: 0
       });
     }
   };
@@ -510,7 +516,7 @@ export function Dashboard() {
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{playerStats?.checkInRate || 0}%</p>
+                <p className="text-2xl font-bold">{playerStats?.attendanceRate || 0}%</p>
                 <p className="text-xs text-muted-foreground">Taxa Check-in</p>
               </div>
             </div>
@@ -520,12 +526,12 @@ export function Dashboard() {
         <Card className="smooth-transition hover:team-shadow">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg bg-muted text-teamB">
-                <TrendingUp className="h-5 w-5" />
+              <div className="p-2 rounded-lg bg-muted text-primary">
+                <Trophy className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{playerStats?.winRate || 0}%</p>
-                <p className="text-xs text-muted-foreground">Aproveitamento</p>
+                <p className="text-2xl font-bold">{playerStats?.goals || 0}</p>
+                <p className="text-xs text-muted-foreground">Gols</p>
               </div>
             </div>
           </CardContent>
@@ -646,6 +652,9 @@ export function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Game Notifications Section */}
+      <GameNotifications />
 
       {/* Admin Controls */}
       {activeTeam && isTeamAdmin(activeTeam.id) && (

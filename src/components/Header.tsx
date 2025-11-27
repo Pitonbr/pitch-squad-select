@@ -11,6 +11,8 @@ import { RealtimeIndicator } from "@/components/RealtimeIndicator";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import { Trophy, Users, Plus, Settings, Bell, Play, Award, Gamepad2, DollarSign, LogOut, UserCog, UserPlus, FileText, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management" | "settings";
 interface HeaderProps {
   currentView: ViewType;
@@ -29,6 +31,69 @@ export function Header({
     teams,
     getUserRole
   } = useTeams();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!activeTeam || !profile) return;
+
+    fetchUnreadCount();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('header-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'game_notifications',
+          filter: `team_id=eq.${activeTeam.id}`
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notification_reads'
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTeam?.id, profile]);
+
+  const fetchUnreadCount = async () => {
+    if (!activeTeam || !profile) return;
+
+    try {
+      const { data: notifications } = await supabase
+        .from('game_notifications')
+        .select(`
+          id,
+          notification_reads!left(profile_id)
+        `)
+        .eq('team_id', activeTeam.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const unread = notifications?.filter((notif: any) => 
+        !notif.notification_reads?.some((read: any) => read.profile_id === profile.id)
+      ).length || 0;
+
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
   const navItems = [{
     key: 'dashboard',
     label: 'Dashboard',
@@ -113,6 +178,26 @@ export function Header({
           
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
+              
+              {/* Notifications Bell */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative"
+                  onClick={() => onViewChange('dashboard')}
+                >
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                    >
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
               
               <ThemeSelector />
               
