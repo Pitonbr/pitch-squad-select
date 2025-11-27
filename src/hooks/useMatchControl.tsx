@@ -289,10 +289,58 @@ export const MatchControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       setIsMatchRunning(false);
       toast.success(isGameEnded ? 'Partida finalizada!' : 'Fim do primeiro tempo');
+      
+      // Create notification when game ends
+      if (isGameEnded && activeTeam) {
+        await createGameFinishedNotification();
+      }
+      
       refreshMatchData();
     } catch (error) {
       console.error('Error ending half:', error);
       toast.error('Erro ao finalizar tempo');
+    }
+  };
+
+  const createGameFinishedNotification = async () => {
+    if (!selectedGame || !activeTeam) return;
+
+    try {
+      // Get top scorer from events
+      const { data: topScorerData } = await supabase
+        .from('match_events')
+        .select(`
+          player_id,
+          player:players(name)
+        `)
+        .eq('game_id', selectedGame.id)
+        .eq('event_type', 'goal')
+        .limit(1);
+
+      const topScorer = topScorerData?.[0]?.player as any;
+      
+      const finalScore = `${selectedGame.home_score || 0} x ${selectedGame.away_score || 0}`;
+      
+      // Create notification
+      await supabase
+        .from('game_notifications')
+        .insert({
+          game_id: selectedGame.id,
+          team_id: activeTeam.id,
+          title: `Jogo Finalizado: ${selectedGame.title}`,
+          message: `O jogo "${selectedGame.title}" terminou com o placar ${finalScore}.\n\nParabéns a todos os participantes!`,
+          notification_type: 'game_finished',
+          metadata: {
+            finalScore,
+            topScorer: topScorer?.name || null,
+            homeScore: selectedGame.home_score || 0,
+            awayScore: selectedGame.away_score || 0
+          }
+        });
+
+      console.log('Game finished notification created');
+    } catch (error) {
+      console.error('Error creating notification:', error);
     }
   };
 
