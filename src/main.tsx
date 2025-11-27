@@ -3,6 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import { CacheManager } from './utils/cacheManager'
 import { RealtimeProvider } from './contexts/RealtimeContext'
+import { OfflineQueueProvider } from './contexts/OfflineQueueContext'
 
 // Force complete cache refresh - build 2025-01-18-fixed
 console.log('Main: Soccer Manager v3.0 starting - Error fixes applied...');
@@ -20,7 +21,9 @@ try {
   const root = createRoot(rootElement);
   root.render(
     <RealtimeProvider>
-      <App />
+      <OfflineQueueProvider>
+        <App />
+      </OfflineQueueProvider>
     </RealtimeProvider>
   );
 } catch (error) {

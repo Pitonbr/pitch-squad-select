@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { VersionIndicator } from "@/components/VersionIndicator";
 import { RealtimeIndicator } from "@/components/RealtimeIndicator";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import { Trophy, Users, Plus, Settings, Bell, Play, Award, Gamepad2, DollarSign, LogOut, UserCog, UserPlus, FileText, ShieldCheck } from "lucide-react";
 type ViewType = "dashboard" | "players" | "addPlayer" | "games" | "addGame" | "tournaments" | "liveGame" | "rankings" | "teamManager" | "finances" | "requests" | "joinRequests" | "audit" | "management" | "settings";
@@ -154,6 +155,7 @@ export function Header({
               
               <VersionIndicator />
               <RealtimeIndicator />
+              <OfflineIndicator />
               
               <Badge className="bg-primary text-white border-none">
                 Beta
