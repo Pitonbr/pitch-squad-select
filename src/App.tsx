@@ -19,6 +19,8 @@ import { useErrorDetection } from "./components/SafeProvider";
 import { useUpdateService } from "./hooks/useUpdateService";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { useThemeSync } from "./hooks/useThemeSync";
+import { RealtimeProvider } from "./contexts/RealtimeContext";
+import { OfflineQueueProvider } from "./contexts/OfflineQueueContext";
 
 function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
   useThemeSync();
@@ -64,10 +66,12 @@ const App = () => {
             <AuthProvider>
               <ThemeSyncWrapper>
                 <TeamsProvider>
-                  <MobileOptimized className="min-h-screen no-overflow">
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
+                  <RealtimeProvider>
+                    <OfflineQueueProvider>
+                      <MobileOptimized className="min-h-screen no-overflow">
+                        <Toaster />
+                        <Sonner />
+                        <BrowserRouter>
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
@@ -83,8 +87,10 @@ const App = () => {
                           onUpdateComplete={() => applyUpdate(updateInfo)}
                         />
                       )}
-                    </BrowserRouter>
-                  </MobileOptimized>
+                        </BrowserRouter>
+                      </MobileOptimized>
+                    </OfflineQueueProvider>
+                  </RealtimeProvider>
                 </TeamsProvider>
               </ThemeSyncWrapper>
             </AuthProvider>
