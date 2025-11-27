@@ -105,8 +105,28 @@ export function formatZodError(error: z.ZodError<any>): string {
   return error.issues.map(err => err.message).join(", ");
 }
 
+// Team broadcast validation schema
+export const teamBroadcastSchema = z.object({
+  subject: z
+    .string()
+    .trim()
+    .min(3, { message: "Assunto deve ter pelo menos 3 caracteres" })
+    .max(200, { message: "Assunto muito longo" }),
+  message: z
+    .string()
+    .trim()
+    .min(10, { message: "Mensagem deve ter pelo menos 10 caracteres" })
+    .max(5000, { message: "Mensagem muito longa (máximo 5000 caracteres)" }),
+  recipientType: z.union([
+    z.literal("all"),
+    z.literal("players"),
+    z.literal("admins"),
+  ]),
+});
+
 // Types for form data
 export type PlayerFormData = z.infer<typeof playerFormSchema>;
 export type GameFormData = z.infer<typeof gameFormSchema>;
 export type AuthLoginData = z.infer<typeof authLoginSchema>;
 export type AuthSignupData = z.infer<typeof authSignupSchema>;
+export type TeamBroadcastData = z.infer<typeof teamBroadcastSchema>;
