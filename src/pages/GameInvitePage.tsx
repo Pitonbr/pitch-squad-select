@@ -162,20 +162,18 @@ export default function GameInvitePage() {
           <img 
             src={logoImage} 
             alt="Soccer Squad" 
-            className="h-20 w-20 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
+            className="h-24 w-24 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
           />
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
-            🎉 Você foi convidado!
+          <h1 className="text-2xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)] leading-relaxed">
+            Você foi convidado para uma partida no Soccer Squad
           </h1>
+          <p className="text-lg text-white/90">
+            Clique aqui e faça seu login
+          </p>
         </div>
 
         <Card className="bg-black/40 backdrop-blur-md border-2 border-primary/30">
-          <CardHeader>
-            <CardTitle className="text-white text-center">
-              Você está sendo convidado para o grande jogo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-primary/20 to-accent/20 p-4 rounded-lg border border-primary/30">
                 <h2 className="text-2xl font-bold text-white mb-4 text-center">
@@ -204,12 +202,6 @@ export default function GameInvitePage() {
                     <p className="text-white/80 text-sm">{game.description}</p>
                   </div>
                 )}
-              </div>
-
-              <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-                <p className="text-white font-semibold text-center mb-2">
-                  👉 Clique aqui e faça sua inscrição para a partida!
-                </p>
               </div>
             </div>
 
