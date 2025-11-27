@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/Header";
 import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -30,7 +31,7 @@ import { Settings } from "@/components/Settings";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2 } from "lucide-react";
+import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2, ArrowUpDown } from "lucide-react";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useToast } from "@/hooks/use-toast";
@@ -232,6 +233,7 @@ export default function Index() {
   const [gameToEdit, setGameToEdit] = useState<Game | null>(null);
   const [gameToInvite, setGameToInvite] = useState<Game | null>(null);
   const [teamLists, setTeamLists] = useState<TeamList[]>([]);
+  const [gameSortBy, setGameSortBy] = useState<'date-asc' | 'date-desc' | 'status' | 'participants'>('date-asc');
 
   // Load existing data on component mount and when active team changes
   useEffect(() => {
@@ -531,14 +533,61 @@ export default function Index() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Próximos Jogos</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Próximos Jogos</CardTitle>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <Select value={gameSortBy} onValueChange={(value: any) => setGameSortBy(value)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Ordenar por..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-asc">Data (Mais próxima)</SelectItem>
+                  <SelectItem value="date-desc">Data (Mais distante)</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="participants">Nº de Participantes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {(() => {
             // Filtrar apenas jogos futuros (excluir finalizados e não realizados)
-            const upcomingGames = games.filter(game => 
+            let upcomingGames = games.filter(game => 
               !['finished', 'not_realized', 'cancelled'].includes(game.status)
             );
+
+            // Aplicar ordenação
+            switch (gameSortBy) {
+              case 'date-asc':
+                upcomingGames = [...upcomingGames].sort((a, b) => {
+                  const dateA = new Date(`${a.date}T${a.time}`);
+                  const dateB = new Date(`${b.date}T${b.time}`);
+                  return dateA.getTime() - dateB.getTime();
+                });
+                break;
+              case 'date-desc':
+                upcomingGames = [...upcomingGames].sort((a, b) => {
+                  const dateA = new Date(`${a.date}T${a.time}`);
+                  const dateB = new Date(`${b.date}T${b.time}`);
+                  return dateB.getTime() - dateA.getTime();
+                });
+                break;
+              case 'status':
+                const statusOrder = { 'checkin': 0, 'scheduled': 1, 'in_progress': 2 };
+                upcomingGames = [...upcomingGames].sort((a, b) => {
+                  const orderA = statusOrder[a.status as keyof typeof statusOrder] ?? 999;
+                  const orderB = statusOrder[b.status as keyof typeof statusOrder] ?? 999;
+                  return orderA - orderB;
+                });
+                break;
+              case 'participants':
+                upcomingGames = [...upcomingGames].sort((a, b) => {
+                  return (b.playersCheckedIn || 0) - (a.playersCheckedIn || 0);
+                });
+                break;
+            }
 
             return upcomingGames.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
