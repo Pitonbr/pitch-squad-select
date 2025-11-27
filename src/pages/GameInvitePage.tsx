@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, MapPin, Loader2, LogIn, UserPlus, Download } from "lucide-react";
+import { Calendar, Clock, MapPin, Loader2, LogIn, UserPlus, Download, MessageCircle } from "lucide-react";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 
@@ -100,6 +100,36 @@ export default function GameInvitePage() {
 
   const handleSignupRedirect = () => {
     navigate(`/auth?redirect=/game-checkin/${gameId}`);
+  };
+
+  const createWhatsAppMessage = () => {
+    if (!game) return "";
+    
+    const formattedDate = formatGameDate(game.date, game.time);
+    
+    return `🎉 Você foi convidado para uma partida no Soccer Squad!
+
+⚽ *"${game.title}"*
+📅 ${formattedDate.date}
+🕐 ${formattedDate.time}
+📍 ${game.location}
+${game.description ? `💬 ${game.description}\n` : ''}
+👉 *Clique no link e faça seu login:*
+🔗 ${window.location.href}
+
+📱 Se ainda não tem o app instalado:
+1️⃣ Instale o Soccer Squad
+2️⃣ Cadastre-se ou faça login
+3️⃣ Confirme sua presença no jogo
+
+Nos vemos no campo! ⚽🔥`;
+  };
+
+  const shareViaWhatsApp = () => {
+    const message = createWhatsAppMessage();
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   if (loading || authLoading) {
@@ -220,6 +250,23 @@ export default function GameInvitePage() {
               >
                 <UserPlus className="mr-2 h-5 w-5" />
                 Criar conta e confirmar presença
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-white/20" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-black/40 px-2 text-white/60">ou</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={shareViaWhatsApp}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium h-12"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Compartilhar Convite no WhatsApp
               </Button>
             </div>
 
