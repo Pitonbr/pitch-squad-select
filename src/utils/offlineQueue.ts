@@ -10,11 +10,26 @@ interface QueuedAction {
   teamId: string;
 }
 
+interface ConflictData {
+  id: string;
+  actionId: string;
+  localData: any;
+  serverData: any;
+  table: string;
+  type: 'update' | 'delete';
+  timestamp: number;
+}
+
 interface OfflineQueueDB extends DBSchema {
   actions: {
     key: string;
     value: QueuedAction;
     indexes: { 'by-timestamp': number; 'by-team': string };
+  };
+  conflicts: {
+    key: string;
+    value: ConflictData;
+    indexes: { 'by-timestamp': number };
   };
 }
 
@@ -29,9 +44,16 @@ class OfflineQueueManager {
     try {
       this.db = await openDB<OfflineQueueDB>(this.DB_NAME, this.DB_VERSION, {
         upgrade(db) {
-          const store = db.createObjectStore('actions', { keyPath: 'id' });
-          store.createIndex('by-timestamp', 'timestamp');
-          store.createIndex('by-team', 'teamId');
+          if (!db.objectStoreNames.contains('actions')) {
+            const store = db.createObjectStore('actions', { keyPath: 'id' });
+            store.createIndex('by-timestamp', 'timestamp');
+            store.createIndex('by-team', 'teamId');
+          }
+          
+          if (!db.objectStoreNames.contains('conflicts')) {
+            const conflictStore = db.createObjectStore('conflicts', { keyPath: 'id' });
+            conflictStore.createIndex('by-timestamp', 'timestamp');
+          }
         },
       });
       console.log('[OfflineQueue] Database initialized');
@@ -98,6 +120,48 @@ class OfflineQueueManager {
     if (!this.db) await this.initialize();
     return this.db!.count('actions');
   }
+
+  // Conflict management
+  async addConflict(
+    actionId: string,
+    localData: any,
+    serverData: any,
+    table: string,
+    type: 'update' | 'delete'
+  ): Promise<string> {
+    if (!this.db) await this.initialize();
+
+    const conflict: ConflictData = {
+      id: crypto.randomUUID(),
+      actionId,
+      localData,
+      serverData,
+      table,
+      type,
+      timestamp: Date.now(),
+    };
+
+    await this.db!.put('conflicts', conflict);
+    console.log('[OfflineQueue] Conflict added:', conflict);
+    return conflict.id;
+  }
+
+  async getAllConflicts(): Promise<ConflictData[]> {
+    if (!this.db) await this.initialize();
+    return this.db!.getAll('conflicts');
+  }
+
+  async removeConflict(id: string): Promise<void> {
+    if (!this.db) await this.initialize();
+    await this.db!.delete('conflicts', id);
+    console.log('[OfflineQueue] Conflict resolved:', id);
+  }
+
+  async getConflictCount(): Promise<number> {
+    if (!this.db) await this.initialize();
+    return this.db!.count('conflicts');
+  }
 }
 
 export const offlineQueue = new OfflineQueueManager();
+export type { QueuedAction, ConflictData };
