@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { UserPlus, Check, X, Clock, Calendar } from "lucide-react";
+import { UserPlus, Check, X, Clock, Calendar, Gamepad2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTeams } from "@/hooks/useTeams";
@@ -17,6 +17,12 @@ interface JoinRequest {
   created_at: string;
   reviewed_at: string | null;
   requesting_player_name: string;
+  game_info?: {
+    title: string;
+    date: string;
+    time: string;
+    location: string;
+  };
 }
 
 export function TeamJoinRequests() {
@@ -43,6 +49,12 @@ export function TeamJoinRequests() {
           *,
           profiles!team_join_requests_requesting_player_id_fkey (
             display_name
+          ),
+          games (
+            title,
+            date,
+            time,
+            location
           )
         `)
         .eq('team_id', activeTeam.id)
@@ -53,7 +65,8 @@ export function TeamJoinRequests() {
       const formattedRequests = (data?.map(request => ({
         ...request,
         requesting_player_name: request.profiles?.display_name || 'Usuário sem nome',
-        status: request.status as 'pending' | 'approved' | 'rejected'
+        status: request.status as 'pending' | 'approved' | 'rejected',
+        game_info: request.games
       })) || []) as JoinRequest[];
 
       setRequests(formattedRequests);
@@ -85,6 +98,25 @@ export function TeamJoinRequests() {
           title: action === 'approve' ? "Solicitação Aprovada" : "Solicitação Rejeitada",
           description: result.message,
         });
+
+        // Send email notification
+        if (result.player_email) {
+          try {
+            await supabase.functions.invoke('send-join-request-notification', {
+              body: {
+                to: result.player_email,
+                action: action,
+                playerName: result.player_name,
+                teamName: result.team_name,
+                gameTitle: result.game_title
+              }
+            });
+          } catch (emailError) {
+            console.error('Error sending notification email:', emailError);
+            // Don't show error to user as the main action succeeded
+          }
+        }
+
         loadJoinRequests(); // Reload to get updated data
       } else {
         toast({
@@ -184,9 +216,17 @@ export function TeamJoinRequests() {
                       <CardTitle className="text-lg">
                         {request.requesting_player_name}
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Solicitado em {formatDate(request.created_at)}
+                      <CardDescription className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Solicitado em {formatDate(request.created_at)}
+                        </div>
+                        {request.game_info && (
+                          <div className="flex items-center gap-1 text-primary">
+                            <Gamepad2 className="h-3 w-3" />
+                            Convite via jogo: {request.game_info.title}
+                          </div>
+                        )}
                       </CardDescription>
                     </div>
                     {getStatusBadge(request.status)}
