@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, Loader2, CheckCircle2, Users } from "lucide-react";
 import { Header } from "@/components/Header";
+import { JoinRequestStatus } from "@/components/JoinRequestStatus";
 
 interface Game {
   id: string;
@@ -38,6 +39,8 @@ export default function GameCheckInPage() {
   const [checkedIn, setCheckedIn] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkedInPlayers, setCheckedInPlayers] = useState<CheckedInPlayer[]>([]);
+  const [isTeamMember, setIsTeamMember] = useState<boolean | null>(null);
+  const [joinRequestStatus, setJoinRequestStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,6 +75,17 @@ export default function GameCheckInPage() {
       }
 
       setGame(gameData as Game);
+
+      // Check if user is team member
+      const { data: memberData } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("team_id", gameData.team_id)
+        .eq("profile_id", profile.id)
+        .maybeSingle();
+
+      const isMember = !!memberData;
+      setIsTeamMember(isMember);
 
       // Check if user already checked in
       const { data: participantData } = await supabase
@@ -124,7 +138,30 @@ export default function GameCheckInPage() {
     setCheckingIn(true);
 
     try {
-      // Check if player exists in team
+      // If not a team member, create join request
+      if (!isTeamMember) {
+        const { data, error } = await supabase.rpc('create_game_join_request', {
+          _team_id: game.team_id,
+          _game_id: game.id,
+          _message: `Solicitação via convite para o jogo: ${game.title}`
+        });
+
+        if (error) throw error;
+
+        const result = data?.[0];
+        if (result?.success) {
+          toast({
+            title: "Solicitação Enviada",
+            description: result.message,
+          });
+          setJoinRequestStatus('pending');
+          return;
+        } else {
+          throw new Error(result?.message || "Erro ao criar solicitação");
+        }
+      }
+
+      // If team member, proceed with check-in
       let playerId: string | null = null;
       
       const { data: existingPlayer } = await supabase
@@ -137,28 +174,11 @@ export default function GameCheckInPage() {
       if (existingPlayer) {
         playerId = existingPlayer.id;
       } else {
-        // Create player automatically
-        const { data: newPlayer, error: playerError } = await supabase
-          .from("players")
-          .insert({
-            team_id: game.team_id,
-            profile_id: profile.id,
-            name: profile.display_name || "Jogador",
-            nickname: profile.display_name || "Jogador",
-            position: "Jogador",
-            phone: profile.phone || "Não informado",
-          })
-          .select()
-          .single();
-
-        if (playerError) {
-          throw playerError;
-        }
-        playerId = newPlayer.id;
+        throw new Error("Erro: jogador não encontrado no time");
       }
 
       if (!playerId) {
-        throw new Error("Não foi possível criar ou encontrar jogador");
+        throw new Error("Não foi possível encontrar jogador");
       }
 
       // Add or update game participant
@@ -272,7 +292,22 @@ export default function GameCheckInPage() {
               )}
             </div>
 
-            {!checkedIn ? (
+            {/* Show join request status if user is not a team member */}
+            {!isTeamMember && joinRequestStatus && (
+              <JoinRequestStatus 
+                gameId={game.id}
+                teamId={game.team_id}
+                onStatusChange={(status) => {
+                  setJoinRequestStatus(status);
+                  if (status === 'approved') {
+                    // Reload to update team membership
+                    fetchGameAndCheckInStatus();
+                  }
+                }}
+              />
+            )}
+
+            {!checkedIn && isTeamMember && !joinRequestStatus ? (
               <Button
                 onClick={handleCheckIn}
                 disabled={checkingIn}
@@ -287,6 +322,24 @@ export default function GameCheckInPage() {
                   <>
                     <CheckCircle2 className="mr-2 h-5 w-5" />
                     Confirmar Participação
+                  </>
+                )}
+              </Button>
+            ) : !checkedIn && !isTeamMember && !joinRequestStatus ? (
+              <Button
+                onClick={handleCheckIn}
+                disabled={checkingIn}
+                className="w-full bg-primary hover:bg-accent text-white font-bold h-14 text-lg"
+              >
+                {checkingIn ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Enviando Solicitação...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Solicitar Entrada no Time
                   </>
                 )}
               </Button>

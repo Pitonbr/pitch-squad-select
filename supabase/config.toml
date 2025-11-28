@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-team-broadcast]
 verify_jwt = false
+
+[functions.send-join-request-notification]
+verify_jwt = false

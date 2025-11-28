@@ -1036,6 +1036,7 @@ export type Database = {
       team_join_requests: {
         Row: {
           created_at: string
+          game_id: string | null
           id: string
           message: string | null
           requesting_player_id: string
@@ -1047,6 +1048,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          game_id?: string | null
           id?: string
           message?: string | null
           requesting_player_id: string
@@ -1058,6 +1060,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          game_id?: string | null
           id?: string
           message?: string | null
           requesting_player_id?: string
@@ -1068,6 +1071,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "team_join_requests_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_join_requests_requesting_player_id_fkey"
             columns: ["requesting_player_id"]
@@ -1435,6 +1445,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_game_join_request: {
+        Args: { _game_id: string; _message?: string; _team_id: string }
+        Returns: {
+          message: string
+          request_id: string
+          success: boolean
+        }[]
+      }
       create_team_secure:
         | {
             Args: { _team_description?: string; _team_name: string }
@@ -1616,8 +1634,12 @@ export type Database = {
       process_team_join_request: {
         Args: { _action: string; _admin_message?: string; _request_id: string }
         Returns: {
+          game_title: string
           message: string
+          player_email: string
+          player_name: string
           success: boolean
+          team_name: string
         }[]
       }
       reject_player_request: {
