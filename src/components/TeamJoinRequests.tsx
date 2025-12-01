@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Checkbox } from "./ui/checkbox";
 import { UserPlus, Check, X, Clock, Calendar, Gamepad2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +30,8 @@ export function TeamJoinRequests() {
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+  const [selectedRequests, setSelectedRequests] = useState<Set<string>>(new Set());
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const { toast } = useToast();
   const { activeTeam, isTeamAdmin } = useTeams();
 
@@ -137,6 +140,82 @@ export function TeamJoinRequests() {
     }
   };
 
+  const handleBatchProcess = async (action: 'approve' | 'reject') => {
+    if (selectedRequests.size === 0) return;
+
+    setIsBatchProcessing(true);
+    const selectedIds = Array.from(selectedRequests);
+    
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(async (requestId) => {
+          const { data, error } = await supabase.rpc('process_team_join_request', {
+            _request_id: requestId,
+            _action: action
+          });
+
+          if (error) throw error;
+
+          const result = data?.[0];
+          if (result?.success && result.player_email) {
+            // Send email notification in background
+            supabase.functions.invoke('send-join-request-notification', {
+              body: {
+                to: result.player_email,
+                action: action,
+                playerName: result.player_name,
+                teamName: result.team_name,
+                gameTitle: result.game_title
+              }
+            }).catch(err => console.error('Error sending notification email:', err));
+          }
+          
+          return result;
+        })
+      );
+
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
+
+      toast({
+        title: action === 'approve' ? "Solicitações Aprovadas" : "Solicitações Rejeitadas",
+        description: `${successCount} processadas com sucesso${failCount > 0 ? `, ${failCount} falharam` : ''}.`,
+      });
+
+      setSelectedRequests(new Set());
+      loadJoinRequests();
+    } catch (error) {
+      console.error('Error batch processing requests:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar solicitações em lote.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBatchProcessing(false);
+    }
+  };
+
+  const toggleRequestSelection = (requestId: string) => {
+    setSelectedRequests(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(requestId)) {
+        newSet.delete(requestId);
+      } else {
+        newSet.add(requestId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedRequests.size === pendingRequests.length) {
+      setSelectedRequests(new Set());
+    } else {
+      setSelectedRequests(new Set(pendingRequests.map(r => r.id)));
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -208,14 +287,62 @@ export function TeamJoinRequests() {
               </CardContent>
             </Card>
           ) : (
-            pendingRequests.map((request) => (
+            <>
+              {pendingRequests.length > 1 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={selectedRequests.size === pendingRequests.length}
+                          onCheckedChange={toggleSelectAll}
+                          id="select-all"
+                        />
+                        <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                          Selecionar todas ({selectedRequests.size} de {pendingRequests.length})
+                        </label>
+                      </div>
+                      {selectedRequests.size > 0 && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleBatchProcess('approve')}
+                            disabled={isBatchProcessing}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Aprovar Selecionados ({selectedRequests.size})
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleBatchProcess('reject')}
+                            disabled={isBatchProcessing}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Rejeitar Selecionados ({selectedRequests.size})
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {pendingRequests.map((request) => (
               <Card key={request.id}>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {request.requesting_player_name}
-                      </CardTitle>
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedRequests.has(request.id)}
+                      onCheckedChange={() => toggleRequestSelection(request.id)}
+                      id={`request-${request.id}`}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">
+                            {request.requesting_player_name}
+                          </CardTitle>
                       <CardDescription className="space-y-1">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -228,8 +355,10 @@ export function TeamJoinRequests() {
                           </div>
                         )}
                       </CardDescription>
+                        </div>
+                        {getStatusBadge(request.status)}
+                      </div>
                     </div>
-                    {getStatusBadge(request.status)}
                   </div>
                 </CardHeader>
                 {request.message && (
@@ -261,8 +390,9 @@ export function TeamJoinRequests() {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
-            ))
+                </Card>
+              ))}
+            </>
           )}
         </TabsContent>
 
