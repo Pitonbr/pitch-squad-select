@@ -15,18 +15,15 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Force cache clearing and better error handling
   build: {
     rollupOptions: {
       output: {
-        // Force new file names on each build
-        entryFileNames: `[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `[name]-[hash]-${Date.now()}.[ext]`
+        entryFileNames: `[name]-[hash].js`,
+        chunkFileNames: `[name]-[hash].js`,
+        assetFileNames: `[name]-[hash].[ext]`
       }
     }
   },
-  // Aggressive cache busting
   optimizeDeps: {
     force: mode === 'development'
   },
