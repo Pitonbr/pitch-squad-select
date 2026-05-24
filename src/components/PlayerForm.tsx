@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Phone, User, MapPin, Mail, Hash, Upload } from "lucide-react";
+import { UserPlus, Phone, User, MapPin, Mail, Hash, Upload, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { playerFormSchema, formatZodError } from "@/lib/validation";
@@ -16,6 +16,7 @@ interface PlayerFormData {
   phone: string;
   email: string;
   jersey_number: number | string;
+  skill_level: number;
   profile_image?: string;
 }
 
@@ -40,7 +41,8 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
     position: "",
     phone: "",
     email: "",
-    jersey_number: ""
+    jersey_number: "",
+    skill_level: 3,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -164,6 +166,7 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
           email: formData.email,
           jersey_number: formData.jersey_number ? Number(formData.jersey_number) : undefined,
           profile_image: profileImageUrl,
+          skill_level: formData.skill_level,
         })
         .select()
         .single();
@@ -184,11 +187,12 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
       // Reset form
       setFormData({
         name: "",
-        nickname: "", 
+        nickname: "",
         position: "",
         phone: "",
         email: "",
-        jersey_number: ""
+        jersey_number: "",
+        skill_level: 3,
       });
       setImageFile(null);
 
@@ -311,6 +315,35 @@ export function PlayerForm({ onPlayerAdded }: PlayerFormProps) {
                 max="99"
                 className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
               />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-1 text-white">
+              <Star className="h-3 w-3 text-primary" />
+              <span>Nível de Habilidade</span>
+            </Label>
+            <div className="flex items-center gap-1 p-3 bg-background/50 border border-primary/30 rounded-md">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, skill_level: star })}
+                  className="focus:outline-none transition-transform hover:scale-110"
+                  aria-label={`Nível ${star}`}
+                >
+                  <Star
+                    className={`h-7 w-7 transition-colors ${
+                      star <= formData.skill_level
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-white/30'
+                    }`}
+                  />
+                </button>
+              ))}
+              <span className="ml-2 text-sm text-white/60">
+                {['', 'Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Profissional'][formData.skill_level]}
+              </span>
             </div>
           </div>
 
