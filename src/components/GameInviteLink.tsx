@@ -4,13 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, MessageCircle, Mail, Share2, MoreVertical } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Copy, MessageCircle, Mail, Share2, QrCode, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 interface Game {
   id: string;
@@ -40,6 +35,7 @@ interface GameInviteLinkProps {
 
 export function GameInviteLink({ game, invitedPlayers, createdByName }: GameInviteLinkProps) {
   const { toast } = useToast();
+  const [showQR, setShowQR] = useState(false);
   const inviteLink = `${window.location.origin}/auth?redirect=/game-checkin/${game.id}`;
 
   const formatGameDate = (date: string, time: string) => {
@@ -135,26 +131,59 @@ Nos vemos no campo! ⚽🔥
           <Button variant="outline" onClick={copyToClipboard}>
             <Copy className="h-4 w-4" />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
+          <Button variant="outline" onClick={shareInvite}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Compartilhar
+          </Button>
+        </div>
+
+        {/* QR Code */}
+        <div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowQR(!showQR)}
+            className="gap-2 w-full"
+          >
+            <QrCode className="h-4 w-4" />
+            {showQR ? 'Ocultar QR Code' : 'Mostrar QR Code para check-in presencial'}
+            {showQR ? <ChevronUp className="h-4 w-4 ml-auto" /> : <ChevronDown className="h-4 w-4 ml-auto" />}
+          </Button>
+
+          {showQR && (
+            <div className="mt-3 flex flex-col items-center gap-3 p-4 bg-white rounded-lg border">
+              <QRCodeSVG
+                value={inviteLink}
+                size={192}
+                bgColor="#ffffff"
+                fgColor="#0f172a"
+                level="M"
+                includeMargin
+              />
+              <p className="text-xs text-muted-foreground text-center">
+                Mostre este QR Code no campo — os jogadores escaneiam e fazem check-in na hora
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const svg = document.querySelector('.qr-code-svg') as SVGElement;
+                  if (!svg) return;
+                  const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `qr-checkin-${game.id}.svg`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="gap-2"
+              >
+                <Copy className="h-3 w-3" />
+                Baixar QR Code
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={copyToClipboard}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Link
-              </DropdownMenuItem>
-              {navigator.share && (
-                <DropdownMenuItem onClick={shareInvite}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Compartilhar...
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          )}
         </div>
 
         {invitedPlayers.length > 0 && (

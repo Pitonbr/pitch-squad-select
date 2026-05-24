@@ -608,7 +608,9 @@ export default function Index() {
                     playersCheckedIn={game.playersCheckedIn || 0}
                     totalPlayers={game.invitedPlayerIds?.length || 22}
                     status={game.status}
-                    timeLeft={game.status === "checkin" ? "2h 30min" : undefined}
+                    rawDate={game.date}
+                    checkinDeadlineMinutes={game.checkin_deadline_minutes || 30}
+                    timeLeft={undefined}
                     isAdmin={true}
                     onEdit={() => setGameToEdit(game)}
                     onInvite={() => setGameToInvite(game)}

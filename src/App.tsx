@@ -54,7 +54,7 @@ const App = () => {
   const { updateAvailable, updateInfo, applyUpdate } = useUpdateService();
   
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="soccer-squad-theme">
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="soccer-squad-theme">
       <SafeProvider
         onError={(error, errorInfo) => {
           console.error('App-level error caught:', { error: error.message, errorInfo });

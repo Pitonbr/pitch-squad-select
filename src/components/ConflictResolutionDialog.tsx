@@ -55,9 +55,9 @@ export function ConflictResolutionDialog({
 
   const getConflictDescription = (conflict: ConflictData): string => {
     if (conflict.type === 'delete') {
-      return `Você tentou deletar um registro que foi modificado no servidor.`;
+      return `Você tentou excluir algo que foi alterado em outro dispositivo. Escolha como resolver.`;
     }
-    return `Você modificou um registro que também foi alterado no servidor.`;
+    return `Você fez alterações enquanto estava offline. Escolha qual versão manter.`;
   };
 
   const renderDataComparison = (localData: any, serverData: any) => {
@@ -65,11 +65,11 @@ export function ConflictResolutionDialog({
       return (
         <div className="space-y-4">
           <div className="p-4 bg-muted rounded-lg">
-            <h4 className="font-medium mb-2">Dados Locais:</h4>
+            <h4 className="font-medium mb-2">Sua versão:</h4>
             <pre className="text-sm">{formatData(localData)}</pre>
           </div>
           <div className="p-4 bg-muted rounded-lg">
-            <h4 className="font-medium mb-2">Dados do Servidor:</h4>
+            <h4 className="font-medium mb-2">Versão atual:</h4>
             <pre className="text-sm">{formatData(serverData)}</pre>
           </div>
         </div>
@@ -104,21 +104,21 @@ export function ConflictResolutionDialog({
       <div className="space-y-4">
         {differences.length > 0 && (
           <div>
-            <h4 className="font-medium mb-2 text-destructive">Campos Diferentes:</h4>
+            <h4 className="font-medium mb-2 text-warning">O que mudou:</h4>
             <div className="space-y-2">
               {differences.map((diff) => (
                 <div key={diff.key} className="grid grid-cols-2 gap-2">
                   <div className="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
                     <p className="text-xs font-medium mb-1 flex items-center gap-1">
                       <Smartphone className="h-3 w-3" />
-                      {diff.key} (Local)
+                      {diff.key} (Seus dados)
                     </p>
                     <pre className="text-sm">{formatData(diff.local)}</pre>
                   </div>
                   <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                     <p className="text-xs font-medium mb-1 flex items-center gap-1">
                       <Server className="h-3 w-3" />
-                      {diff.key} (Servidor)
+                      {diff.key} (Versão atual)
                     </p>
                     <pre className="text-sm">{formatData(diff.server)}</pre>
                   </div>
@@ -130,7 +130,7 @@ export function ConflictResolutionDialog({
 
         {same.length > 0 && (
           <div>
-            <h4 className="font-medium mb-2 text-muted-foreground">Campos Iguais:</h4>
+            <h4 className="font-medium mb-2 text-muted-foreground">Sem alterações:</h4>
             <div className="p-3 bg-muted rounded-lg space-y-1">
               {same.map((item) => (
                 <div key={item.key} className="text-sm">
@@ -150,21 +150,18 @@ export function ConflictResolutionDialog({
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <DialogTitle>Conflito de Dados Detectado</DialogTitle>
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            <DialogTitle>Sincronização Necessária</DialogTitle>
           </div>
           <DialogDescription>
             {getConflictDescription(currentConflict)}
           </DialogDescription>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="outline">
-              Conflito {currentIndex + 1} de {conflicts.length}
+              Alteração {currentIndex + 1} de {conflicts.length}
             </Badge>
             <Badge variant="secondary">
-              Tabela: {currentConflict.table}
-            </Badge>
-            <Badge variant="secondary">
-              Tipo: {currentConflict.type === 'update' ? 'Atualização' : 'Exclusão'}
+              {currentConflict.type === 'update' ? 'Edição' : 'Exclusão'}
             </Badge>
           </div>
         </DialogHeader>
@@ -184,7 +181,7 @@ export function ConflictResolutionDialog({
               <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
-                  Dados Locais (Suas Alterações):
+                  Seus dados (salvos offline):
                 </h4>
                 <pre className="text-xs overflow-x-auto">
                   {formatData(currentConflict.localData)}
@@ -194,7 +191,7 @@ export function ConflictResolutionDialog({
               <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <Server className="h-4 w-4" />
-                  Dados do Servidor (Versão Atual):
+                  Versão mais recente:
                 </h4>
                 <pre className="text-xs overflow-x-auto">
                   {formatData(currentConflict.serverData)}
@@ -211,14 +208,14 @@ export function ConflictResolutionDialog({
             className="w-full sm:w-auto"
           >
             <Server className="h-4 w-4 mr-2" />
-            Manter Versão do Servidor
+            Usar versão mais recente
           </Button>
           <Button
             onClick={() => handleResolve('keep-local')}
             className="w-full sm:w-auto bg-primary"
           >
             <Smartphone className="h-4 w-4 mr-2" />
-            Manter Minhas Alterações
+            Manter minhas mudanças
           </Button>
         </DialogFooter>
       </DialogContent>

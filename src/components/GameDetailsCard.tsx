@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Users, Edit, Send, Timer, UserPlus } from "lucide-react";
 import { GameInviteLink } from "./GameInviteLink";
 import { GamePlayerManager } from "./GamePlayerManager";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Player {
   id: string;
@@ -27,6 +27,8 @@ interface GameDetailsCardProps {
   playersCheckedIn: number;
   totalPlayers: number;
   timeLeft?: string;
+  rawDate?: string;
+  checkinDeadlineMinutes?: number;
   status: "scheduled" | "upcoming" | "checkin" | "closed" | "ongoing" | "finished" | "not_realized" | "cancelled";
   homeScore?: number;
   awayScore?: number;
@@ -75,6 +77,16 @@ const statusConfig = {
   }
 };
 
+function formatTimeLeft(ms: number): string {
+  if (ms <= 0) return 'Fechando agora';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  if (h > 0) return `${h}h ${m}min`;
+  if (m > 0) return `${m}min ${s}s`;
+  return `${s}s`;
+}
+
 export function GameDetailsCard({
   id,
   title,
@@ -85,6 +97,8 @@ export function GameDetailsCard({
   playersCheckedIn,
   totalPlayers,
   timeLeft,
+  rawDate,
+  checkinDeadlineMinutes = 30,
   status,
   homeScore,
   awayScore,
@@ -99,6 +113,17 @@ export function GameDetailsCard({
 }: GameDetailsCardProps) {
   const [showInviteLink, setShowInviteLink] = useState(false);
   const [showPlayerManager, setShowPlayerManager] = useState(false);
+  const [liveCountdown, setLiveCountdown] = useState<string>('');
+
+  useEffect(() => {
+    if (status !== 'checkin' || !rawDate || !time) return;
+    const gameDateTime = new Date(`${rawDate}T${time}`);
+    const closeTime = new Date(gameDateTime.getTime() - checkinDeadlineMinutes * 60000);
+    const tick = () => setLiveCountdown(formatTimeLeft(closeTime.getTime() - Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [status, rawDate, time, checkinDeadlineMinutes]);
   return (
     <Card 
       variant="dark" 
@@ -193,10 +218,10 @@ export function GameDetailsCard({
           </div>
         </div>
         
-        {timeLeft && status === "checkin" && (
-          <div className="flex items-center space-x-2 text-sm text-warning">
-            <Timer className="h-4 w-4" />
-            <span>Fecha em: {timeLeft}</span>
+        {status === "checkin" && (liveCountdown || timeLeft) && (
+          <div className="flex items-center space-x-2 text-sm text-warning font-medium">
+            <Timer className="h-4 w-4 animate-pulse" />
+            <span>Fecha em: {liveCountdown || timeLeft}</span>
           </div>
         )}
         
