@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -131,7 +132,7 @@ export function GamePlayerManager({
                   onCheckedChange={(checked) => handlePlayerToggle(player.id, checked as boolean)}
                 />
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                  <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
                   <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">

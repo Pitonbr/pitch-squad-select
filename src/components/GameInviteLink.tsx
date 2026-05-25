@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, MessageCircle, Mail, Share2, QrCode, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -194,7 +195,7 @@ Nos vemos no campo! ⚽🔥
                 <div key={player.id} className="flex items-center justify-between p-2 bg-muted rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                      <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
                       <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium">{player.name}</span>

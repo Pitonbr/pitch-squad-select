@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -169,7 +170,7 @@ export function PlayerSelector({
                     onChange={() => handlePlayerToggle(player.id)}
                   />
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                    <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
                     <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

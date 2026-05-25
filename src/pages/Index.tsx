@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,21 +13,12 @@ import { GameCard } from "@/components/GameCard";
 import { GameDetailsCard } from "@/components/GameDetailsCard";
 import { GameEditDialog } from "@/components/GameEditDialog";
 import { PlayerInviteManager } from "@/components/PlayerInviteManager";
-import { Dashboard } from "@/components/Dashboard";
-import { TournamentManager } from "@/components/TournamentManager";
-import { LiveGame } from "@/components/LiveGame";
-import { Rankings } from "@/components/Rankings";
-import { FinancialControl } from "@/components/FinancialControl";
 import { CancelGameDialog } from "@/components/CancelGameDialog";
-import { TeamManager } from "@/components/TeamManager";
 import { TeamOnboarding } from "@/components/TeamOnboarding";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 import { TeamJoinRequests } from "@/components/TeamJoinRequests";
 import { PlayerRemovalDialog } from "@/components/PlayerRemovalDialog";
-import { AuditLogs } from "@/components/AuditLogs";
 import { AttendanceStats } from "@/components/AttendanceStats";
-import { ManagementPanel } from "@/components/ManagementPanel";
-import { Settings } from "@/components/Settings";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +26,15 @@ import { Search, UserPlus, LogIn, Users, Calendar, Filter, Trash2, ArrowUpDown }
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useToast } from "@/hooks/use-toast";
+
+const Dashboard = lazy(() => import("@/components/Dashboard").then(m => ({ default: m.Dashboard })));
+const TournamentManager = lazy(() => import("@/components/TournamentManager").then(m => ({ default: m.TournamentManager })));
+const LiveGame = lazy(() => import("@/components/LiveGame").then(m => ({ default: m.LiveGame })));
+const Rankings = lazy(() => import("@/components/Rankings").then(m => ({ default: m.Rankings })));
+const FinancialControl = lazy(() => import("@/components/FinancialControl").then(m => ({ default: m.FinancialControl })));
+const TeamManager = lazy(() => import("@/components/TeamManager").then(m => ({ default: m.TeamManager })));
+const ManagementPanel = lazy(() => import("@/components/ManagementPanel").then(m => ({ default: m.ManagementPanel })));
+const Settings = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
 
 interface Player {
   id: string;
@@ -636,16 +636,18 @@ export default function Index() {
         onViewChange={setCurrentView}
       />
       <main className="container mx-auto px-4 py-8">
-        {currentView === "dashboard" && <Dashboard />}
-        {currentView === "players" && renderPlayersView()}
-        {currentView === "games" && renderGamesView()}
-        {currentView === "tournaments" && <TournamentManager />}
-        {currentView === "liveGame" && <LiveGame />}
-        {currentView === "rankings" && <Rankings />}
-        {currentView === "finances" && <FinancialControl />}
-        {currentView === "teamManager" && <TeamManager />}
-        {currentView === "management" && <ManagementPanel />}
-        {currentView === "settings" && <Settings />}
+        <Suspense fallback={<div className="flex items-center justify-center h-48 text-white/50">Carregando...</div>}>
+          {currentView === "dashboard" && <Dashboard />}
+          {currentView === "players" && renderPlayersView()}
+          {currentView === "games" && renderGamesView()}
+          {currentView === "tournaments" && <TournamentManager />}
+          {currentView === "liveGame" && <LiveGame />}
+          {currentView === "rankings" && <Rankings />}
+          {currentView === "finances" && <FinancialControl />}
+          {currentView === "teamManager" && <TeamManager />}
+          {currentView === "management" && <ManagementPanel />}
+          {currentView === "settings" && <Settings />}
+        </Suspense>
       </main>
 
       <CancelGameDialog

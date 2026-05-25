@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
@@ -367,7 +368,7 @@ export default function GameCheckInPage() {
                   {checkedInPlayers.map((player) => (
                     <div key={player.id} className="flex items-center gap-2 bg-primary/10 rounded-full px-3 py-1.5">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={player.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.name}`} />
+                        <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
                         <AvatarFallback className="text-xs">{player.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <span className="text-white text-sm">{player.name}</span>

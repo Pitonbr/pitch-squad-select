@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/hooks/useTeams";
@@ -135,7 +136,7 @@ export function AttendanceStats() {
               className="flex items-center gap-4 p-3 rounded-lg bg-black/30 border border-primary/20 hover:border-primary/40 transition-colors"
             >
               <Avatar className="h-12 w-12 ring-2 ring-primary/30">
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${player.player_name}`} />
+                <AvatarImage src={getInitialsAvatar(player.player_name)} />
                 <AvatarFallback className="bg-primary/20 text-white">
                   {player.player_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </AvatarFallback>
