@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { getInitialsAvatar } from "@/lib/avatar";
 
 interface FieldPlayer {
   id: string;
@@ -82,7 +83,7 @@ export function SoccerField({ teamA, teamB, scoreA, scoreB }: SoccerFieldProps) 
       }`}>
         {player.profile_image ? (
           <Avatar className="w-full h-full">
-            <AvatarImage src={player.profile_image} />
+            <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
             <AvatarFallback className="text-xs text-white bg-transparent">
               {player.nickname.charAt(0)}
             </AvatarFallback>

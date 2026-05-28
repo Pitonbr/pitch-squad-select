@@ -9,8 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plus, Save, Shuffle, Trash2, Edit } from "lucide-react";
+import { Users, Save, Shuffle, Trash2, Scale } from "lucide-react";
+import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { splitTeamsBalanced, randomBalancedSelection } from "@/lib/teamBalancer";
 
 interface Player {
   id: string;
@@ -19,6 +21,7 @@ interface Player {
   position: string;
   phone: string;
   profile_image?: string;
+  skill_level?: number;
   checkedIn?: boolean;
 }
 
@@ -69,9 +72,19 @@ export function PlayerSelector({
   };
 
   const handleRandomSelection = (count: number) => {
-    const shuffled = [...allPlayers].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, count).map(p => p.id);
+    const selected = randomBalancedSelection(allPlayers, count);
     onSelectionChange(selected);
+  };
+
+  const [balancedPreview, setBalancedPreview] = useState<ReturnType<typeof splitTeamsBalanced> | null>(null);
+
+  const handleBalancedSort = () => {
+    const selected = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
+    if (selected.length < 2) {
+      toast({ title: "Selecione ao menos 2 jogadores", variant: "destructive" });
+      return;
+    }
+    setBalancedPreview(splitTeamsBalanced(selected));
   };
 
   const handleSaveTeamList = () => {
@@ -147,9 +160,9 @@ export function PlayerSelector({
                 <Button variant="outline" size="sm" onClick={handleClearAll}>
                   Limpar
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleRandomSelection(22)}
                 >
                   <Shuffle className="h-4 w-4 mr-1" />
@@ -173,13 +186,56 @@ export function PlayerSelector({
                     <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
                     <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <div className="font-medium">{player.name}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{player.name}</div>
                     <div className="text-sm text-muted-foreground">{player.nickname} • {player.position}</div>
                   </div>
+                  {player.skill_level && (
+                    <div className="flex gap-px shrink-0">
+                      {[1,2,3,4,5].map(s => (
+                        <Star key={s} className={`h-3 w-3 ${s <= player.skill_level! ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+
+            {selectedPlayerIds.length >= 2 && (
+              <div className="pt-2 border-t space-y-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 border-primary/50 text-primary hover:bg-primary/10"
+                  onClick={handleBalancedSort}
+                >
+                  <Scale className="h-4 w-4" />
+                  Sortear Times Equilibrados
+                </Button>
+
+                {balancedPreview && (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {(['teamA', 'teamB'] as const).map((side, i) => {
+                      const team = balancedPreview[side];
+                      const skill = side === 'teamA' ? balancedPreview.skillA : balancedPreview.skillB;
+                      return (
+                        <div key={side} className={`p-2 rounded-md border ${i === 0 ? 'border-blue-500/40 bg-blue-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
+                          <div className={`font-semibold mb-1 ${i === 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                            Time {i === 0 ? 'A' : 'B'} — ⭐ {skill}
+                          </div>
+                          {team.map(p => (
+                            <div key={p.id} className="truncate text-muted-foreground">{p.nickname || p.name}</div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    <div className="col-span-2 text-center text-muted-foreground">
+                      Diferença de habilidade: {balancedPreview.diff} ponto{balancedPreview.diff !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {selectedPlayerIds.length > 0 && (
               <div className="flex justify-between items-center pt-2 border-t">

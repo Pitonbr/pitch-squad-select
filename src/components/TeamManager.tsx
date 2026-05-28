@@ -11,6 +11,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ImageCropper } from "@/components/ImageCropper";
+import { getInitialsAvatar } from "@/lib/avatar";
 import { Users, Plus, Crown, Copy, UserPlus, Share, Upload, Camera } from "lucide-react";
 
 export function TeamManager() {
@@ -299,7 +300,7 @@ export function TeamManager() {
                       onDrop={(e) => handleDrop(e, team.id)}
                     >
                       <Avatar className="h-20 w-20">
-                        <AvatarImage src={team.logo_url || ''} alt={team.name} />
+                        <AvatarImage src={team.logo_url || getInitialsAvatar(team.name)} alt={team.name} />
                         <AvatarFallback className="text-xl">
                           {team.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>

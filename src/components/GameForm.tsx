@@ -17,6 +17,7 @@ interface Player {
   position: string;
   phone: string;
   profile_image?: string;
+  skill_level?: number;
   checkedIn?: boolean;
 }
 
