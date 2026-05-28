@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.error(
@@ -38,7 +39,7 @@ const NotFound = () => {
             </p>
           </div>
           <Button 
-            onClick={() => window.location.href = '/'} 
+            onClick={() => navigate('/')}
             className="w-full bg-primary hover:bg-accent text-white"
           >
             Voltar para o Início

@@ -47,8 +47,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App: Tournament system loaded - v3.1.0 - Update system implemented');
-  
   // Initialize error detection
   useErrorDetection();
   

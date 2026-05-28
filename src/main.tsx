@@ -3,9 +3,6 @@ import App from './App.tsx'
 import './index.css'
 import { CacheManager } from './utils/cacheManager'
 
-// Force complete cache refresh - build 2025-01-18-fixed
-console.log('Main: Soccer Manager v3.0 starting - Error fixes applied...');
-
 // Initialize cache management first
 CacheManager.initialize();
 

@@ -20,7 +20,30 @@ export default defineConfig(({ mode }) => ({
       output: {
         entryFileNames: `[name]-[hash].js`,
         chunkFileNames: `[name]-[hash].js`,
-        assetFileNames: `[name]-[hash].[ext]`
+        assetFileNames: `[name]-[hash].[ext]`,
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-avatar',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-label',
+            '@radix-ui/react-progress',
+            '@radix-ui/react-switch',
+            'lucide-react',
+            'class-variance-authority',
+            'clsx',
+            'tailwind-merge',
+          ],
+          'vendor-charts': ['recharts'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
       }
     }
   },
