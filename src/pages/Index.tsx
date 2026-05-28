@@ -45,6 +45,7 @@ interface Player {
   email?: string;
   jersey_number?: number;
   profile_image?: string;
+  skill_level?: number;
   checkedIn?: boolean;
 }
 
@@ -102,6 +103,7 @@ export default function Index() {
         position: player.position,
         phone: player.phone,
         profile_image: player.profile_image,
+        skill_level: player.skill_level,
       })) || [];
 
       setPlayers(playersData);
@@ -487,6 +489,7 @@ export default function Index() {
                     email={player.email}
                     jersey_number={player.jersey_number}
                     profile_image={player.profile_image}
+                    skill_level={player.skill_level}
                     checkedIn={player.checkedIn || false}
                     onCheckIn={handlePlayerCheckIn}
                   />

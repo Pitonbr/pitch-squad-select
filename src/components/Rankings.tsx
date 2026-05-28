@@ -22,6 +22,7 @@ import {
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
+import { getInitialsAvatar } from "@/lib/avatar";
 
 interface PlayerRanking {
   id: string;
@@ -97,33 +98,29 @@ export function Rankings() {
 
       setRecentGames(games || []);
 
-      // Buscar jogadores do time com estatísticas
-      const { data: teamPlayers } = await supabase
-        .rpc('get_team_players', { _team_id: activeTeam.id });
+      // Buscar jogadores e todas as estatísticas em paralelo (evita N+1 queries)
+      const [{ data: teamPlayers }, { data: allStats }] = await Promise.all([
+        supabase.rpc('get_team_players', { _team_id: activeTeam.id }),
+        supabase
+          .from('player_statistics')
+          .select('*')
+          .eq('team_id', activeTeam.id),
+      ]);
 
-      // Buscar estatísticas de cada jogador
       if (teamPlayers && teamPlayers.length > 0) {
-        const playersWithStats = await Promise.all(
-          teamPlayers.map(async (player: any) => {
-            const { data: stats } = await supabase
-              .from('player_statistics')
-              .select('*')
-              .eq('player_id', player.id)
-              .eq('team_id', activeTeam.id)
-              .maybeSingle();
-            
-            return {
-              ...player,
-              stats: stats || {
-                goals: 0,
-                assists: 0,
-                yellow_cards: 0,
-                red_cards: 0,
-                games_played: 0
-              }
-            };
-          })
+        const statsById = Object.fromEntries(
+          (allStats || []).map((s: any) => [s.player_id, s])
         );
+        const playersWithStats = teamPlayers.map((player: any) => ({
+          ...player,
+          stats: statsById[player.id] || {
+            goals: 0,
+            assists: 0,
+            yellow_cards: 0,
+            red_cards: 0,
+            games_played: 0,
+          },
+        }));
         setPlayers(playersWithStats);
       } else {
         setPlayers([]);
@@ -264,7 +261,7 @@ export function Rankings() {
                           </span>
                         </div>
                         <Avatar className="h-8 w-8 ring-2 ring-primary/30">
-                          <AvatarImage src={player.profile_image} alt={player.name} />
+                          <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} alt={player.name} />
                           <AvatarFallback className="text-xs bg-primary/20 text-white">
                             {player.nickname.slice(0, 2).toUpperCase()}
                           </AvatarFallback>

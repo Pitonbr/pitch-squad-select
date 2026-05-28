@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { User, Phone, MapPin, Clock, MessageCircle, Mail, TrendingUp, Calendar } from "lucide-react";
+import { Phone, MapPin, Clock, MessageCircle, Mail, TrendingUp, Calendar, Star } from "lucide-react";
 import { useAttendanceStats } from "@/hooks/useAttendanceStats";
 import { useTeams } from "@/hooks/useTeams";
+import { getInitialsAvatar } from "@/lib/avatar";
 
 interface PlayerCardProps {
   id?: string;
@@ -16,6 +17,7 @@ interface PlayerCardProps {
   email?: string;
   jersey_number?: number;
   profile_image?: string;
+  skill_level?: number;
   checkedIn?: boolean;
   onCheckIn?: (id: string) => void;
 }
@@ -29,17 +31,18 @@ const positionColors: Record<string, string> = {
   "Atacante": "bg-teamB text-teamB-foreground"
 };
 
-export function PlayerCard({ 
-  id, 
-  name, 
-  nickname, 
-  position, 
-  phone, 
-  email, 
-  jersey_number, 
-  profile_image, 
-  checkedIn, 
-  onCheckIn 
+export function PlayerCard({
+  id,
+  name,
+  nickname,
+  position,
+  phone,
+  email,
+  jersey_number,
+  profile_image,
+  skill_level,
+  checkedIn,
+  onCheckIn
 }: PlayerCardProps) {
   const { activeTeam } = useTeams();
   const { stats, loading: statsLoading } = useAttendanceStats(id, activeTeam?.id);
@@ -75,9 +78,9 @@ export function PlayerCard({
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0 text-center">
             <Avatar className="h-12 w-12 mx-auto ring-2 ring-primary/30">
-              <AvatarImage src={profile_image} alt={name} />
+              <AvatarImage src={profile_image || getInitialsAvatar(name)} alt={name} />
               <AvatarFallback className="text-sm font-semibold bg-primary/20 text-white">
-                {jersey_number || name.split(' ').map(n => n[0]).join('')}
+                {name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             {jersey_number && (
@@ -99,8 +102,19 @@ export function PlayerCard({
               </Badge>
             </div>
             
-            <p className="text-xs text-white/90 mb-2">"{nickname}"</p>
-            
+            <p className="text-xs text-white/90 mb-1">"{nickname}"</p>
+
+            {skill_level && (
+              <div className="flex items-center gap-0.5 mb-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`h-3 w-3 ${s <= skill_level ? 'fill-yellow-400 text-yellow-400' : 'text-white/20'}`}
+                  />
+                ))}
+              </div>
+            )}
+
             <div className="space-y-1 text-xs text-white/85 mb-3">
               <div className="flex items-center">
                 <Phone className="h-3 w-3 mr-1 text-primary" />
