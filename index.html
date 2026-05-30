@@ -8,16 +8,18 @@
     <title>Soccer Squad - Gestão de Partidas de Futebol</title>
     <meta name="description" content="Sistema completo de gestão de partidas de futebol com cadastro de jogadores, check-in automático e formação de times equilibradas.">
     <meta name="author" content="Soccer Squad" />
-    
-    <!-- PWA Configuration -->
+
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#4caf50" />
+    <!-- FASE 2: theme-color corrigido de #4caf50 para o teal oficial -->
+    <meta name="theme-color" content="#1D9E75" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- FASE 2: status bar escuro combina com o tema navy -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Soccer Squad" />
-    
-    <!-- Icons for various devices -->
+
+    <!-- Icons -->
     <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/8AhYImkWejMmfHHPoXtBMSAFu922/uploads/1757787269072-download.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
@@ -29,21 +31,19 @@
     <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png" />
     <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-72x72.png" />
     <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-72x72.png" />
-    
-    <!-- Microsoft Tiles -->
+
+    <!-- FASE 2: TileColor corrigido para navy -->
     <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
-    <meta name="msapplication-TileColor" content="#4caf50" />
+    <meta name="msapplication-TileColor" content="#0d2440" />
 
     <meta property="og:title" content="Soccer Squad - Gestão de Partidas de Futebol" />
     <meta property="og:description" content="Sistema completo de gestão de partidas de futebol com cadastro de jogadores, check-in automático e formação de times equilibradas." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/8AhYImkWejMmfHHPoXtBMSAFu922/social-images/social-1757787249943-download.png">
-
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@soccersquadbr" />
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/8AhYImkWejMmfHHPoXtBMSAFu922/social-images/social-1757787249943-download.png">
   </head>
-
   <body class="no-overflow">
     <div id="root" class="w-full min-h-screen"></div>
     <script type="module" src="/src/main.tsx"></script>

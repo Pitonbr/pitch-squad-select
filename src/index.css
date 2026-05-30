@@ -524,4 +524,187 @@
     background: hsl(var(--primary) / 0.1);
     font-weight: 600;
   }
+}/* ============================================================
+   SOCCER SQUAD — Adições de CSS para modernização UX
+   Fases 1, 2, 3 e 4 completas.
+
+   ⚠️  INSTRUÇÃO: Cole este conteúdo no FINAL do arquivo
+       src/index.css existente. Não substitua o arquivo.
+   ============================================================ */
+
+
+/* ─────────────────────────────────────────────────────────────
+   FASE 1 — Sidebar e layout
+   ───────────────────────────────────────────────────────────── */
+
+/* Esconde scrollbar mas mantém scroll funcional */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Transição suave ao colapsar sidebar */
+aside { transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Padding bottom no mobile para não sobrepor BottomNav */
+@media (max-width: 767px) {
+  #main-content { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FASE 2 — Correções visuais
+   ───────────────────────────────────────────────────────────── */
+
+/* Logo: sombra suave, sem ring excessivo */
+.sidebar-logo img {
+  box-shadow: 0 0 10px rgba(29, 158, 117, 0.2);
+}
+
+/* Remove overflow horizontal global */
+html, body { overflow-x: hidden; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   FASE 3 — Animações, estados vazios, skeletons
+   ───────────────────────────────────────────────────────────── */
+
+/* Transição de entrada de views */
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.view-enter {
+  animation: view-enter 0.18s ease-out forwards;
+}
+
+/* Skeleton pulse */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* Aplica animação às classes do shadcn Skeleton */
+[data-slot="skeleton"] {
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+/* Hover suave em cards de navegação lateral */
+@media (prefers-reduced-motion: no-preference) {
+  nav button {
+    position: relative;
+    overflow: hidden;
+  }
+  nav button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary) / 0.05);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  nav button:hover::after { opacity: 1; }
+}
+
+/* Indicador ativo na nav lateral */
+.nav-active-indicator {
+  position: relative;
+}
+.nav-active-indicator::before {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 55%;
+  background: hsl(var(--primary));
+  border-radius: 0 2px 2px 0;
+}
+
+/* BottomNav: linha ativa no topo do item */
+.bottom-nav-active-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FASE 4 — Onboarding, matchmaking, quadras
+   ───────────────────────────────────────────────────────────── */
+
+/* Onboarding overlay com blur */
+.onboarding-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Card de onboarding — entrada suave */
+@keyframes onboarding-enter {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.onboarding-card {
+  animation: onboarding-enter 0.25s ease-out forwards;
+}
+
+/* CourtFinder: badge de tipo de quadra */
+.court-type-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border-width: 1px;
+  border-style: solid;
+  font-weight: 500;
+}
+
+/* TeamMatchmaking: card hover */
+.team-card {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.team-card:hover {
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3);
+}
+
+/* DashboardMetrics: card de próximo jogo */
+.next-game-card {
+  background: hsl(var(--primary) / 0.05);
+  border-color: hsl(var(--primary) / 0.2);
+  transition: background 0.15s ease;
+}
+.next-game-card:hover {
+  background: hsl(var(--primary) / 0.08);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   Responsividade geral melhorada
+   ───────────────────────────────────────────────────────────── */
+
+/* Conteúdo principal com largura máxima em desktops largos */
+@media (min-width: 768px) {
+  #main-content > div { max-width: 1200px; }
+}
+
+/* Touch targets mínimos de 44px para acessibilidade mobile */
+@media (max-width: 767px) {
+  button, a, [role="button"] { min-height: 44px; }
+  /* Exceto botões de ícone pequenos dentro de cards */
+  .card button, .card a { min-height: unset; }
+}
+
+/* Impede layout quebrado em telas muito pequenas (<360px) */
+@media (max-width: 360px) {
+  .container { padding-left: 0.75rem; padding-right: 0.75rem; }
 }
