@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Bell, Lock, Shirt } from "lucide-react";
+import { Loader2, Bell, Lock, Shirt, CreditCard } from "lucide-react";
 import { NotificationSettings } from "./NotificationSettings";
-import { PlayerProfileEditor } from "./PlayerProfileEditor";
+import { PlayerProfileEditor }  from "./PlayerProfileEditor";
+import { SubscriptionManager }  from "./payment/SubscriptionManager";
 
 export function Settings() {
   const { user } = useAuth();
@@ -85,26 +86,37 @@ export function Settings() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="player" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="player" className="flex items-center gap-2">
-                <Shirt className="h-4 w-4" />
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="player" className="flex items-center gap-1.5 text-xs">
+                <Shirt className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Meu Perfil</span>
                 <span className="sm:hidden">Perfil</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
+              <TabsTrigger value="subscription" className="flex items-center gap-1.5 text-xs">
+                <CreditCard className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Assinatura</span>
+                <span className="sm:hidden">Plano</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs">
+                <Bell className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Notificações</span>
                 <span className="sm:hidden">Avisos</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Segurança
+              <TabsTrigger value="security" className="flex items-center gap-1.5 text-xs">
+                <Lock className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Segurança</span>
+                <span className="sm:hidden">Senha</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Player Profile Tab */}
             <TabsContent value="player" className="pt-4">
               <PlayerProfileEditor />
+            </TabsContent>
+
+            {/* Subscription Tab */}
+            <TabsContent value="subscription" className="pt-4">
+              <SubscriptionManager />
             </TabsContent>
 
             {/* Notifications Tab */}

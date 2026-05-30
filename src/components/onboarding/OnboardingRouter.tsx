@@ -26,6 +26,7 @@ import { MatchResults }         from "./MatchResults";
 import { RequestConfirmation }  from "./RequestConfirmation";
 import { NoResultsScreen }      from "./NoResultsScreen";
 import { TeamRegistrationForm } from "./TeamRegistrationForm";
+import { PricingPlans }         from "@/components/payment/PricingPlans";
 
 interface OnboardingRouterProps {
   inviteCode?: string;
@@ -119,27 +120,34 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
 
   // ── Create team ───────────────────────────────────────────────
   const handleCreateTeam = async (data: TeamFormData): Promise<void> => {
-    // createTeam from useTeams only takes name + description
-    // Extra fields (city, game_type etc) require a separate update
     const team = await createTeam(data.name, data.description);
     if (!team) return;
 
     try {
       await supabase.from("teams").update({
-        state: data.state,
-        city: data.city,
-        neighborhood: data.neighborhood ?? null,
-        game_type: data.game_type,
-        usual_days: data.usual_days,
-        usual_time: data.usual_time,
-        is_public: data.is_public,
+        state:             data.state,
+        city:              data.city,
+        neighborhood:      data.neighborhood ?? null,
+        game_type:         data.game_type,
+        usual_days:        data.usual_days,
+        usual_time:        data.usual_time,
+        is_public:         data.is_public,
         accepting_players: data.accepting_players,
-        logo_url: data.logo_url ?? null,
+        logo_url:          data.logo_url ?? null,
       }).eq("id", team.id);
     } catch { /* best-effort */ }
 
     await refreshTeams();
-    done();
+
+    // Mark onboarding done but keep user on pricing screen
+    if (user?.id) markOnboardingDone(user.id);
+    flow.finish(user?.id);
+    // Navigate to pricing within onboarding (state handled by pricing page itself)
+    // We keep user in /onboarding-style layout by navigating to a "pricing" step
+    // Actually: redirect to root and show PricingPlans via pending state
+    // Simple approach: store team name for pricing and navigate
+    localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));
+    navigate("/pricing", { replace: true });
   };
 
   // ── Personal steps shared logic ───────────────────────────────
