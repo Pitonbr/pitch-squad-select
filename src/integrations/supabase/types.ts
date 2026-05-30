@@ -800,6 +800,7 @@ export type Database = {
           position: string
           profile_id: string
           profile_image: string | null
+          skill_level: number | null
           team_id: string
           updated_at: string
         }
@@ -814,6 +815,7 @@ export type Database = {
           position: string
           profile_id: string
           profile_image?: string | null
+          skill_level?: number | null
           team_id: string
           updated_at?: string
         }
@@ -828,6 +830,7 @@ export type Database = {
           position?: string
           profile_id?: string
           profile_image?: string | null
+          skill_level?: number | null
           team_id?: string
           updated_at?: string
         }
@@ -1578,6 +1581,7 @@ export type Database = {
           position: string
           profile_id: string
           profile_image: string
+          skill_level: number
           team_id: string
           updated_at: string
         }[]

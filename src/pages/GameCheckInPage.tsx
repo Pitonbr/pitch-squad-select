@@ -9,7 +9,6 @@ import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, Loader2, CheckCircle2, Users } from "lucide-react";
-import { Header } from "@/components/Header";
 import { JoinRequestStatus } from "@/components/JoinRequestStatus";
 
 interface Game {
@@ -255,7 +254,6 @@ export default function GameCheckInPage() {
 
   return (
     <div className="min-h-screen stadium-bg">
-      <Header currentView="games" onViewChange={() => {}} />
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <Card variant="dark" className="backdrop-blur-md">
           <CardHeader>
