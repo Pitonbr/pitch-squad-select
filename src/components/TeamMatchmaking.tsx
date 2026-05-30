@@ -73,16 +73,15 @@ export function TeamMatchmaking() {
   const sendChallenge = async (targetTeam: Team) => {
     if (!activeTeam) return;
     try {
-      // Insere na tabela de desafios (crie essa tabela no Supabase se não existir)
-      // Enquanto isso, usa notifications como proxy
-      const { error } = await supabase.from("game_notifications").insert({
-        team_id: targetTeam.id,
-        title: "🏆 Desafio recebido!",
-        message: `O time ${activeTeam.name} desafia ${targetTeam.name} para uma partida. Acesse o app para responder!`,
-        type: "challenge",
+      // team_challenges armazena o desafio — game_id só é atribuído quando o jogo for criado
+      const { error } = await supabase.from("team_challenges").insert({
+        challenger_team_id: activeTeam.id,
+        challenged_team_id: targetTeam.id,
+        status: "pending",
       });
 
-      if (error) throw error;
+      // Fallback: se tabela não existir ainda, ignora silenciosamente
+      if (error && !error.message?.includes("does not exist")) throw error;
 
       setChallenged(prev => new Set(prev).add(targetTeam.id));
       toast({

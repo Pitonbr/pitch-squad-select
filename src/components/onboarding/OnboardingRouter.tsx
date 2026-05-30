@@ -96,22 +96,19 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
   const sendJoinRequest = async (team: TeamSearchResult): Promise<void> => {
     if (!profile) return;
     try {
+      // requesting_player_id is the correct column name in team_join_requests
       const { error } = await supabase.from("team_join_requests").insert({
-        team_id: team.id,
-        profile_id: profile.id,
-        status: "pending",
-        message: `Solicitação de entrada via busca de jogos.`,
+        team_id:               team.id,
+        requesting_player_id:  profile.id,
+        status:                "pending",
+        message:               "Solicitação de entrada via busca de jogos.",
       });
       if (error) throw error;
 
-      // Notify team admin
-      await supabase.from("game_notifications").insert({
-        team_id: team.id,
-        game_id: "00000000-0000-0000-0000-000000000000",
-        title: "🙋 Nova solicitação de entrada",
-        message: `${profile.display_name ?? "Um jogador"} quer entrar no ${team.name}.`,
-        notification_type: "join_request",
-      }).then(() => {}); // fire and forget
+      // Push notification via existing function (no game_id required)
+      supabase.functions.invoke("send-join-request-notification", {
+        body: { team_id: team.id, player_name: profile.display_name ?? "Um jogador" },
+      }).catch(() => {}); // fire and forget, non-critical
 
       flow.selectTeam(team);
       flow.confirmRequest();
