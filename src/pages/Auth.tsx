@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Eye, EyeOff, Mail, User } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
@@ -274,6 +275,14 @@ const Auth = () => {
         backgroundAttachment: 'fixed'
       }}
     >
+      <Helmet>
+        <title>Entrar ou Cadastrar — Soccer Squad</title>
+        <meta name="description" content="Acesse sua conta do Soccer Squad ou crie uma nova para organizar partidas, convidar jogadores e gerenciar seu time de futebol." />
+        <link rel="canonical" href="https://soccersquad.com.br/auth" />
+        <meta property="og:title" content="Entrar ou Cadastrar — Soccer Squad" />
+        <meta property="og:description" content="Acesse sua conta do Soccer Squad ou crie uma nova para organizar partidas e gerenciar seu time." />
+        <meta property="og:url" content="https://soccersquad.com.br/auth" />
+      </Helmet>
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-4">
           <img 
@@ -282,7 +291,7 @@ const Auth = () => {
             className="h-24 w-24 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
           />
           <h1 className="text-4xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
-            Soccer Squad
+            Soccer Squad — Gestão de Times de Futebol
           </h1>
           <p className="text-cyan-100/95">Gerencie seu time de futebol</p>
         </div>
@@ -351,6 +360,7 @@ const Auth = () => {
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4 text-primary" />
@@ -449,6 +459,7 @@ const Auth = () => {
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4 text-accent" />
