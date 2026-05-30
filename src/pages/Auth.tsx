@@ -282,7 +282,7 @@ const Auth = () => {
             className="h-24 w-24 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
           />
           <h1 className="text-4xl font-bold text-white drop-shadow-[0_0_25px_rgba(63,184,175,0.5)]">
-            Soccer Squad
+            Soccer Squad — Gestão de Times de Futebol
           </h1>
           <p className="text-cyan-100/95">Gerencie seu time de futebol</p>
         </div>
