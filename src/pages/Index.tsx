@@ -8,7 +8,7 @@
 // ============================================================
 
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,7 @@ interface Game {
 // ── Componente principal ────────────────────────────────────
 export default function Index() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const { activeTeam, loading: teamsLoading, isTeamAdmin, getUserRole } = useTeams();
   const { toast } = useToast();
@@ -174,7 +175,13 @@ export default function Index() {
     </div>
   );
 
-  if (!activeTeam) return <TeamOnboarding />;
+  if (!activeTeam) {
+    // Preserve invite code or query params when redirecting to onboarding
+    const invite = searchParams.get("invite");
+    const dest = invite ? `/onboarding?invite=${invite}` : "/onboarding";
+    navigate(dest, { replace: true });
+    return null;
+  }
 
   // ── Handlers ─────────────────────────────────────────────────
   const handlePlayerAdded = () => fetchPlayersFromDB();

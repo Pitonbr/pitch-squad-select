@@ -23,6 +23,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const GameInvitePage = lazy(() => import("./pages/GameInvitePage"));
 const GameCheckInPage = lazy(() => import("./pages/GameCheckInPage"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
   useThemeSync();
@@ -79,6 +80,8 @@ const App = () => {
                           <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/game-invite/:gameId" element={<GameInvitePage />} />
                           <Route path="/game-checkin/:gameId" element={<GameCheckInPage />} />
+                          <Route path="/onboarding" element={<Onboarding />} />
+                          <Route path="/join/:code" element={<Onboarding />} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                           <Route path="*" element={<NotFound />} />
                         </Routes>
