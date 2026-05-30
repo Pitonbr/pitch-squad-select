@@ -1,0 +1,10 @@
+# Soccer Squad
+
+> Plataforma de gestão de partidas e times de futebol amador: cadastro de jogadores, check-in automático, formação de times equilibrados e estatísticas.
+
+Soccer Squad ajuda organizadores e jogadores a gerenciar peladas e campeonatos: criação de partidas, convites por link/WhatsApp, controle de presença, ranking e financeiro do time.
+
+## Pages
+
+- [Home](/): Visão geral do produto e acesso ao app.
+- [Entrar / Cadastrar](/auth): Login e criação de conta para jogadores e organizadores.
