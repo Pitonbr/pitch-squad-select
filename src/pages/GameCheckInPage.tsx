@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, Loader2, CheckCircle2, Users } from "lucide-react";
 import { JoinRequestStatus } from "@/components/JoinRequestStatus";
+import { Helmet } from "react-helmet-async";
 
 interface Game {
   id: string;
@@ -254,7 +255,17 @@ export default function GameCheckInPage() {
 
   return (
     <div className="min-h-screen stadium-bg">
+      <Helmet>
+        <title>{game ? `Check-in: ${game.title} — Soccer Squad` : "Check-in da Partida — Soccer Squad"}</title>
+        <meta name="description" content={game ? `Confirme sua presença na partida ${game.title} em ${game.location}. Faça seu check-in no Soccer Squad.` : "Confirme sua presença na partida pelo Soccer Squad."} />
+        <link rel="canonical" href={`https://soccersquad.com.br/game-checkin/${gameId}`} />
+        <meta property="og:title" content={game ? `Check-in: ${game.title}` : "Check-in da Partida"} />
+        <meta property="og:description" content={game ? `${game.title} • ${game.location}` : "Confirme sua presença na partida."} />
+        <meta property="og:url" content={`https://soccersquad.com.br/game-checkin/${gameId}`} />
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <main className="container mx-auto px-4 py-8 max-w-2xl">
+        <h1 className="sr-only">Check-in da Partida</h1>
         <Card variant="dark" className="backdrop-blur-md">
           <CardHeader>
             <CardTitle className="text-white text-center text-2xl">
