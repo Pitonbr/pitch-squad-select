@@ -181,7 +181,7 @@ export function ImageCropper({ isOpen, onClose, imageSrc, onCropComplete }: Imag
           <img
             ref={imageRef}
             src={imageSrc}
-            alt="Original"
+            alt="Imagem original para recorte"
             className="hidden"
             onLoad={handleImageLoad}
           />

@@ -248,7 +248,7 @@ export default function Index() {
                     <div key={player.id} className="relative">
                       <PlayerCard {...player} checkedIn={player.checkedIn || false} onCheckIn={handlePlayerCheckIn} />
                       {!isPlayer && (
-                        <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => handleDeletePlayer(player.id)}>
+                        <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => handleDeletePlayer(player.id)} aria-label={`Excluir jogador ${player.name}`}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       )}
