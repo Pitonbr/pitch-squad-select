@@ -275,6 +275,14 @@ const Auth = () => {
         backgroundAttachment: 'fixed'
       }}
     >
+      <Helmet>
+        <title>Entrar ou Cadastrar — Soccer Squad</title>
+        <meta name="description" content="Acesse sua conta do Soccer Squad ou crie uma nova para organizar partidas, convidar jogadores e gerenciar seu time de futebol." />
+        <link rel="canonical" href="https://soccersquad.com.br/auth" />
+        <meta property="og:title" content="Entrar ou Cadastrar — Soccer Squad" />
+        <meta property="og:description" content="Acesse sua conta do Soccer Squad ou crie uma nova para organizar partidas e gerenciar seu time." />
+        <meta property="og:url" content="https://soccersquad.com.br/auth" />
+      </Helmet>
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-4">
           <img 
