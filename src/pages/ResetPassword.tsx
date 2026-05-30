@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { toast, useToast } from "@/hooks/use-toast";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
@@ -169,6 +170,12 @@ const ResetPassword = () => {
       }}
     >
       <div className="w-full max-w-md space-y-8">
+        <Helmet>
+          <title>Redefinir Senha — Soccer Squad</title>
+          <meta name="description" content="Defina uma nova senha para sua conta Soccer Squad e continue gerenciando suas partidas de futebol." />
+          <link rel="canonical" href="https://soccersquad.com.br/reset-password" />
+          <meta name="robots" content="noindex" />
+        </Helmet>
         <div className="text-center space-y-4">
           <img 
             src={logoImage} 
@@ -176,7 +183,7 @@ const ResetPassword = () => {
             className="h-24 w-24 mx-auto rounded-full object-cover shadow-[0_0_30px_rgba(63,184,175,0.6)] ring-4 ring-primary/30"
           />
           <h1 className="text-4xl font-bold text-white text-glow-cyan">
-            Soccer Squad
+            Soccer Squad — Redefinir Senha
           </h1>
         </div>
 
@@ -208,6 +215,7 @@ const ResetPassword = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-white/70 hover:text-white"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -236,6 +244,7 @@ const ResetPassword = () => {
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-3 text-white/70 hover:text-white"
+                    aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
