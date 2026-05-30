@@ -28,7 +28,7 @@ import { DashboardMetrics } from "@/components/DashboardMetrics";
 // F4 — Novas funcionalidades
 import { TeamMatchmaking } from "@/components/TeamMatchmaking";
 import { CourtFinder } from "@/components/CourtFinder";
-import { AppOnboarding, useOnboarding } from "@/components/AppOnboarding";
+import { isOnboardingDone } from "@/hooks/useOnboardingFlow";
 
 // Componentes existentes
 import { PlayerForm } from "@/components/PlayerForm";
@@ -38,7 +38,6 @@ import { GameDetailsCard } from "@/components/GameDetailsCard";
 import { GameEditDialog } from "@/components/GameEditDialog";
 import { PlayerInviteManager } from "@/components/PlayerInviteManager";
 import { CancelGameDialog } from "@/components/CancelGameDialog";
-import { TeamOnboarding } from "@/components/TeamOnboarding";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
 import { AttendanceStats } from "@/components/AttendanceStats";
 import { useAuth } from "@/hooks/useAuth";
@@ -85,7 +84,6 @@ export default function Index() {
   const { user, loading } = useAuth();
   const { activeTeam, loading: teamsLoading, isTeamAdmin, getUserRole } = useTeams();
   const { toast } = useToast();
-  const { showOnboarding, completeOnboarding } = useOnboarding();   // F4
 
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [players, setPlayers] = useState<Player[]>([]);
@@ -175,8 +173,8 @@ export default function Index() {
     </div>
   );
 
-  if (!activeTeam) {
-    // Preserve invite code or query params when redirecting to onboarding
+  // New users who haven't completed onboarding → redirect once
+  if (!activeTeam && user && !isOnboardingDone(user.id)) {
     const invite = searchParams.get("invite");
     const dest = invite ? `/onboarding?invite=${invite}` : "/onboarding";
     navigate(dest, { replace: true });
@@ -331,9 +329,6 @@ export default function Index() {
   // ── Render ───────────────────────────────────────────────────
   return (
     <>
-      {/* F4 — Onboarding para novos usuários */}
-      {showOnboarding && <AppOnboarding onComplete={completeOnboarding} />}
-
       <AppLayout currentView={currentView} onViewChange={setCurrentView}>
         <ViewTransition viewKey={currentView}>
           <Suspense fallback={<SkeletonDashboard />}>

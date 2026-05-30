@@ -11,6 +11,17 @@ import {
 } from "@/types/onboarding";
 
 const STORAGE_KEY = "onboarding_state";
+const DONE_KEY    = (userId: string) => `onboarding_done_${userId}`;
+
+/** Returns true if this user has already completed onboarding on this device. */
+export function isOnboardingDone(userId: string): boolean {
+  return localStorage.getItem(DONE_KEY(userId)) === "1";
+}
+
+/** Marks onboarding as permanently completed for this user. */
+export function markOnboardingDone(userId: string): void {
+  localStorage.setItem(DONE_KEY(userId), "1");
+}
 
 function loadState(): Partial<OnboardingState> {
   try {
@@ -86,8 +97,9 @@ export function useOnboardingFlow(initialInviteCode?: string) {
 
   const retrySearch = useCallback(() => update({ step: "searching" }), [update]);
 
-  const finish = useCallback(() => {
+  const finish = useCallback((userId?: string) => {
     localStorage.removeItem(STORAGE_KEY);
+    if (userId) markOnboardingDone(userId);
     update({ step: "done" });
   }, [update]);
 

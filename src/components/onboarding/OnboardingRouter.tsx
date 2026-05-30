@@ -5,7 +5,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOnboardingFlow } from "@/hooks/useOnboardingFlow";
+import { useOnboardingFlow, markOnboardingDone } from "@/hooks/useOnboardingFlow";
 import { useInviteCode }     from "@/hooks/useInviteCode";
 import { useTeamSearch }     from "@/hooks/useTeamSearch";
 import { useTeams }          from "@/hooks/useTeams";
@@ -34,7 +34,7 @@ interface OnboardingRouterProps {
 export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
   const navigate  = useNavigate();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { joinTeamByCode, createTeam, refreshTeams } = useTeams();
   const { searchTeams } = useTeamSearch();
 
@@ -59,9 +59,22 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
     return () => { cancelled = true; };
   }, [state.step]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Helper: mark done + finish ───────────────────────────────
+  const done = () => {
+    if (user?.id) markOnboardingDone(user.id);
+    flow.finish(user?.id);
+  };
+
   // ── Redirect when done ───────────────────────────────────────
   useEffect(() => {
-    if (state.step === "done") navigate("/", { replace: true });
+    if (state.step !== "done") return;
+    const pending = localStorage.getItem("post_onboarding_redirect");
+    if (pending) {
+      localStorage.removeItem("post_onboarding_redirect");
+      navigate(pending, { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
   }, [state.step, navigate]);
 
   // ── Save player profile to DB ────────────────────────────────
@@ -129,7 +142,7 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
     } catch { /* best-effort */ }
 
     await refreshTeams();
-    flow.finish();
+    done();
   };
 
   // ── Personal steps shared logic ───────────────────────────────
@@ -145,7 +158,7 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
         const ok = await joinTeamWithProfile(state.invite_code);
         if (ok) {
           toast({ title: `Bem-vindo ao ${state.invite_team.name}! 🎉` });
-          flow.finish();
+          done();
         } else {
           flow.goTo("intent");
         }

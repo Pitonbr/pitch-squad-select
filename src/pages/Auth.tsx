@@ -19,6 +19,7 @@ const GoogleIcon = () => (
   </svg>
 );
 import { useAuth } from "@/hooks/useAuth";
+import { isOnboardingDone } from "@/hooks/useOnboardingFlow";
 import { EmailVerification } from "@/components/EmailVerification";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
@@ -51,6 +52,7 @@ const Auth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        // Returning user: Index.tsx will handle the onboarding guard
         navigate("/");
       }
     };
@@ -143,54 +145,24 @@ const Auth = () => {
     setAuthStep('verification');
   };
 
-  const handleVerificationSuccess = async () => {
-    console.log('[Auth] Verification success, handling invite and redirect', { inviteCode, redirectTo });
-    
+  const handleVerificationSuccess = () => {
     toast({
-      title: "Cadastro concluído!",
-      description: "Bem-vindo ao Soccer Squad!",
+      title: "Cadastro concluído! 🎉",
+      description: "Vamos completar o seu perfil de jogador.",
     });
-    
-    // Handle invite code if present - join team first
-    if (inviteCode) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("user_id", user.id)
-            .maybeSingle();
 
-          if (profileData) {
-            const { data: joinResult } = await supabase.rpc("join_team_by_invite_code", {
-              _invite_code: inviteCode,
-              _profile_id: profileData.id,
-            });
-
-            if (joinResult && joinResult.length > 0 && joinResult[0].success) {
-              console.log('[Auth] Successfully joined team:', joinResult[0].team_name);
-              toast({
-                title: "✅ Entrou no time!",
-                description: `Você foi adicionado ao time ${joinResult[0].team_name}`,
-              });
-              
-              // If no specific redirect (game), go to home to see the team
-              if (!redirectTo) {
-                navigate("/");
-                return;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error joining team:", error);
-      }
+    // If there's a game redirect (check-in link), honour it after onboarding
+    if (redirectTo) {
+      // Store so onboarding can redirect there after completion
+      localStorage.setItem("post_onboarding_redirect", redirectTo);
     }
-    
-    // Redirect to specified page (like game check-in) or home
-    console.log('[Auth] Navigating to:', redirectTo || '/');
-    navigate(redirectTo || "/", { replace: true });
+
+    // Always send new users through the onboarding wizard.
+    // Invite code is forwarded so InviteWelcome can display team info.
+    const dest = inviteCode
+      ? `/onboarding?invite=${inviteCode}`
+      : "/onboarding";
+    navigate(dest, { replace: true });
   };
 
   const handleBackToAuth = () => {
