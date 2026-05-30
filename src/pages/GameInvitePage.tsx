@@ -188,6 +188,15 @@ Nos vemos no campo! ⚽🔥`;
         backgroundAttachment: 'fixed'
       }}
     >
+      <Helmet>
+        <title>{`Convite: ${game.title} — Soccer Squad`}</title>
+        <meta name="description" content={`Você foi convidado para a partida ${game.title} em ${game.location}. Acesse e confirme sua presença no Soccer Squad.`} />
+        <link rel="canonical" href={`https://soccersquad.com.br/game-invite/${gameId}`} />
+        <meta property="og:title" content={`Convite para ${game.title}`} />
+        <meta property="og:description" content={`${game.title} • ${game.location}`} />
+        <meta property="og:url" content={`https://soccersquad.com.br/game-invite/${gameId}`} />
+        <meta property="og:type" content="article" />
+      </Helmet>
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-4">
           <img 
