@@ -6,59 +6,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Bell, Lock } from "lucide-react";
+import { Loader2, Bell, Lock, Shirt } from "lucide-react";
 import { NotificationSettings } from "./NotificationSettings";
+import { PlayerProfileEditor } from "./PlayerProfileEditor";
 
 export function Settings() {
-  const { profile, user } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  
-  // Profile state
-  const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [phone, setPhone] = useState(profile?.phone || "");
-  
-  // Notification preferences state
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [gameReminders, setGameReminders] = useState(true);
-  const [paymentReminders, setPaymentReminders] = useState(true);
-  
+
   // Password state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [newPassword, setNewPassword]         = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const handleUpdateProfile = async () => {
-    if (!profile?.id) return;
-    
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          display_name: displayName,
-          phone: phone
-        })
-        .eq("id", profile.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram atualizadas com sucesso.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -111,7 +71,6 @@ export function Settings() {
       });
     } finally {
       setLoading(false);
-      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     }
@@ -125,15 +84,17 @@ export function Settings() {
           <CardDescription>Gerencie suas preferências e informações da conta</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs defaultValue="player" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Perfil
+              <TabsTrigger value="player" className="flex items-center gap-2">
+                <Shirt className="h-4 w-4" />
+                <span className="hidden sm:inline">Meu Perfil</span>
+                <span className="sm:hidden">Perfil</span>
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
-                Notificações
+                <span className="hidden sm:inline">Notificações</span>
+                <span className="sm:hidden">Avisos</span>
               </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Lock className="h-4 w-4" />
@@ -141,54 +102,9 @@ export function Settings() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    O email não pode ser alterado
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="displayName">Nome de Exibição</Label>
-                  <Input
-                    id="displayName"
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Seu nome"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-
-                <Button
-                  onClick={handleUpdateProfile}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Salvar Alterações
-                </Button>
-              </div>
+            {/* Player Profile Tab */}
+            <TabsContent value="player" className="pt-4">
+              <PlayerProfileEditor />
             </TabsContent>
 
             {/* Notifications Tab */}
