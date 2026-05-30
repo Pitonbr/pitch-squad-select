@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, Loader2, LogIn, UserPlus, Download, MessageCircle } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import logoImage from "@/assets/soccer-squad-logo.jpeg";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
 
