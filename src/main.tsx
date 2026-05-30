@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import './index.css'
 import { CacheManager } from './utils/cacheManager'
@@ -14,7 +15,7 @@ try {
   }
   
   const root = createRoot(rootElement);
-  root.render(<App />);
+  root.render(<HelmetProvider><App /></HelmetProvider>);
 } catch (error) {
   console.error('Critical error in main.tsx:', error);
   
