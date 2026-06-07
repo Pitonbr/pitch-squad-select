@@ -140,9 +140,10 @@ export function PricingPlans({ teamName, onSkip }: PricingPlansProps) {
         <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
         <p>
           Após 7 dias de teste, será cobrado automaticamente no cartão cadastrado.
-          Cancele a qualquer momento pelo painel de configurações. Taxas adicionais:
-          R$10 por entrada de jogador (pago pelo jogador) e R$20 por desafio aceito
-          entre times (pago pelo time desafiante). Valores não reembolsáveis.
+          Cancele a qualquer momento pelo painel de configurações.
+          Taxa adicional: R$10 por time ao confirmar um jogo contra outro time
+          (cobrado de cada time separadamente — jogo criado apenas após os dois pagarem).
+          Valores não reembolsáveis.
         </p>
       </div>
 

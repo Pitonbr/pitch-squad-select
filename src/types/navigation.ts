@@ -26,13 +26,20 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "rankings",    label: "Rankings",        iconName: "Award",           group: "main",   playerAllowed: true  },
   { key: "tournaments", label: "Campeonatos",     iconName: "Trophy",          group: "main",   playerAllowed: true  },
   { key: "teamManager", label: "Gerenciar Time",  iconName: "UserCog",         group: "manage", playerAllowed: false },
-  { key: "finances",    label: "Financeiro",      iconName: "DollarSign",      group: "manage", playerAllowed: true  },
+  { key: "finances",    label: "Finanças",        iconName: "DollarSign",      group: "manage", playerAllowed: true  },
   { key: "requests",    label: "Solicitações",    iconName: "UserPlus",        group: "manage", playerAllowed: false },
   { key: "joinRequests",label: "Entrar no Time",  iconName: "Users",           group: "manage", playerAllowed: false },
   { key: "audit",       label: "Auditoria",       iconName: "FileText",        group: "admin",  playerAllowed: false },
   { key: "management",  label: "Gerenciamento",   iconName: "ShieldCheck",     group: "admin",  playerAllowed: false },
+  { key: "settings",    label: "Config.",         iconName: "Settings",        group: "manage", playerAllowed: true  },
 ];
 
-export const BOTTOM_NAV_ITEMS: ViewType[] = [
-  "dashboard", "players", "games", "liveGame", "rankings",
+// Admin bottom nav: Dashboard, Jogos, Finanças, Jogo Ativo, Config.
+export const BOTTOM_NAV_ITEMS_ADMIN: ViewType[] = [
+  "dashboard", "games", "finances", "liveGame", "settings",
+];
+
+// Player bottom nav: Dashboard, Jogadores, Jogo Ativo, Rankings, Config.
+export const BOTTOM_NAV_ITEMS_PLAYER: ViewType[] = [
+  "dashboard", "players", "liveGame", "rankings", "settings",
 ];

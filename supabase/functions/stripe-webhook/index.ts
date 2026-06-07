@@ -196,35 +196,71 @@ serve(async (req) => {
           await markPendingPaid(sessionId);
         }
 
-        if (type === "join_fee") {
-          // Player has paid their R$10 entry fee — they can now appear in game convocations
-          const teamId   = intent.metadata?.team_id;
-          const profileId = intent.metadata?.profile_id;
-          const joinReqId = intent.metadata?.join_request_id;
+        if (type === "matchup_fee") {
+          // Each team pays R$10 separately.
+          // payer_role = "challenger" | "challenged"
+          const challengeId = intent.metadata?.challenge_id;
+          const payerRole   = intent.metadata?.payer_role as "challenger" | "challenged" | undefined;
 
-          if (teamId && profileId) {
-            // Mark player as full member (freemium → paid)
-            await supabase.from("team_members").update({ payment_status: "paid" })
-              .eq("team_id", teamId)
-              .eq("profile_id", profileId);
+          if (challengeId && payerRole) {
+            const field = payerRole === "challenger" ? "challenger_paid_at" : "challenged_paid_at";
+            await supabase.from("team_challenges")
+              .update({ [field]: new Date().toISOString() })
+              .eq("id", challengeId);
 
-            // Approve join request if pending
-            if (joinReqId) {
-              await supabase.from("team_join_requests").update({ status: "approved" })
-                .eq("id", joinReqId);
+            // Check if BOTH teams have now paid
+            const { data: challenge } = await supabase
+              .from("team_challenges")
+              .select("id, challenger_team_id, challenged_team_id, challenger_paid_at, challenged_paid_at")
+              .eq("id", challengeId)
+              .single();
+
+            if (challenge?.challenger_paid_at && challenge?.challenged_paid_at) {
+              // Both paid → confirm and create the game
+              await supabase.from("team_challenges")
+                .update({ status: "confirmed" })
+                .eq("id", challengeId);
+
+              // Create game record for each team (or a shared inter-team game)
+              const { data: game } = await supabase.from("games").insert({
+                team_id:     challenge.challenger_team_id,
+                title:       "Jogo entre times",
+                date:        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                time:        "16:00",
+                location:    "A definir",
+                status:      "scheduled",
+                description: `Desafio aceito — aguarda definição de local e horário.`,
+              }).select().single();
+
+              // Link game to challenge
+              if (game) {
+                await supabase.from("team_challenges")
+                  .update({ game_id: game.id })
+                  .eq("id", challengeId);
+              }
+
+              // Notify both teams
+              await supabase.functions.invoke("send-team-broadcast", {
+                body: {
+                  team_id: challenge.challenger_team_id,
+                  title:   "Jogo confirmado! ⚽",
+                  message: "Ambos os times confirmaram o pagamento. O jogo foi marcado!",
+                },
+              }).catch(() => {});
+              await supabase.functions.invoke("send-team-broadcast", {
+                body: {
+                  team_id: challenge.challenged_team_id,
+                  title:   "Jogo confirmado! ⚽",
+                  message: "Ambos os times confirmaram o pagamento. O jogo foi marcado!",
+                },
+              }).catch(() => {});
+            } else {
+              // Only one side paid — update status to reflect partial payment
+              const newStatus = payerRole === "challenger" ? "challenger_paid" : "challenged_paid";
+              await supabase.from("team_challenges").update({ status: newStatus }).eq("id", challengeId);
             }
           }
-          console.log(`join_fee paid — team ${teamId}, profile ${profileId}`);
-        }
-
-        if (type === "matchup_fee") {
-          // Challenge fee paid — mark challenge as paid, notify challenged team
-          const challengeId = intent.metadata?.challenge_id;
-          if (challengeId) {
-            await supabase.from("team_challenges").update({ status: "paid" })
-              .eq("id", challengeId);
-          }
-          console.log(`matchup_fee paid — challenge ${challengeId}`);
+          console.log(`matchup_fee paid — challenge ${challengeId}, payer: ${payerRole}`);
         }
         break;
       }

@@ -18,16 +18,12 @@ const CORS = {
 };
 
 // Payment type configs
+// join_fee removed — players join teams for free.
+// matchup_fee: R$10 per team (each pays separately, game confirmed when both pay).
 const PAYMENT_CONFIG = {
-  join_fee: {
-    amount_cents:  1000,
-    description:   "Taxa de entrada no time — R$10,00",
-    disclaimer:    "Pagamento único e não reembolsável, mesmo em caso de cancelamento do jogo.",
-    expires_hours: 48,
-  },
   matchup_fee: {
-    amount_cents:  2000,
-    description:   "Taxa de desafio entre times — R$20,00",
+    amount_cents:  1000,
+    description:   "Taxa de confirmação de jogo entre times — R$10,00",
     disclaimer:    "Pagamento único e não reembolsável, mesmo em caso de cancelamento da partida.",
     expires_hours: 24,
   },
@@ -51,14 +47,12 @@ serve(async (req) => {
     if (authErr || !user) return new Response("Unauthorized", { status: 401 });
 
     const body = await req.json() as {
-      type:           PaymentType;
-      team_id:        string;
-      return_url:     string;
-      // join_fee extras
-      join_request_id?: string;
+      type:               PaymentType;
+      team_id:            string;
+      return_url:         string;
       // matchup_fee extras
-      challenged_team_id?: string;
-      challenge_id?:  string;
+      challenge_id?:      string;
+      payer_role?:        "challenger" | "challenged";
     };
 
     const config = PAYMENT_CONFIG[body.type];
@@ -95,9 +89,8 @@ serve(async (req) => {
       team_id:    body.team_id,
       profile_id: profile?.id ?? "",
     };
-    if (body.join_request_id)    metadata.join_request_id    = body.join_request_id;
-    if (body.challenged_team_id) metadata.challenged_team_id = body.challenged_team_id;
-    if (body.challenge_id)       metadata.challenge_id        = body.challenge_id;
+    if (body.challenge_id) metadata.challenge_id = body.challenge_id;
+    if (body.payer_role)   metadata.payer_role   = body.payer_role;
 
     // Stripe Checkout Session (one-time payment) — supports PIX + card
     const session = await stripe.checkout.sessions.create({

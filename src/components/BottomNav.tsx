@@ -1,25 +1,28 @@
 // ============================================================
-// src/components/BottomNav.tsx  — FASE 1
+// src/components/BottomNav.tsx
 // Bottom navigation bar para mobile (<768px)
-// 5 itens principais + badge de notificação no Dashboard
+// Admin: Dashboard, Jogos, Finanças, Jogo Ativo, Config.
+// Player: Dashboard, Jogadores, Jogo Ativo, Rankings, Config.
 // ============================================================
 
 import { Badge } from "@/components/ui/badge";
-import { ViewType, BOTTOM_NAV_ITEMS, NAV_ITEMS } from "@/types/navigation";
-import { LayoutDashboard, Users, Calendar, Play, Award } from "lucide-react";
+import { ViewType, BOTTOM_NAV_ITEMS_ADMIN, BOTTOM_NAV_ITEMS_PLAYER, NAV_ITEMS } from "@/types/navigation";
+import { LayoutDashboard, Users, Calendar, Play, Award, DollarSign, Settings } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  LayoutDashboard, Users, Calendar, Play, Award,
+  LayoutDashboard, Users, Calendar, Play, Award, DollarSign, Settings,
 };
 
 interface BottomNavProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
   unreadCount?: number;
+  isAdmin?: boolean;
 }
 
-export function BottomNav({ currentView, onViewChange, unreadCount = 0 }: BottomNavProps) {
-  const items = BOTTOM_NAV_ITEMS
+export function BottomNav({ currentView, onViewChange, unreadCount = 0, isAdmin = false }: BottomNavProps) {
+  const keys = isAdmin ? BOTTOM_NAV_ITEMS_ADMIN : BOTTOM_NAV_ITEMS_PLAYER;
+  const items = keys
     .map(key => NAV_ITEMS.find(n => n.key === key))
     .filter(Boolean) as typeof NAV_ITEMS;
 

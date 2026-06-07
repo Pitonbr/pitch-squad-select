@@ -139,6 +139,13 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
 
     await refreshTeams();
 
+    // Activate 7-day free trial for new team
+    const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await supabase.from("teams").update({
+      subscription_status: "trialing",
+      subscription_trial_end: trialEnd,
+    }).eq("id", team.id).catch(() => {});
+
     // Store team info and route to pricing via the "done" useEffect mechanism
     // (avoids race condition between direct navigate and the done-step useEffect)
     localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));

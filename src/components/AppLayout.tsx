@@ -7,10 +7,12 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { BottomNav } from "@/components/BottomNav";
+import { TrialBanner } from "@/components/TrialBanner";
 import { ViewType } from "@/types/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface AppLayoutProps {
   currentView: ViewType;
@@ -21,8 +23,10 @@ interface AppLayoutProps {
 export function AppLayout({ currentView, onViewChange, children }: AppLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { activeTeam } = useTeams();
+  const { activeTeam, isTeamAdmin } = useTeams();
   const { profile } = useAuth();
+  const { status: subStatus, daysUntilEnd } = useSubscription();
+  const isAdmin = activeTeam ? isTeamAdmin(activeTeam.id) : false;
 
   // Colapsa sidebar em viewport tablet (768–1023px)
   useEffect(() => {
@@ -68,6 +72,13 @@ export function AppLayout({ currentView, onViewChange, children }: AppLayoutProp
 
       {/* Área de conteúdo */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Banner de trial gratuito */}
+        {subStatus === "trialing" && daysUntilEnd !== null && (
+          <TrialBanner
+            daysRemaining={daysUntilEnd}
+            onSubscribe={() => onViewChange("settings")}
+          />
+        )}
         <main id="main-content" className="flex-1 overflow-y-auto overflow-x-hidden stadium-bg">
           {/* pb-24 md:pb-8 → espaço para BottomNav no mobile */}
           <div className="px-4 py-6 md:px-6 md:py-8 pb-24 md:pb-8 view-enter">
@@ -77,7 +88,12 @@ export function AppLayout({ currentView, onViewChange, children }: AppLayoutProp
       </div>
 
       {/* BottomNav — mobile */}
-      <BottomNav currentView={currentView} onViewChange={onViewChange} unreadCount={unreadCount} />
+      <BottomNav
+        currentView={currentView}
+        onViewChange={onViewChange}
+        unreadCount={unreadCount}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }
