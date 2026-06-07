@@ -36,7 +36,7 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
   const navigate  = useNavigate();
   const { toast } = useToast();
   const { user, profile } = useAuth();
-  const { joinTeamByCode, createTeam, refreshTeams } = useTeams();
+  const { joinTeamByCode, createTeam } = useTeams();
   const { searchTeams } = useTeamSearch();
 
   const flow = useOnboardingFlow(inviteCode);
@@ -123,35 +123,28 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
     const team = await createTeam(data.name, data.description);
     if (!team) return;
 
-    try {
-      await supabase.from("teams").update({
-        state:             data.state,
-        city:              data.city,
-        neighborhood:      data.neighborhood ?? null,
-        game_type:         data.game_type,
-        usual_days:        data.usual_days,
-        usual_time:        data.usual_time,
-        is_public:         data.is_public,
-        accepting_players: data.accepting_players,
-        logo_url:          data.logo_url ?? null,
-      }).eq("id", team.id);
-    } catch { /* best-effort */ }
-
-    await refreshTeams();
-
-    // Activate 7-day free trial for new team
+    // Fire-and-forget: update team details + activate 7-day trial in one call.
+    // No await — don't block navigation on a best-effort update.
     const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await supabase.from("teams").update({
-      subscription_status: "trialing",
-      subscription_trial_end: trialEnd,
+    supabase.from("teams").update({
+      state:                   data.state,
+      city:                    data.city,
+      neighborhood:            data.neighborhood ?? null,
+      game_type:               data.game_type,
+      usual_days:              data.usual_days,
+      usual_time:              data.usual_time,
+      is_public:               data.is_public,
+      accepting_players:       data.accepting_players,
+      logo_url:                data.logo_url ?? null,
+      subscription_status:     "trialing",
+      subscription_trial_end:  trialEnd,
     }).eq("id", team.id).catch(() => {});
 
-    // Store team info and route to pricing via the "done" useEffect mechanism
-    // (avoids race condition between direct navigate and the done-step useEffect)
+    // Navigate to pricing immediately via the "done" useEffect mechanism.
     localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));
     localStorage.setItem("post_onboarding_redirect", "/pricing");
     if (user?.id) markOnboardingDone(user.id);
-    flow.finish(user?.id); // sets step → "done" → useEffect navigates to /pricing
+    flow.finish(user?.id);
   };
 
   // ── Personal steps shared logic ───────────────────────────────
