@@ -139,15 +139,12 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
 
     await refreshTeams();
 
-    // Mark onboarding done but keep user on pricing screen
-    if (user?.id) markOnboardingDone(user.id);
-    flow.finish(user?.id);
-    // Navigate to pricing within onboarding (state handled by pricing page itself)
-    // We keep user in /onboarding-style layout by navigating to a "pricing" step
-    // Actually: redirect to root and show PricingPlans via pending state
-    // Simple approach: store team name for pricing and navigate
+    // Store team info and route to pricing via the "done" useEffect mechanism
+    // (avoids race condition between direct navigate and the done-step useEffect)
     localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));
-    navigate("/pricing", { replace: true });
+    localStorage.setItem("post_onboarding_redirect", "/pricing");
+    if (user?.id) markOnboardingDone(user.id);
+    flow.finish(user?.id); // sets step → "done" → useEffect navigates to /pricing
   };
 
   // ── Personal steps shared logic ───────────────────────────────
