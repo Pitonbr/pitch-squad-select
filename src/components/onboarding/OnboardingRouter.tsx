@@ -26,7 +26,6 @@ import { MatchResults }         from "./MatchResults";
 import { RequestConfirmation }  from "./RequestConfirmation";
 import { NoResultsScreen }      from "./NoResultsScreen";
 import { TeamRegistrationForm } from "./TeamRegistrationForm";
-import { PricingPlans }         from "@/components/payment/PricingPlans";
 
 interface OnboardingRouterProps {
   inviteCode?: string;

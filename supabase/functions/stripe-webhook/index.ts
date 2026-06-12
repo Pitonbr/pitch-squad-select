@@ -52,6 +52,49 @@ async function markPendingPaid(sessionId: string) {
   await supabase.from("pending_payments").update({ status: "paid" }).eq("stripe_session_id", sessionId);
 }
 
+// Sends a payment-reminder email to the team admin (trial ending / payment failed)
+async function notifyTeamAdmin(teamId: string, kind: "trial_ending" | "payment_failed") {
+  const { data: team } = await supabase
+    .from("teams")
+    .select("name, subscription_plan, subscription_trial_end")
+    .eq("id", teamId)
+    .single();
+  if (!team) return;
+
+  const { data: adminMember } = await supabase
+    .from("team_members")
+    .select("profiles(display_name, user_id)")
+    .eq("team_id", teamId)
+    .eq("role", "admin")
+    .limit(1)
+    .maybeSingle();
+
+  const adminProfile = adminMember?.profiles as { display_name: string | null; user_id: string } | null;
+  if (!adminProfile?.user_id) return;
+
+  const { data: userData } = await supabase.auth.admin.getUserById(adminProfile.user_id);
+  const email = userData?.user?.email;
+  if (!email) return;
+
+  await supabase.functions.invoke("send-payment-reminder", {
+    body: {
+      email,
+      playerName:  adminProfile.display_name ?? "Administrador",
+      teamName:    team.name,
+      paymentType: "monthly",
+      amount:      team.subscription_plan === "annual" ? 646.92 : 59.90,
+      dueDate:     kind === "trial_ending" ? team.subscription_trial_end : new Date().toISOString(),
+    },
+  }).catch(() => {});
+}
+
+// Notifies all members of a team via the team-broadcast function (system call, service-role bearer)
+async function notifyTeam(teamId: string, subject: string, message: string) {
+  await supabase.functions.invoke("send-team-broadcast", {
+    body: { teamId, subject, message, recipientType: "all" },
+  }).catch(() => {});
+}
+
 // ── Main handler ─────────────────────────────────────────────
 
 serve(async (req) => {
@@ -106,9 +149,7 @@ serve(async (req) => {
         const teamId = sub.metadata?.team_id;
         if (!teamId) break;
 
-        await supabase.functions.invoke("send-payment-reminder", {
-          body: { team_id: teamId, type: "trial_ending" },
-        }).catch(() => {});
+        await notifyTeamAdmin(teamId, "trial_ending");
         break;
       }
 
@@ -172,9 +213,7 @@ serve(async (req) => {
         await setTeamSubscriptionStatus(teamId, "readonly");
 
         // Send failure notification
-        await supabase.functions.invoke("send-payment-reminder", {
-          body: { team_id: teamId, type: "payment_failed" },
-        }).catch(() => {});
+        await notifyTeamAdmin(teamId, "payment_failed");
         console.log(`Team ${teamId} payment failed — set readonly`);
         break;
       }
@@ -211,11 +250,11 @@ serve(async (req) => {
             // Check if BOTH teams have now paid
             const { data: challenge } = await supabase
               .from("team_challenges")
-              .select("id, challenger_team_id, challenged_team_id, challenger_paid_at, challenged_paid_at")
+              .select("id, game_id, challenger_team_id, challenged_team_id, challenger_paid_at, challenged_paid_at")
               .eq("id", challengeId)
               .single();
 
-            if (challenge?.challenger_paid_at && challenge?.challenged_paid_at) {
+            if (challenge?.challenger_paid_at && challenge?.challenged_paid_at && !challenge.game_id) {
               // Both paid → confirm and create the game
               await supabase.from("team_challenges")
                 .update({ status: "confirmed" })
@@ -232,7 +271,7 @@ serve(async (req) => {
                 description: `Desafio aceito — aguarda definição de local e horário.`,
               }).select().single();
 
-              // Link game to challenge
+              // Link game to challenge (also guards against duplicate creation on webhook retries)
               if (game) {
                 await supabase.from("team_challenges")
                   .update({ game_id: game.id })
@@ -240,21 +279,9 @@ serve(async (req) => {
               }
 
               // Notify both teams
-              await supabase.functions.invoke("send-team-broadcast", {
-                body: {
-                  team_id: challenge.challenger_team_id,
-                  title:   "Jogo confirmado! ⚽",
-                  message: "Ambos os times confirmaram o pagamento. O jogo foi marcado!",
-                },
-              }).catch(() => {});
-              await supabase.functions.invoke("send-team-broadcast", {
-                body: {
-                  team_id: challenge.challenged_team_id,
-                  title:   "Jogo confirmado! ⚽",
-                  message: "Ambos os times confirmaram o pagamento. O jogo foi marcado!",
-                },
-              }).catch(() => {});
-            } else {
+              await notifyTeam(challenge.challenger_team_id, "Jogo confirmado! ⚽", "Ambos os times confirmaram o pagamento. O jogo foi marcado!");
+              await notifyTeam(challenge.challenged_team_id, "Jogo confirmado! ⚽", "Ambos os times confirmaram o pagamento. O jogo foi marcado!");
+            } else if (!challenge?.game_id) {
               // Only one side paid — update status to reflect partial payment
               const newStatus = payerRole === "challenger" ? "challenger_paid" : "challenged_paid";
               await supabase.from("team_challenges").update({ status: newStatus }).eq("id", challengeId);

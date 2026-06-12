@@ -5,7 +5,7 @@
 // ============================================================
 
 export type ViewType =
-  | "dashboard" | "players" | "addPlayer" | "games" | "addGame"
+  | "dashboard" | "players" | "games"
   | "tournaments" | "liveGame" | "rankings" | "teamManager"
   | "finances" | "requests" | "joinRequests" | "audit"
   | "management" | "settings";

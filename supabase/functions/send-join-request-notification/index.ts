@@ -48,7 +48,6 @@ const handler = async (req: Request): Promise<Response> => {
           playerName,
           teamName,
           gameTitle,
-          dashboardUrl: `https://${Deno.env.get("SUPABASE_URL")?.replace('https://', '')}`
         })
       );
     } else {

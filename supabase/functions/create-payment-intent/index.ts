@@ -72,6 +72,18 @@ serve(async (req) => {
 
     if (!team) return new Response("Team not found", { status: 404 });
 
+    // Caller must be a member of the team they're paying for
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("role")
+      .eq("team_id", body.team_id)
+      .eq("profile_id", profile?.id)
+      .maybeSingle();
+
+    if (!membership) {
+      return new Response("Forbidden: not a member of this team", { status: 403 });
+    }
+
     // Create or reuse Stripe Customer for the player
     let customerId = team.stripe_customer_id;
     if (!customerId) {

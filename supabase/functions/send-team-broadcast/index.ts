@@ -54,22 +54,28 @@ function sanitizeInput(input: string, maxLength: number): string {
 }
 
 // Get team members based on recipient type
-async function getRecipients(teamId: string, recipientType: string, requestingUserId: string) {
+async function getRecipients(teamId: string, recipientType: string, requestingUserId: string | null) {
   console.log(`📋 Fetching recipients for team ${teamId}, type: ${recipientType}`);
 
-  // First, verify the requesting user is a team admin
-  const { data: isAdmin, error: adminCheckError } = await supabase
-    .rpc('is_team_admin', {
-      _user_id: requestingUserId,
-      _team_id: teamId,
-    });
+  // requestingUserId === null means this is a trusted system call (service-role),
+  // e.g. an automated "game confirmed" notification from stripe-webhook.
+  if (requestingUserId) {
+    // Verify the requesting user is a team admin
+    const { data: isAdmin, error: adminCheckError } = await supabase
+      .rpc('is_team_admin', {
+        _user_id: requestingUserId,
+        _team_id: teamId,
+      });
 
-  if (adminCheckError || !isAdmin) {
-    console.error("❌ Admin check failed:", adminCheckError);
-    throw new Error("Acesso negado: apenas administradores podem enviar comunicados");
+    if (adminCheckError || !isAdmin) {
+      console.error("❌ Admin check failed:", adminCheckError);
+      throw new Error("Acesso negado: apenas administradores podem enviar comunicados");
+    }
+
+    console.log("✅ User is team admin, proceeding with recipient fetch");
+  } else {
+    console.log("✅ System call (service role), proceeding with recipient fetch");
   }
-
-  console.log("✅ User is team admin, proceeding with recipient fetch");
 
   let query = supabase
     .from('team_members')
@@ -136,14 +142,21 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-    if (userError || !user) {
-      console.error("❌ User authentication failed:", userError);
-      return new Response(
-        JSON.stringify({ error: "Não autorizado" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Trusted system call (e.g. stripe-webhook) authenticates with the service-role key
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    let requestingUserId: string | null = null;
+
+    if (token !== serviceRoleKey) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      if (userError || !user) {
+        console.error("❌ User authentication failed:", userError);
+        return new Response(
+          JSON.stringify({ error: "Não autorizado" }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      requestingUserId = user.id;
     }
 
     const body: BroadcastRequest = await req.json();
@@ -163,7 +176,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`📧 Starting broadcast for team ${body.teamId}`);
 
     // Get recipients
-    const recipients = await getRecipients(body.teamId, body.recipientType, user.id);
+    const recipients = await getRecipients(body.teamId, body.recipientType, requestingUserId);
 
     if (recipients.length === 0) {
       return new Response(

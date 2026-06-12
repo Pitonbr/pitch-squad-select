@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_broadcasts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          sent_at: string | null
+          target: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          sent_at?: string | null
+          target?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          sent_at?: string | null
+          target?: string
+          title?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -623,6 +653,120 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json
+          profile_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          team_id: string | null
+          type: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json
+          profile_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          team_id?: string | null
+          type: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json
+          profile_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          team_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          expires_at: string
+          id: string
+          metadata: Json
+          profile_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          team_id: string
+          type: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          metadata?: Json
+          profile_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          team_id: string
+          type: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json
+          profile_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          team_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_payments: {
         Row: {
           amount: number
@@ -881,6 +1025,81 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_uses: {
+        Row: {
+          code_id: string
+          id: string
+          team_id: string
+          used_at: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          team_id: string
+          used_at?: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          team_id?: string
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_uses_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_uses_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          type: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          type?: string
+          used_count?: number
+          value?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          type?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           created_at: string
@@ -981,6 +1200,120 @@ export type Database = {
           verified?: boolean
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan: string
+          status: string
+          stripe_customer_id: string
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          team_id: string
+          trial_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          team_id: string
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          team_id?: string
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_challenges: {
+        Row: {
+          challenged_paid_at: string | null
+          challenged_team_id: string
+          challenger_paid_at: string | null
+          challenger_team_id: string
+          created_at: string
+          game_id: string | null
+          id: string
+          payment_session_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          challenged_paid_at?: string | null
+          challenged_team_id: string
+          challenger_paid_at?: string | null
+          challenger_team_id: string
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          payment_session_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          challenged_paid_at?: string | null
+          challenged_team_id?: string
+          challenger_paid_at?: string | null
+          challenger_team_id?: string
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          payment_session_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_challenges_challenged_team_id_fkey"
+            columns: ["challenged_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_challenges_challenger_team_id_fkey"
+            columns: ["challenger_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_challenges_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_expenses: {
         Row: {
@@ -1199,49 +1532,88 @@ export type Database = {
       }
       teams: {
         Row: {
+          accepting_players: boolean
           admin_id: string
           city: string | null
           created_at: string
           description: string | null
+          game_type: string | null
           id: string
           invite_code: string
           is_public: boolean | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
+          neighborhood: string | null
           public_description: string | null
           state: string | null
+          stripe_customer_id: string | null
+          subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_plan: string
+          subscription_status: string
+          subscription_trial_end: string | null
           treasurer_id: string | null
           updated_at: string
+          usual_days: string[] | null
+          usual_time: string | null
         }
         Insert: {
+          accepting_players?: boolean
           admin_id: string
           city?: string | null
           created_at?: string
           description?: string | null
+          game_type?: string | null
           id?: string
           invite_code?: string
           is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
+          neighborhood?: string | null
           public_description?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          subscription_trial_end?: string | null
           treasurer_id?: string | null
           updated_at?: string
+          usual_days?: string[] | null
+          usual_time?: string | null
         }
         Update: {
+          accepting_players?: boolean
           admin_id?: string
           city?: string | null
           created_at?: string
           description?: string | null
+          game_type?: string | null
           id?: string
           invite_code?: string
           is_public?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
+          neighborhood?: string | null
           public_description?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          subscription_trial_end?: string | null
           treasurer_id?: string | null
           updated_at?: string
+          usual_days?: string[] | null
+          usual_time?: string | null
         }
         Relationships: [
           {

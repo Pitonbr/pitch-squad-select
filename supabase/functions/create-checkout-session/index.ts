@@ -59,6 +59,18 @@ serve(async (req) => {
 
     if (!team) return new Response("Team not found", { status: 404 });
 
+    // Only the team admin can manage the subscription
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("role")
+      .eq("team_id", team_id)
+      .eq("profile_id", profile?.id)
+      .maybeSingle();
+
+    if (!membership || membership.role !== "admin") {
+      return new Response("Forbidden: only the team admin can manage the subscription", { status: 403 });
+    }
+
     // Create or reuse Stripe Customer
     let customerId = team.stripe_customer_id;
     if (!customerId) {
