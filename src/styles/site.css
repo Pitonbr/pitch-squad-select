@@ -1,0 +1,125 @@
+/* ============================================================
+   Soccer Squad — Site de Marketing (Copa 2026)
+   Importar APENAS nas páginas do site: import "@/styles/site.css"
+   Não interfere nos tokens do app (escopo .ss-site)
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,800;0,900;1,800&family=Inter:wght@400;500;600&display=swap");
+
+.ss-site {
+  /* Paleta Copa: cada funcionalidade veste uma cor */
+  --ss-ink: #0a1b14;
+  --ss-paper: #fbfdfc;
+  --ss-brand: #0f6e56;
+  --ss-brand-vivid: #1d9e75;
+  --ss-brand-soft: #e1f5ee;
+  --ss-lime: #97c459;
+  --ss-lime-deep: #3b6d11;
+  --ss-lime-soft: #eaf3de;
+  --ss-royal: #185fa5;
+  --ss-royal-vivid: #378add;
+  --ss-royal-soft: #e6f1fb;
+  --ss-amber: #ef9f27;
+  --ss-amber-deep: #854f0b;
+  --ss-amber-soft: #faeeda;
+  --ss-coral: #d85a30;
+  --ss-coral-deep: #993c1d;
+  --ss-coral-soft: #faece7;
+
+  --ss-display: "Archivo", system-ui, sans-serif;
+  --ss-body: "Inter", system-ui, sans-serif;
+
+  font-family: var(--ss-body);
+  color: var(--ss-ink);
+  background: var(--ss-paper);
+}
+
+.ss-site h1,
+.ss-site h2,
+.ss-site h3,
+.ss-display {
+  font-family: var(--ss-display);
+  letter-spacing: -0.02em;
+}
+
+/* Eyebrow estilo placar de estádio */
+.ss-eyebrow {
+  font-family: var(--ss-display);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ---- Faixa 26: assinatura visual do site ---- */
+.ss-band {
+  display: flex;
+  height: 6px;
+  width: 100%;
+}
+.ss-band > span { flex: 1 1 0%; }
+.ss-band > span:nth-child(1) { background: var(--ss-brand-vivid); }
+.ss-band > span:nth-child(2) { background: var(--ss-royal-vivid); }
+.ss-band > span:nth-child(3) { background: var(--ss-amber); }
+.ss-band > span:nth-child(4) { background: var(--ss-coral); }
+.ss-band > span:nth-child(5) { background: var(--ss-lime); }
+.ss-band--thin { height: 3px; max-width: 96px; }
+
+/* ---- Reveal on scroll (respeita reduced motion) ---- */
+.ss-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.ss-reveal.ss-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ss-reveal { opacity: 1; transform: none; transition: none; }
+  .ss-marquee-track { animation: none !important; }
+}
+
+/* ---- Marquee da faixa Copa ---- */
+.ss-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ss-marquee-track {
+  display: inline-flex;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  animation: ss-scroll 28s linear infinite;
+}
+@keyframes ss-scroll {
+  to { transform: translateX(-50%); }
+}
+
+/* ---- Card de escalação do hero ---- */
+.ss-sheet {
+  transform: rotate(2deg);
+  transition: transform 0.4s ease;
+}
+.ss-sheet:hover { transform: rotate(0deg); }
+@media (prefers-reduced-motion: reduce) {
+  .ss-sheet, .ss-sheet:hover { transform: none; }
+}
+
+/* ---- Pulso do placar ao vivo ---- */
+.ss-live-dot {
+  animation: ss-pulse 1.6s ease-in-out infinite;
+}
+@keyframes ss-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ss-live-dot { animation: none; }
+}
+
+/* Foco visível em fundo colorido */
+.ss-site a:focus-visible,
+.ss-site button:focus-visible {
+  outline: 3px solid var(--ss-royal-vivid);
+  outline-offset: 2px;
+}

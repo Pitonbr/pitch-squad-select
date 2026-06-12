@@ -605,6 +605,42 @@ export type Database = {
           },
         ]
       }
+      partner_leads: {
+        Row: {
+          city: string
+          contact_name: string
+          created_at: string
+          email: string | null
+          id: string
+          source: string
+          status: string
+          venue_name: string
+          whatsapp: string
+        }
+        Insert: {
+          city: string
+          contact_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          source?: string
+          status?: string
+          venue_name: string
+          whatsapp: string
+        }
+        Update: {
+          city?: string
+          contact_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          source?: string
+          status?: string
+          venue_name?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       password_reset_rate_limits: {
         Row: {
           attempt_count: number | null
@@ -2186,6 +2222,23 @@ export type Database = {
           name: string
           public_description: string
           state: string
+        }[]
+      }
+      site_public_rankings: {
+        Args: { limit_rows?: number }
+        Returns: {
+          city: string
+          games: number
+          team_name: string
+          wins: number
+        }[]
+      }
+      site_public_stats: {
+        Args: never
+        Returns: {
+          games_count: number
+          teams_count: number
+          tournaments_count: number
         }[]
       }
       verify_sms_code: {
