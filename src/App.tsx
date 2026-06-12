@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +27,12 @@ const GameCheckInPage = lazy(() => import("./pages/GameCheckInPage"));
 const Onboarding      = lazy(() => import("./pages/Onboarding"));
 const PaymentSuccess  = lazy(() => import("./pages/PaymentSuccess"));
 const Pricing         = lazy(() => import("./pages/Pricing"));
+
+const SiteLanding      = lazy(() => import("./pages/site/Landing"));
+const SiteTorneios     = lazy(() => import("./pages/site/Torneios"));
+const SiteQuadras      = lazy(() => import("./pages/site/Quadras"));
+const SitePlanos       = lazy(() => import("./pages/site/Planos"));
+const SiteRankings     = lazy(() => import("./pages/site/RankingsPublicos"));
 
 function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
   useThemeSync();
@@ -57,6 +64,7 @@ const App = () => {
   const { updateAvailable, updateInfo, applyUpdate } = useUpdateService();
   
   return (
+    <HelmetProvider>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="soccer-squad-theme">
       <SafeProvider
         onError={(error, errorInfo) => {
@@ -86,6 +94,11 @@ const App = () => {
                           <Route path="/join/:code"      element={<Onboarding />} />
                           <Route path="/payment-success" element={<PaymentSuccess />} />
                           <Route path="/pricing"         element={<Pricing />} />
+                          <Route path="/site"            element={<SiteLanding />} />
+                          <Route path="/site/torneios"   element={<SiteTorneios />} />
+                          <Route path="/site/quadras"    element={<SiteQuadras />} />
+                          <Route path="/site/planos"     element={<SitePlanos />} />
+                          <Route path="/site/rankings"   element={<SiteRankings />} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                           <Route path="*" element={<NotFound />} />
                         </Routes>
@@ -107,6 +120,7 @@ const App = () => {
         </QueryClientProvider>
       </SafeProvider>
     </ThemeProvider>
+    </HelmetProvider>
   );
 };
 
