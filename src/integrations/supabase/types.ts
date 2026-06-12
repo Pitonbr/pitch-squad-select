@@ -202,6 +202,13 @@ export type Database = {
             foreignKeyName: "financial_periods_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "financial_periods_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -245,6 +252,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "games"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_notifications_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "game_notifications_team_id_fkey"
@@ -381,6 +395,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "games_team_id_fkey"
@@ -705,6 +726,13 @@ export type Database = {
             foreignKeyName: "payment_transactions_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -757,6 +785,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "pending_payments_team_id_fkey"
@@ -927,6 +962,13 @@ export type Database = {
             foreignKeyName: "player_statistics_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "player_statistics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -985,6 +1027,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "players_team_id_fkey"
@@ -1051,6 +1100,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "promo_codes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_uses_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "promo_code_uses_team_id_fkey"
@@ -1249,6 +1305,13 @@ export type Database = {
             foreignKeyName: "subscriptions_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "subscriptions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -1296,8 +1359,22 @@ export type Database = {
             foreignKeyName: "team_challenges_challenged_team_id_fkey"
             columns: ["challenged_team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_challenges_challenged_team_id_fkey"
+            columns: ["challenged_team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_challenges_challenger_team_id_fkey"
+            columns: ["challenger_team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "team_challenges_challenger_team_id_fkey"
@@ -1432,6 +1509,13 @@ export type Database = {
             foreignKeyName: "team_join_requests_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_join_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -1466,6 +1550,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "team_members_team_id_fkey"
@@ -1787,7 +1878,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      team_payment_status: {
+        Row: {
+          can_access: boolean | null
+          can_create: boolean | null
+          subscription_period_end: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
+          subscription_trial_end: string | null
+          team_id: string | null
+          team_name: string | null
+        }
+        Insert: {
+          can_access?: never
+          can_create?: never
+          subscription_period_end?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          subscription_trial_end?: string | null
+          team_id?: string | null
+          team_name?: string | null
+        }
+        Update: {
+          can_access?: never
+          can_create?: never
+          subscription_period_end?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          subscription_trial_end?: string | null
+          team_id?: string | null
+          team_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_player_request: {
@@ -1853,6 +1976,7 @@ export type Database = {
               team_name: string
             }[]
           }
+      expire_pending_payments: { Args: never; Returns: undefined }
       get_brazilian_states: {
         Args: never
         Returns: {
@@ -1966,6 +2090,7 @@ export type Database = {
         Args: { verification_id: string }
         Returns: undefined
       }
+      is_master_admin: { Args: never; Returns: boolean }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
