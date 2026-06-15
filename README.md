@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+# Soccer Squad
 
-## Project info
+Sistema completo de gestão de partidas de futebol amador: cadastro de jogadores, check-in automático, formação de times equilibradas, torneios, financeiro e site de marketing.
 
-**URL**: https://lovable.dev/projects/d03ce0d8-404a-45d6-9815-9b36deec52ac
+## Stack
 
-## How can I edit this code?
+- Vite + React + TypeScript
+- Tailwind CSS + shadcn/ui
+- Supabase (auth, banco de dados, realtime, edge functions)
+- React Router + TanStack Query
 
-There are several ways of editing your application.
+## Setup local
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/d03ce0d8-404a-45d6-9815-9b36deec52ac) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Requisitos: Node.js 20+ (recomendado via [nvm](https://github.com/nvm-sh/nvm)).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/Pitonbr/pitch-squad-select.git
+cd pitch-squad-select
+npm install
+cp .env.example .env   # preencher com as credenciais do projeto Supabase
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O app sobe em `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` — servidor de desenvolvimento
+- `npm run build` — build de produção (gera `dist/`)
+- `npm run preview` — serve o build de produção localmente
+- `npm run lint` — checagem de lint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Banco de dados (Supabase CLI)
 
-## What technologies are used for this project?
+Schema e tipos são gerenciados via [Supabase CLI](https://supabase.com/docs/guides/cli):
 
-This project is built with:
+```sh
+npm install -g supabase
+supabase login                                  # ou export SUPABASE_ACCESS_TOKEN=...
+supabase link --project-ref fupqwyzwjvlnklbazqjm
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Workflow para mudanças de schema:
 
-## How can I deploy this project?
+```sh
+supabase migration new nome_da_mudanca   # cria arquivo em supabase/migrations/
+# editar o SQL gerado
+supabase db push                          # aplica no projeto remoto
+supabase gen types typescript --linked --schema public > src/integrations/supabase/types.ts
+```
 
-Simply open [Lovable](https://lovable.dev/projects/d03ce0d8-404a-45d6-9815-9b36deec52ac) and click on Share -> Publish.
+## Deploy
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+O deploy de produção (`soccersquad.com.br`) é feito via GitHub Actions para a Hostinger a cada push em `main` (ver `.github/workflows/deploy.yml`).
