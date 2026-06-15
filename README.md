@@ -51,4 +51,8 @@ supabase gen types typescript --linked --schema public > src/integrations/supaba
 
 ## Deploy
 
-O deploy de produção (`soccersquad.com.br`) é feito via GitHub Actions para a Hostinger a cada push em `main` (ver `.github/workflows/deploy.yml`).
+O deploy de produção (`soccersquad.com.br`) é feito via **Cloudflare Pages**, com integração nativa ao GitHub: a cada push em `main`, o Cloudflare builda (`npm run build`) e publica o conteúdo de `dist/` automaticamente.
+
+- Roteamento de SPA: `public/_redirects` (`/* /index.html 200`).
+- Headers de segurança/cache: `public/_headers`.
+- Variáveis de build (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`) configuradas em Workers & Pages > Settings > Environment variables.
