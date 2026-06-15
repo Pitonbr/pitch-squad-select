@@ -11,6 +11,9 @@ import UpdatePrompt from "./components/UpdatePrompt";
 import MobileOptimized from "./components/MobileOptimized";
 import { AuthProvider } from "./hooks/useAuth";
 import { TeamsProvider } from "./hooks/useTeams";
+import { AdminAuthProvider } from "./hooks/useAdminAuth";
+import AdminGuard from "./components/admin/AdminGuard";
+import AdminLayout from "./components/admin/AdminLayout";
 import { SafeProvider } from "./components/SafeProvider";
 import { useErrorDetection } from "./components/SafeProvider";
 import { useUpdateService } from "./hooks/useUpdateService";
@@ -33,6 +36,16 @@ const SiteTorneios     = lazy(() => import("./pages/site/Torneios"));
 const SiteQuadras      = lazy(() => import("./pages/site/Quadras"));
 const SitePlanos       = lazy(() => import("./pages/site/Planos"));
 const SiteRankings     = lazy(() => import("./pages/site/RankingsPublicos"));
+
+// Admin panel
+const AdminLogin         = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard     = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers         = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminAnnouncements = lazy(() => import("./pages/admin/AdminAnnouncements"));
+const AdminCoupons       = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminCampaigns     = lazy(() => import("./pages/admin/AdminCampaigns"));
+const AdminBanners       = lazy(() => import("./pages/admin/AdminBanners"));
+const AdminFinancial     = lazy(() => import("./pages/admin/AdminFinancial"));
 
 function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
   useThemeSync();
@@ -99,6 +112,59 @@ const App = () => {
                           <Route path="/site/quadras"    element={<SiteQuadras />} />
                           <Route path="/site/planos"     element={<SitePlanos />} />
                           <Route path="/site/rankings"   element={<SiteRankings />} />
+
+                          {/* Admin panel — rotas isoladas, sem providers do app */}
+                          <Route path="/admin/login" element={<AdminAuthProvider><AdminLogin /></AdminAuthProvider>} />
+                          <Route path="/admin" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminDashboard /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/users" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminUsers /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/announcements" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminAnnouncements /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/coupons" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminCoupons /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/campaigns" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminCampaigns /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/banners" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminBanners /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+                          <Route path="/admin/financial" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminFinancial /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                           <Route path="*" element={<NotFound />} />
                         </Routes>
