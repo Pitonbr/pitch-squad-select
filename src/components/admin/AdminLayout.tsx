@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  Crown,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -26,6 +27,7 @@ const nav = [
   { to: "/admin/campaigns", label: "Campanhas",    icon: TrendingUp },
   { to: "/admin/banners",   label: "Banners",      icon: Image },
   { to: "/admin/financial", label: "Financeiro",   icon: BarChart3 },
+  { to: "/admin/managers",  label: "Gestores",     icon: Crown },
 ];
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {

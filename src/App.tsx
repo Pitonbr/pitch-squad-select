@@ -46,6 +46,7 @@ const AdminCoupons       = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminCampaigns     = lazy(() => import("./pages/admin/AdminCampaigns"));
 const AdminBanners       = lazy(() => import("./pages/admin/AdminBanners"));
 const AdminFinancial     = lazy(() => import("./pages/admin/AdminFinancial"));
+const AdminManagers      = lazy(() => import("./pages/admin/AdminManagers"));
 
 function ThemeSyncWrapper({ children }: { children: React.ReactNode }) {
   useThemeSync();
@@ -161,6 +162,14 @@ const App = () => {
                             <AdminAuthProvider>
                               <AdminGuard>
                                 <AdminLayout><AdminFinancial /></AdminLayout>
+                              </AdminGuard>
+                            </AdminAuthProvider>
+                          } />
+
+                          <Route path="/admin/managers" element={
+                            <AdminAuthProvider>
+                              <AdminGuard>
+                                <AdminLayout><AdminManagers /></AdminLayout>
                               </AdminGuard>
                             </AdminAuthProvider>
                           } />
