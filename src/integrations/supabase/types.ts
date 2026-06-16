@@ -14,33 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      admin_broadcasts: {
+      admin_banners: {
         Row: {
+          clicks: number
           created_at: string
           created_by: string | null
+          ends_at: string | null
           id: string
-          message: string
-          sent_at: string | null
+          image_url: string
+          impressions: number
+          is_active: boolean
+          link_text: string | null
+          link_url: string | null
+          starts_at: string | null
           target: string
           title: string
         }
         Insert: {
+          clicks?: number
           created_at?: string
           created_by?: string | null
+          ends_at?: string | null
           id?: string
-          message: string
-          sent_at?: string | null
+          image_url: string
+          impressions?: number
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          starts_at?: string | null
           target?: string
           title: string
         }
         Update: {
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string
+          impressions?: number
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          starts_at?: string | null
+          target?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      admin_broadcasts: {
+        Row: {
+          channels: string[]
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          recipient_count: number | null
+          sent_at: string | null
+          status: string
+          target: string
+          title: string
+        }
+        Insert: {
+          channels?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          status?: string
+          target?: string
+          title: string
+        }
+        Update: {
+          channels?: string[]
           created_at?: string
           created_by?: string | null
           id?: string
           message?: string
+          recipient_count?: number | null
           sent_at?: string | null
+          status?: string
           target?: string
           title?: string
+        }
+        Relationships: []
+      }
+      admin_campaigns: {
+        Row: {
+          audience_filter: Json
+          click_count: number
+          created_at: string
+          created_by: string | null
+          cta_text: string | null
+          cta_url: string | null
+          description: string | null
+          ends_at: string | null
+          id: string
+          launched_at: string | null
+          message: string
+          name: string
+          sent_count: number
+          starts_at: string | null
+          status: string
+          subject: string
+          type: string
+        }
+        Insert: {
+          audience_filter?: Json
+          click_count?: number
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          launched_at?: string | null
+          message?: string
+          name: string
+          sent_count?: number
+          starts_at?: string | null
+          status?: string
+          subject?: string
+          type?: string
+        }
+        Update: {
+          audience_filter?: Json
+          click_count?: number
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          launched_at?: string | null
+          message?: string
+          name?: string
+          sent_count?: number
+          starts_at?: string | null
+          status?: string
+          subject?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      admin_cost_entries: {
+        Row: {
+          amount_brl: number
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          period_month: string
+        }
+        Insert: {
+          amount_brl: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          period_month: string
+        }
+        Update: {
+          amount_brl?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          period_month?: string
+        }
+        Relationships: []
+      }
+      admin_managers: {
+        Row: {
+          email: string
+          full_name: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          role: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          email: string
+          full_name?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string
+          full_name?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -317,6 +503,55 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_player_ratings: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          rated_player_id: string
+          rater_player_id: string
+          rating: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          rated_player_id: string
+          rater_player_id: string
+          rating: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          rated_player_id?: string
+          rater_player_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_player_ratings_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_player_ratings_rated_player_id_fkey"
+            columns: ["rated_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_player_ratings_rater_player_id_fkey"
+            columns: ["rater_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
@@ -946,6 +1181,7 @@ export type Database = {
       player_statistics: {
         Row: {
           assists: number | null
+          avg_rating: number | null
           fouls: number | null
           games_played: number | null
           goals: number | null
@@ -960,6 +1196,7 @@ export type Database = {
         }
         Insert: {
           assists?: number | null
+          avg_rating?: number | null
           fouls?: number | null
           games_played?: number | null
           goals?: number | null
@@ -974,6 +1211,7 @@ export type Database = {
         }
         Update: {
           assists?: number | null
+          avg_rating?: number | null
           fouls?: number | null
           games_played?: number | null
           goals?: number | null
@@ -1013,7 +1251,9 @@ export type Database = {
       players: {
         Row: {
           created_at: string
+          dominant_foot: string | null
           email: string | null
+          favorite_team: string | null
           id: string
           jersey_number: number | null
           name: string
@@ -1028,7 +1268,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dominant_foot?: string | null
           email?: string | null
+          favorite_team?: string | null
           id?: string
           jersey_number?: number | null
           name: string
@@ -1043,7 +1285,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dominant_foot?: string | null
           email?: string | null
+          favorite_team?: string | null
           id?: string
           jersey_number?: number | null
           name?: string
@@ -1082,6 +1326,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_notes: string | null
+          blocked_at: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -1091,6 +1337,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
+          blocked_at?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -1100,6 +1348,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
+          blocked_at?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -1158,10 +1408,13 @@ export type Database = {
           code: string
           created_at: string
           created_by: string | null
+          description: string | null
           expires_at: string | null
           id: string
           is_active: boolean
           max_uses: number | null
+          stripe_coupon_id: string | null
+          stripe_promo_id: string | null
           type: string
           used_count: number
           value: number
@@ -1170,10 +1423,13 @@ export type Database = {
           code: string
           created_at?: string
           created_by?: string | null
+          description?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           max_uses?: number | null
+          stripe_coupon_id?: string | null
+          stripe_promo_id?: string | null
           type?: string
           used_count?: number
           value?: number
@@ -1182,10 +1438,13 @@ export type Database = {
           code?: string
           created_at?: string
           created_by?: string | null
+          description?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           max_uses?: number | null
+          stripe_coupon_id?: string | null
+          stripe_promo_id?: string | null
           type?: string
           used_count?: number
           value?: number
@@ -1352,6 +1611,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_alerts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          message: string
+          starts_at: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          message: string
+          starts_at?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string
+          starts_at?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
       team_challenges: {
         Row: {
@@ -2013,6 +2308,144 @@ export type Database = {
             }[]
           }
       expire_pending_payments: { Args: never; Returns: undefined }
+      get_active_banners: {
+        Args: { p_target?: string }
+        Returns: {
+          id: string
+          image_url: string
+          link_text: string
+          link_url: string
+          target: string
+          title: string
+        }[]
+      }
+      get_admin_banners: {
+        Args: never
+        Returns: {
+          clicks: number
+          created_at: string
+          ends_at: string
+          id: string
+          image_url: string
+          impressions: number
+          is_active: boolean
+          link_text: string
+          link_url: string
+          starts_at: string
+          target: string
+          title: string
+        }[]
+      }
+      get_admin_broadcasts: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          channels: string[]
+          created_at: string
+          id: string
+          message: string
+          recipient_count: number
+          sent_at: string
+          status: string
+          target: string
+          title: string
+        }[]
+      }
+      get_admin_campaign_stats: { Args: never; Returns: Json }
+      get_admin_campaigns: {
+        Args: never
+        Returns: {
+          audience_filter: Json
+          click_count: number
+          created_at: string
+          cta_text: string
+          cta_url: string
+          description: string
+          ends_at: string
+          id: string
+          launched_at: string
+          message: string
+          name: string
+          sent_count: number
+          starts_at: string
+          status: string
+          subject: string
+          type: string
+        }[]
+      }
+      get_admin_cost_entries: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          amount_brl: number
+          category: string
+          created_at: string
+          description: string
+          id: string
+          period_month: string
+        }[]
+      }
+      get_admin_coupon_stats: { Args: never; Returns: Json }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
+      get_admin_managers: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          granted_at: string
+          id: string
+          is_active: boolean
+          notes: string
+          role: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      get_admin_pl_summary: { Args: never; Returns: Json }
+      get_admin_promo_codes: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          description: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          max_uses: number
+          stripe_coupon_id: string
+          stripe_promo_id: string
+          type: string
+          used_count: number
+          value: number
+        }[]
+      }
+      get_admin_revenue_summary: { Args: never; Returns: Json }
+      get_admin_system_alerts: {
+        Args: never
+        Returns: {
+          created_at: string
+          ends_at: string
+          id: string
+          is_active: boolean
+          message: string
+          starts_at: string
+          title: string
+          type: string
+        }[]
+      }
+      get_admin_user_count: { Args: { p_search?: string }; Returns: number }
+      get_admin_user_list: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          admin_notes: string
+          blocked_at: string
+          created_at: string
+          display_name: string
+          email: string
+          last_sign_in_at: string
+          phone: string
+          teams_count: number
+          user_id: string
+        }[]
+      }
       get_brazilian_states: {
         Args: never
         Returns: {
@@ -2030,6 +2463,26 @@ export type Database = {
           total_attempts: number
         }[]
       }
+      get_game_highlights: { Args: { p_game_id: string }; Returns: Json }
+      get_game_participants_for_rating: {
+        Args: { p_game_id: string }
+        Returns: {
+          nickname: string
+          player_id: string
+          player_name: string
+          player_position: string
+        }[]
+      }
+      get_game_ratings_summary: {
+        Args: { p_game_id: string }
+        Returns: {
+          avg_rating: number
+          player_id: string
+          player_name: string
+          vote_count: number
+        }[]
+      }
+      get_my_admin_role: { Args: never; Returns: string }
       get_pending_player_requests: {
         Args: { _team_id: string }
         Returns: {
@@ -2056,6 +2509,7 @@ export type Database = {
           total_games_invited: number
         }[]
       }
+      get_player_career_stats: { Args: { p_player_id: string }; Returns: Json }
       get_player_secure: {
         Args: { _player_id: string; _team_id: string }
         Returns: {
@@ -2122,11 +2576,13 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      has_user_rated_game: { Args: { p_game_id: string }; Returns: boolean }
       increment_verification_attempts: {
         Args: { verification_id: string }
         Returns: undefined
       }
       is_master_admin: { Args: never; Returns: boolean }
+      is_panel_admin: { Args: never; Returns: boolean }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
@@ -2240,6 +2696,27 @@ export type Database = {
           teams_count: number
           tournaments_count: number
         }[]
+      }
+      submit_game_ratings: {
+        Args: { p_game_id: string; p_ratings: Json }
+        Returns: undefined
+      }
+      toggle_admin_manager: {
+        Args: { p_active: boolean; p_manager_id: string }
+        Returns: undefined
+      }
+      track_banner_event: {
+        Args: { p_banner_id: string; p_event: string }
+        Returns: undefined
+      }
+      upsert_admin_manager: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_notes?: string
+          p_role?: string
+        }
+        Returns: Json
       }
       verify_sms_code: {
         Args: { _code: string; _verification_id: string }

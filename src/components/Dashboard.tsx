@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TeamSearch } from "@/components/TeamSearch";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
+import { GameRatingRow } from "@/components/GameRatingRow";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -618,31 +619,11 @@ export function Dashboard() {
           {recentGames.length > 0 ? (
             <div className="space-y-3">
               {recentGames.map((game) => (
-                <div key={game.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center space-x-3">
-                    {game.status === 'finished' && getResultIcon("V")}
-                    <div>
-                      <p className="font-medium text-sm">{game.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(game.date).toLocaleDateString('pt-BR')} • {game.location}
-                      </p>
-                      {game.status === 'finished' && game.home_score !== null && game.away_score !== null && (
-                        <p className="text-xs text-accent font-bold mt-1">
-                          {game.home_score} x {game.away_score}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {game.status === 'finished' ? (
-                    <Badge variant="outline" className="border-success/50 text-success">
-                      Finalizado
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-gray-500 text-gray-400">
-                      Não Realizado
-                    </Badge>
-                  )}
-                </div>
+                <GameRatingRow
+                  key={game.id}
+                  game={game}
+                  resultIcon={game.status === 'finished' ? getResultIcon("V") : undefined}
+                />
               ))}
             </div>
           ) : (
