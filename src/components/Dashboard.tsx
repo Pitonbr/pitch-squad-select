@@ -18,6 +18,7 @@ import {
   Bell
 } from "lucide-react";
 import soccerFieldHero from "@/assets/soccer-field-hero.jpg";
+import { AdBanner } from "@/components/AdBanner";
 import { AuditLogs } from "@/components/AuditLogs";
 import { AttendanceStats } from "./AttendanceStats";
 import { GameNotifications } from "./GameNotifications";
@@ -690,7 +691,10 @@ export function Dashboard() {
 
           {/* Player Requests Manager */}
           {showRequests && <PlayerRequestsManager />}
-          
+
+          {/* In-app advertising banner */}
+          <AdBanner target="dashboard" />
+
           {/* Audit Logs */}
           <AuditLogs teamId={activeTeam.id} />
         </div>
