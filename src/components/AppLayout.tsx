@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { BottomNav } from "@/components/BottomNav";
 import { TrialBanner } from "@/components/TrialBanner";
+import { SystemAlertBanner } from "@/components/SystemAlertBanner";
 import { ViewType } from "@/types/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeams } from "@/hooks/useTeams";
@@ -79,6 +80,8 @@ export function AppLayout({ currentView, onViewChange, children }: AppLayoutProp
             onSubscribe={() => onViewChange("settings")}
           />
         )}
+        {/* Alertas globais do sistema (admin-controlled) */}
+        <SystemAlertBanner />
         <main id="main-content" className="flex-1 overflow-y-auto overflow-x-hidden stadium-bg">
           {/* pb-24 md:pb-8 → espaço para BottomNav no mobile */}
           <div className="px-4 py-6 md:px-6 md:py-8 pb-24 md:pb-8 view-enter">
