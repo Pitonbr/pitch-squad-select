@@ -101,7 +101,7 @@ SET search_path = public
 AS $$
   SELECT jsonb_build_object(
     'total_users',        (SELECT COUNT(*) FROM auth.users),
-    'active_teams',       (SELECT COUNT(*) FROM public.teams WHERE is_active = true),
+    'active_teams',       (SELECT COUNT(*) FROM public.teams),
     'games_last_30d',     (
       SELECT COUNT(*) FROM public.games
       WHERE created_at >= now() - interval '30 days'

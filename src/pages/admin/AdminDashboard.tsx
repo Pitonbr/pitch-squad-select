@@ -106,7 +106,7 @@ export default function AdminDashboard() {
           loading={isLoading}
         />
         <KpiCard
-          title="Times Ativos"
+          title="Total de Times"
           value={stats?.active_teams ?? 0}
           icon={Shield}
           accent="blue"
