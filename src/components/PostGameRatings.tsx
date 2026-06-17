@@ -24,7 +24,7 @@ function RatingBar({
   playerId,
   playerName,
   nickname,
-  position,
+  playerPosition,
   value,
   onChange,
 }: {
