@@ -89,7 +89,7 @@ function InactiveBanner({ teamHasNoSub, onAction }: { teamHasNoSub: boolean; onA
       </div>
       <Button className="gap-2 h-11 font-semibold" onClick={onAction}>
         <Zap className="h-4 w-4" />
-        {teamHasNoSub ? "Ver planos — 7 dias grátis" : "Reativar assinatura"}
+        {teamHasNoSub ? "Ver planos — 30 dias grátis" : "Reativar assinatura"}
       </Button>
     </div>
   );

@@ -281,7 +281,8 @@ export const MatchControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
           current_half: newHalf,
           match_time_paused: new Date().toISOString(),
           is_match_active: !isGameEnded,
-          status: isGameEnded ? 'finished' : 'in_progress'
+          status: isGameEnded ? 'finished' : 'in_progress',
+          finished_at: isGameEnded ? new Date().toISOString() : null,
         })
         .eq('id', selectedGame.id);
 

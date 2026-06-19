@@ -1,6 +1,6 @@
 // ============================================================
 // src/components/onboarding/IntentSelector.tsx
-// Tela B.2 — O que você quer fazer?
+// Tela B.2 — O que você quer fazer? (3 caminhos)
 // ============================================================
 
 import { PlayerIntent } from "@/types/onboarding";
@@ -12,18 +12,25 @@ interface IntentSelectorProps {
 
 const OPTIONS: { intent: PlayerIntent; emoji: string; title: string; description: string; color: string }[] = [
   {
-    intent: "find_game",
-    emoji: "⚽",
-    title: "Quero jogar",
-    description: "Encontre times e jogos próximos a você, já abertos a novos jogadores",
-    color: "hover:border-primary/60 hover:bg-primary/5",
-  },
-  {
     intent: "create_team",
     emoji: "🏆",
     title: "Quero criar meu time",
     description: "Monte seu elenco, agende jogos e gerencie tudo em um só lugar",
     color: "hover:border-amber-500/60 hover:bg-amber-500/5",
+  },
+  {
+    intent: "find_game",
+    emoji: "⚽",
+    title: "Quero buscar um time pra jogar",
+    description: "Encontre times e jogos próximos a você, já abertos a novos jogadores",
+    color: "hover:border-primary/60 hover:bg-primary/5",
+  },
+  {
+    intent: "stay_player",
+    emoji: "👤",
+    title: "Só quero entrar como jogador, por agora",
+    description: "Acesso gratuito e limitado, sem time. Você pode criar ou entrar em um time depois",
+    color: "hover:border-muted-foreground/40 hover:bg-muted/40",
   },
 ];
 

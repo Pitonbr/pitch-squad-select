@@ -13,6 +13,7 @@ interface Team {
   logo_url: string | null;
   created_at: string;
   updated_at: string;
+  subscription_status: string | null;
 }
 
 interface TeamMember {
@@ -66,10 +67,13 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   }, [profile]);
 
-  // Set first team as active if none selected
+  // Set first team as active if none selected.
+  // Times com pagamento pendente não contam — o usuário fica sem activeTeam
+  // (visão de jogador) até o checkout no Stripe ser concluído.
   useEffect(() => {
-    if (userTeams.length > 0 && !activeTeam) {
-      setActiveTeam(userTeams[0]);
+    const eligible = userTeams.filter(t => t.subscription_status !== "pending_payment");
+    if (eligible.length > 0 && !activeTeam) {
+      setActiveTeam(eligible[0]);
     }
   }, [userTeams, activeTeam]);
 
@@ -94,7 +98,8 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             invite_code,
             logo_url,
             created_at,
-            updated_at
+            updated_at,
+            subscription_status
           )
         `)
         .eq('profile_id', profile.id);
@@ -210,16 +215,15 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         description: `${result.team_name} foi criado com sucesso. Você foi automaticamente adicionado como jogador.`
       });
 
-      // Refresh teams to get the updated list
+      // Refresh teams to get the updated list.
+      // Não definimos activeTeam aqui de propósito: o time recém-criado só deve
+      // se tornar o time ativo (visão de admin) depois que subscription_status
+      // saia de 'pending_payment' — ver o efeito de auto-seleção acima.
       await refreshTeams();
-      
-      // Find and set the new team as active
+
       const newTeam = userTeams.find(team => team.id === result.team_id);
-      if (newTeam) {
-        setActiveTeam(newTeam);
-        return newTeam;
-      }
-      
+      if (newTeam) return newTeam;
+
       // Fallback - create a team object if not found in userTeams yet
       const fallbackTeam: Team = {
         id: result.team_id,
@@ -230,10 +234,10 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         invite_code: '', // Will be loaded when teams refresh
         logo_url: null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        subscription_status: 'inactive',
       };
-      
-      setActiveTeam(fallbackTeam);
+
       return fallbackTeam;
     } catch (error: any) {
       console.error('[useTeams] Final error in createTeam:', error);

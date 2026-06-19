@@ -3,7 +3,7 @@
 // Roteador central do onboarding — máquina de estados visual
 // ============================================================
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOnboardingFlow, markOnboardingDone } from "@/hooks/useOnboardingFlow";
 import { useInviteCode }     from "@/hooks/useInviteCode";
@@ -12,11 +12,11 @@ import { useTeams }          from "@/hooks/useTeams";
 import { useAuth }           from "@/hooks/useAuth";
 import { useToast }          from "@/hooks/use-toast";
 import { supabase }          from "@/integrations/supabase/client";
-import { PersonalData, TeamSearchResult } from "@/types/onboarding";
-import { TeamFormData }      from "./TeamRegistrationForm";
+import { PersonalData, TeamSearchResult, TeamFormData } from "@/types/onboarding";
 
 import { InviteWelcome }        from "./InviteWelcome";
 import { PersonalRegistration } from "./PersonalRegistration";
+import { PlayerSticker }        from "./PlayerSticker";
 import { IntentSelector }       from "./IntentSelector";
 import { LocationForm }         from "./LocationForm";
 import { AvailabilityForm }     from "./AvailabilityForm";
@@ -25,7 +25,11 @@ import { SearchingScreen }      from "./SearchingScreen";
 import { MatchResults }         from "./MatchResults";
 import { RequestConfirmation }  from "./RequestConfirmation";
 import { NoResultsScreen }      from "./NoResultsScreen";
-import { TeamRegistrationForm } from "./TeamRegistrationForm";
+import { TeamStepBasics }       from "./TeamStepBasics";
+import { TeamStepLocation }     from "./TeamStepLocation";
+import { TeamStepSchedule }     from "./TeamStepSchedule";
+import { TeamStepRatings }      from "./TeamStepRatings";
+import { TeamStepReview }       from "./TeamStepReview";
 
 interface OnboardingRouterProps {
   inviteCode?: string;
@@ -118,55 +122,78 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
   };
 
   // ── Create team ───────────────────────────────────────────────
+  // Time só ganha acesso de admin (e cobrança) depois do checkout no
+  // Stripe ser concluído — o webhook é quem promove pending_payment → trialing.
+  const [creatingTeam, setCreatingTeam] = useState(false);
+
   const handleCreateTeam = async (data: TeamFormData): Promise<void> => {
-    const team = await createTeam(data.name, data.description);
-    if (!team) return;
+    setCreatingTeam(true);
+    try {
+      const team = await createTeam(data.name, data.description);
+      if (!team) { setCreatingTeam(false); return; }
 
-    // Fire-and-forget: update team details + activate 7-day trial in one call.
-    // No await — don't block navigation on a best-effort update.
-    const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    supabase.from("teams").update({
-      state:                   data.state,
-      city:                    data.city,
-      neighborhood:            data.neighborhood ?? null,
-      game_type:               data.game_type,
-      usual_days:              data.usual_days,
-      usual_time:              data.usual_time,
-      is_public:               data.is_public,
-      accepting_players:       data.accepting_players,
-      logo_url:                data.logo_url ?? null,
-      subscription_status:     "trialing",
-      subscription_trial_end:  trialEnd,
-    }).eq("id", team.id).catch(() => {});
+      const { error } = await supabase.from("teams").update({
+        state:                data.state,
+        city:                 data.city,
+        neighborhood:         data.neighborhood ?? null,
+        address:              data.address ?? null,
+        latitude:             data.lat ?? null,
+        longitude:            data.lng ?? null,
+        category:             data.category,
+        game_type:            data.game_type,
+        usual_days:           data.usual_days,
+        start_time:           data.start_time,
+        end_time:             data.end_time,
+        rating_window_hours:  data.rating_window_hours,
+        rating_scale:         data.rating_scale,
+        is_public:            true,
+        accepting_players:    true,
+        logo_url:             data.logo_url ?? null,
+        subscription_status:  "pending_payment",
+      }).eq("id", team.id);
+      if (error) throw error;
 
-    // Navigate to pricing immediately via the "done" useEffect mechanism.
-    localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));
-    localStorage.setItem("post_onboarding_redirect", "/pricing");
-    if (user?.id) markOnboardingDone(user.id);
-    flow.finish(user?.id);
+      localStorage.setItem("pending_pricing_team", JSON.stringify({ id: team.id, name: team.name }));
+      localStorage.setItem("post_onboarding_redirect", "/pricing");
+      if (user?.id) markOnboardingDone(user.id);
+      flow.finish(user?.id);
+    } catch {
+      toast({ title: "Erro ao criar o time", description: "Tente novamente.", variant: "destructive" });
+      setCreatingTeam(false);
+    }
   };
 
   // ── Personal steps shared logic ───────────────────────────────
+  // Após personal_step3, todo mundo (com ou sem convite) passa pela
+  // figurinha antes de seguir — ver handleStickerNext.
   const handlePersonalNext = async (data: Partial<PersonalData>) => {
     flow.setPersonal(data);
     if (state.step === "personal_step3") {
-      // Merge and save full profile
       const merged = { ...state.personal, ...data } as PersonalData;
       await savePlayerProfile(merged);
-
-      // If came from invite → join the team right away
-      if (state.invite_code && state.invite_team) {
-        const ok = await joinTeamWithProfile(state.invite_code);
-        if (ok) {
-          toast({ title: `Bem-vindo ao ${state.invite_team.name}! 🎉` });
-          done();
-        } else {
-          flow.goTo("intent");
-        }
-        return;
-      }
     }
     flow.nextPersonalStep(data);
+  };
+
+  // ── Sticker step → decide próximo destino ──────────────────────
+  const handleStickerNext = async (stickerUrl?: string) => {
+    if (stickerUrl && profile) {
+      try {
+        await supabase.from("profiles").update({ sticker_url: stickerUrl }).eq("id", profile.id);
+      } catch { /* non-critical */ }
+    }
+
+    if (state.invite_code && state.invite_team) {
+      const ok = await joinTeamWithProfile(state.invite_code);
+      if (ok) {
+        toast({ title: `Bem-vindo ao ${state.invite_team.name}! 🎉` });
+        done();
+      } else {
+        flow.goTo("intent");
+      }
+      return;
+    }
+    flow.goTo("intent");
   };
 
   // ── Layout wrapper ────────────────────────────────────────────
@@ -214,9 +241,23 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
             />
           )}
 
+          {/* ── A.4 Figurinha do jogador ── */}
+          {state.step === "sticker_preview" && (
+            <PlayerSticker
+              personal={state.personal}
+              onNext={handleStickerNext}
+              onRetakePhoto={() => flow.goTo("personal_step1")}
+            />
+          )}
+
           {/* ── B.2 Intent ── */}
           {state.step === "intent" && (
-            <IntentSelector onSelect={flow.setIntent} />
+            <IntentSelector
+              onSelect={(intent) => {
+                if (intent === "stay_player") { done(); return; }
+                flow.setIntent(intent);
+              }}
+            />
           )}
 
           {/* ── B.3.1 Location ── */}
@@ -271,16 +312,51 @@ export function OnboardingRouter({ inviteCode }: OnboardingRouterProps) {
           {state.step === "no_results" && (
             <NoResultsScreen
               onAdjustFilters={() => flow.goTo("location")}
-              onCreateTeam={() => flow.goTo("create_team")}
+              onCreateTeam={() => flow.goTo("create_team_basics")}
               onGoHome={flow.finish}
             />
           )}
 
-          {/* ── B.4.1 Create team ── */}
-          {state.step === "create_team" && (
-            <TeamRegistrationForm
-              onSubmit={handleCreateTeam}
+          {/* ── A.3 Wizard de criação de time (5 etapas) ── */}
+          {state.step === "create_team_basics" && (
+            <TeamStepBasics
+              initial={state.team_draft}
+              onNext={flow.nextTeamStep}
               onBack={() => flow.goTo("intent")}
+            />
+          )}
+
+          {state.step === "create_team_location" && (
+            <TeamStepLocation
+              initial={state.team_draft}
+              onNext={flow.nextTeamStep}
+              onBack={flow.backTeamStep}
+            />
+          )}
+
+          {state.step === "create_team_schedule" && (
+            <TeamStepSchedule
+              initial={state.team_draft}
+              onNext={flow.nextTeamStep}
+              onBack={flow.backTeamStep}
+            />
+          )}
+
+          {state.step === "create_team_ratings" && (
+            <TeamStepRatings
+              initial={state.team_draft}
+              onNext={flow.nextTeamStep}
+              onBack={flow.backTeamStep}
+            />
+          )}
+
+          {state.step === "create_team_review" && (
+            <TeamStepReview
+              data={state.team_draft ?? {}}
+              onEdit={flow.goTo}
+              onBack={flow.backTeamStep}
+              onSubmit={() => handleCreateTeam(state.team_draft as TeamFormData)}
+              loading={creatingTeam}
             />
           )}
         </div>

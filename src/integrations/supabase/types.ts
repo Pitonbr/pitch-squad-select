@@ -564,6 +564,7 @@ export type Database = {
           current_half: number | null
           date: string
           description: string | null
+          finished_at: string | null
           home_score: number | null
           id: string
           invite_link: string | null
@@ -586,6 +587,7 @@ export type Database = {
           current_half?: number | null
           date: string
           description?: string | null
+          finished_at?: string | null
           home_score?: number | null
           id?: string
           invite_link?: string | null
@@ -608,6 +610,7 @@ export type Database = {
           current_half?: number | null
           date?: string
           description?: string | null
+          finished_at?: string | null
           home_score?: number | null
           id?: string
           invite_link?: string | null
@@ -1332,6 +1335,7 @@ export type Database = {
           display_name: string | null
           id: string
           phone: string | null
+          sticker_url: string | null
           theme_preference: string | null
           updated_at: string
           user_id: string
@@ -1343,6 +1347,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           phone?: string | null
+          sticker_url?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id: string
@@ -1354,6 +1359,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           phone?: string | null
+          sticker_url?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id?: string
@@ -1955,10 +1961,13 @@ export type Database = {
       teams: {
         Row: {
           accepting_players: boolean
+          address: string | null
           admin_id: string
+          category: string | null
           city: string | null
           created_at: string
           description: string | null
+          end_time: string | null
           game_type: string | null
           id: string
           invite_code: string
@@ -1969,6 +1978,9 @@ export type Database = {
           name: string
           neighborhood: string | null
           public_description: string | null
+          rating_scale: number | null
+          rating_window_hours: number | null
+          start_time: string | null
           state: string | null
           stripe_customer_id: string | null
           subscription_id: string | null
@@ -1983,10 +1995,13 @@ export type Database = {
         }
         Insert: {
           accepting_players?: boolean
+          address?: string | null
           admin_id: string
+          category?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
+          end_time?: string | null
           game_type?: string | null
           id?: string
           invite_code?: string
@@ -1997,6 +2012,9 @@ export type Database = {
           name: string
           neighborhood?: string | null
           public_description?: string | null
+          rating_scale?: number | null
+          rating_window_hours?: number | null
+          start_time?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           subscription_id?: string | null
@@ -2011,10 +2029,13 @@ export type Database = {
         }
         Update: {
           accepting_players?: boolean
+          address?: string | null
           admin_id?: string
+          category?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
+          end_time?: string | null
           game_type?: string | null
           id?: string
           invite_code?: string
@@ -2025,6 +2046,9 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           public_description?: string | null
+          rating_scale?: number | null
+          rating_window_hours?: number | null
+          start_time?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           subscription_id?: string | null

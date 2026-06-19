@@ -177,7 +177,7 @@ export function SubscriptionManager() {
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            7 dias de teste gratuito — cancele antes sem cobrança
+            30 dias de teste gratuito — cancele antes sem cobrança
           </p>
         </div>
       )}

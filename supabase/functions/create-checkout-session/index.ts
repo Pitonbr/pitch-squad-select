@@ -1,7 +1,7 @@
 // ============================================================
 // create-checkout-session — Stripe Checkout para assinatura
 // Planos: monthly R$59,90 | annual R$646,92 (10% desconto)
-// Trial: 7 dias grátis com cartão cadastrado
+// Trial: 30 dias grátis com cartão cadastrado
 // ============================================================
 
 import { serve }       from "https://deno.land/std@0.190.0/http/server.ts";
@@ -95,19 +95,21 @@ serve(async (req) => {
       customer:    customerId,
       mode:        "subscription",
       line_items:  [{ price: priceId, quantity: 1 }],
-      // 7-day free trial
+      // 30-day free trial
       subscription_data: {
-        trial_period_days: 7,
+        trial_period_days: 30,
         metadata: { team_id: team.id, plan },
       },
       payment_method_types: ["card", "boleto"],
       // PIX not yet available in BR Stripe for subscriptions; use card + boleto
       success_url: `${return_url}/payment-success?session_id={CHECKOUT_SESSION_ID}&type=subscription`,
-      cancel_url:  `${return_url}/onboarding?step=create_team&cancelled=true`,
+      // Time já existe como pending_payment — se o usuário desistir, volta pra
+      // raiz, que naturalmente trata isso como "sem time ativo" (PendingTeamBanner).
+      cancel_url:  `${return_url}/`,
       locale: "pt-BR",
       custom_text: {
         submit: {
-          message: "Após o período de teste de 7 dias, será cobrado automaticamente. Cancele a qualquer momento.",
+          message: "Após o período de teste de 30 dias, será cobrado automaticamente. Cancele a qualquer momento.",
         },
       },
       metadata: { team_id: team.id, plan, profile_id: profile?.id ?? "" },

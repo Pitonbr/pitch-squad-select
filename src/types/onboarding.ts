@@ -4,22 +4,57 @@
 // ============================================================
 
 export type OnboardingStep =
-  | "invite_welcome"      // A.1 — jogador com convite
-  | "personal_step1"      // Cadastro: nome, apelido, foto, nascimento
-  | "personal_step2"      // Cadastro: camisa, posição, pé
-  | "personal_step3"      // Cadastro: altura, peso
-  | "intent"              // B.2 — o que quer fazer?
-  | "location"            // B.3.1 — onde mora
-  | "availability"        // B.3.2 — disponibilidade
-  | "game_type"           // B.3.3 — tipo de jogo
-  | "searching"           // B.3.4 — buscando
-  | "results"             // B.3.5 — resultados
-  | "request_sent"        // B.3.6 — solicitação enviada
-  | "no_results"          // B.3.7 — sem resultado
-  | "create_team"         // B.4.1 — criar time
+  | "invite_welcome"        // A.1 — jogador com convite
+  | "personal_step1"        // Cadastro: nome, apelido, foto, nascimento
+  | "personal_step2"        // Cadastro: camisa, posição, pé
+  | "personal_step3"        // Cadastro: altura, peso
+  | "sticker_preview"       // A.4 — figurinha do jogador
+  | "intent"                // B.2 — o que quer fazer? (3 opções)
+  | "location"              // B.3.1 — onde mora (sub-fluxo buscar time)
+  | "availability"          // B.3.2 — disponibilidade
+  | "game_type"             // B.3.3 — tipo de jogo
+  | "searching"             // B.3.4 — buscando
+  | "results"               // B.3.5 — resultados
+  | "request_sent"          // B.3.6 — solicitação enviada
+  | "no_results"            // B.3.7 — sem resultado
+  | "create_team_basics"    // B.4.1 — wizard de time, etapa 1/5
+  | "create_team_location"  // B.4.2 — etapa 2/5
+  | "create_team_schedule"  // B.4.3 — etapa 3/5
+  | "create_team_ratings"   // B.4.4 — etapa 4/5
+  | "create_team_review"    // B.4.5 — etapa 5/5
   | "done";
 
-export type PlayerIntent = "find_game" | "create_team";
+export type PlayerIntent = "find_game" | "create_team" | "stay_player";
+
+export type TeamCategory = "masculino" | "feminino" | "mista";
+
+export interface TeamFormData {
+  name: string;
+  description?: string;
+  logo_url?: string;
+  category: TeamCategory;
+  state: string;
+  city: string;
+  neighborhood?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  game_type: GameType;
+  usual_days: DayOfWeek[];
+  start_time: string; // "HH:MM"
+  end_time: string;   // "HH:MM"
+  rating_window_hours: number; // 2–23
+  rating_scale: 5 | 10;
+  is_public: boolean;
+  accepting_players: boolean;
+}
+
+export const RATING_WINDOW_PRESETS: { hours: number; emoji: string; label: string; description: string }[] = [
+  { hours: 2,  emoji: "⚡", label: "Resultado rápido",     description: "Para grupos ansiosos que querem ver o ranking logo após o jogo." },
+  { hours: 6,  emoji: "⚖️", label: "Equilibrado",          description: "Tempo suficiente para votar com calma, mas sem esperar muito." },
+  { hours: 12, emoji: "🧠", label: "Pensar antes de votar", description: "Ideal para quem gosta de refletir e dar notas mais justas." },
+  { hours: 23, emoji: "🌙", label: "Pelada noturna",        description: "Para quem joga à noite e prefere avaliar no dia seguinte." },
+];
 
 export type FieldPosition =
   | "GK" | "LD" | "LE" | "ZAG" | "VOL" | "MEI" | "PD" | "PE" | "ATA";
@@ -75,6 +110,7 @@ export interface OnboardingState {
   game_preferences?: GamePreferences;
   search_results?: TeamSearchResult[];
   selected_team?: TeamSearchResult;
+  team_draft?: Partial<TeamFormData>;
 }
 
 export interface InviteTeamInfo {

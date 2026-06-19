@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TeamSearch } from "@/components/TeamSearch";
 import { useRealtime, useRealtimeNotifications } from "@/hooks/useRealtime";
 import { PlayerRequestsManager } from "@/components/PlayerRequestsManager";
+import { PendingTeamBanner } from "@/components/PendingTeamBanner";
 import { GameRatingRow } from "@/components/GameRatingRow";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -89,8 +90,11 @@ export function Dashboard() {
 
   // Se não tem time ativo, mostra versão limitada do dashboard
   if (!activeTeam || teams.length === 0) {
+    const pendingTeams = teams.filter(t => t.subscription_status === "pending_payment");
     return (
       <div className="space-y-6">
+        <PendingTeamBanner teams={pendingTeams} />
+
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Bem-vindo ao Sistema de Futebol!</h1>
           <p className="text-muted-foreground">

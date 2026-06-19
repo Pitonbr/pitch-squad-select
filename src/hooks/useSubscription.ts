@@ -9,11 +9,12 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuth }  from "@/hooks/useAuth";
 
 export type SubscriptionStatus =
-  | "inactive"   // nunca assinou
-  | "trialing"   // trial ativo
-  | "active"     // pago em dia
-  | "readonly"   // pagamento em atraso — can view, can't create
-  | "canceled";  // cancelou
+  | "inactive"        // nunca assinou
+  | "pending_payment" // time criado, aguardando 1º checkout no Stripe
+  | "trialing"        // trial ativo
+  | "active"          // pago em dia
+  | "readonly"        // pagamento em atraso — can view, can't create
+  | "canceled";        // cancelou
 
 export interface SubscriptionInfo {
   status:           SubscriptionStatus;

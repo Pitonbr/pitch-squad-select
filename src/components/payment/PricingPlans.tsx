@@ -80,7 +80,7 @@ export function PricingPlans({ teamName, onSkip }: PricingPlansProps) {
       <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/25">
         <Zap className="h-4 w-4 text-green-500 shrink-0" />
         <p className="text-sm text-green-600 font-medium">
-          7 dias gratuitos — cancele antes e não será cobrado nada.
+          30 dias gratuitos — cancele antes e não será cobrado nada.
         </p>
       </div>
 
@@ -139,7 +139,7 @@ export function PricingPlans({ teamName, onSkip }: PricingPlansProps) {
       <div className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
         <p>
-          Após 7 dias de teste, será cobrado automaticamente no cartão cadastrado.
+          Após 30 dias de teste, será cobrado automaticamente no cartão cadastrado.
           Cancele a qualquer momento pelo painel de configurações.
           Taxa adicional: R$10 por time ao confirmar um jogo contra outro time
           (cobrado de cada time separadamente — jogo criado apenas após os dois pagarem).
@@ -155,7 +155,7 @@ export function PricingPlans({ teamName, onSkip }: PricingPlansProps) {
       >
         {loading
           ? <><Loader2 className="h-5 w-5 animate-spin" /> Redirecionando...</>
-          : <><CreditCard className="h-5 w-5" /> Começar 7 dias grátis</>}
+          : <><CreditCard className="h-5 w-5" /> Começar 30 dias grátis</>}
       </Button>
 
       {onSkip && (

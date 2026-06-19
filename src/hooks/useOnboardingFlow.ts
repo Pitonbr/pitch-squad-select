@@ -8,6 +8,7 @@ import {
   OnboardingState, OnboardingStep, PersonalData,
   LocationPreferences, AvailabilityPreferences,
   GamePreferences, PlayerIntent, TeamSearchResult, InviteTeamInfo,
+  TeamFormData,
 } from "@/types/onboarding";
 
 const STORAGE_KEY = "onboarding_state";
@@ -70,7 +71,10 @@ export function useOnboardingFlow(initialInviteCode?: string) {
   }, []);
 
   const setIntent = useCallback((intent: PlayerIntent) => {
-    update({ intent, step: intent === "find_game" ? "location" : "create_team" });
+    update({
+      intent,
+      step: intent === "find_game" ? "location" : "create_team_basics",
+    });
   }, [update]);
 
   const setLocation = useCallback((location: LocationPreferences) => {
@@ -110,14 +114,8 @@ export function useOnboardingFlow(initialInviteCode?: string) {
         personal: { ...prev.personal, ...data },
         step: prev.step === "personal_step1" ? "personal_step2"
             : prev.step === "personal_step2" ? "personal_step3"
-            : prev.invite_code ? "invite_welcome" // will redirect to intent after step3
-            : "intent",
+            : "sticker_preview", // depois de personal_step3, todo mundo vê a figurinha
       };
-      // After step3: if has invite → redirect to intent screen,
-      // otherwise go to intent
-      if (prev.step === "personal_step3") {
-        next.step = "intent";
-      }
       saveState(next);
       return next;
     });
@@ -131,6 +129,35 @@ export function useOnboardingFlow(initialInviteCode?: string) {
             : prev.step === "personal_step3" ? "personal_step2"
             : prev.step,
       };
+      saveState(next);
+      return next;
+    });
+  }, []);
+
+  const TEAM_STEP_ORDER: OnboardingStep[] = [
+    "create_team_basics", "create_team_location", "create_team_schedule",
+    "create_team_ratings", "create_team_review",
+  ];
+
+  const nextTeamStep = useCallback((data: Partial<TeamFormData>) => {
+    setState(prev => {
+      const idx = TEAM_STEP_ORDER.indexOf(prev.step);
+      const nextStep = idx >= 0 && idx < TEAM_STEP_ORDER.length - 1 ? TEAM_STEP_ORDER[idx + 1] : prev.step;
+      const next: OnboardingState = {
+        ...prev,
+        team_draft: { ...prev.team_draft, ...data },
+        step: nextStep,
+      };
+      saveState(next);
+      return next;
+    });
+  }, []);
+
+  const backTeamStep = useCallback(() => {
+    setState(prev => {
+      const idx = TEAM_STEP_ORDER.indexOf(prev.step);
+      const prevStep = idx > 0 ? TEAM_STEP_ORDER[idx - 1] : "intent";
+      const next: OnboardingState = { ...prev, step: prevStep };
       saveState(next);
       return next;
     });
@@ -152,5 +179,7 @@ export function useOnboardingFlow(initialInviteCode?: string) {
     finish,
     nextPersonalStep,
     backPersonalStep,
+    nextTeamStep,
+    backTeamStep,
   };
 }

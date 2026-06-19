@@ -14,7 +14,7 @@ const MESSAGES: Record<string, { title: string; description: string; emoji: stri
   subscription: {
     emoji: "🏆",
     title: "Assinatura ativada!",
-    description: "Seu time está pronto. Os 7 dias de teste começam agora — aproveite todos os recursos.",
+    description: "Seu time está pronto. Os 30 dias de teste começam agora — aproveite todos os recursos.",
   },
   join_fee: {
     emoji: "⚽",
