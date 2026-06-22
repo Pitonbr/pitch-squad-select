@@ -8,7 +8,7 @@ export type ViewType =
   | "dashboard" | "players" | "games"
   | "tournaments" | "liveGame" | "rankings" | "teamManager"
   | "finances" | "requests" | "joinRequests" | "audit"
-  | "management" | "settings";
+  | "management" | "settings" | "announcements";
 
 export interface NavItem {
   key: ViewType;
@@ -24,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "games",       label: "Jogos",           iconName: "Calendar",        group: "main",   playerAllowed: false },
   { key: "liveGame",    label: "Jogo Ativo",      iconName: "Play",            group: "main",   playerAllowed: true  },
   { key: "rankings",    label: "Rankings",        iconName: "Award",           group: "main",   playerAllowed: true  },
+  { key: "announcements", label: "Mural",         iconName: "Megaphone",       group: "main",   playerAllowed: true  },
   { key: "tournaments", label: "Campeonatos",     iconName: "Trophy",          group: "main",   playerAllowed: true  },
   { key: "teamManager", label: "Gerenciar Time",  iconName: "UserCog",         group: "manage", playerAllowed: false },
   { key: "finances",    label: "Finanças",        iconName: "DollarSign",      group: "manage", playerAllowed: true  },

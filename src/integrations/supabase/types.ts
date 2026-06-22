@@ -1672,6 +1672,97 @@ export type Database = {
         }
         Relationships: []
       }
+      team_announcement_reactions: {
+        Row: {
+          announcement_id: string
+          created_at: string
+          id: string
+          profile_id: string
+          reaction_type: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          reaction_type: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          reaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_announcement_reactions_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "team_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_announcement_reactions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_announcements: {
+        Row: {
+          author_profile_id: string
+          body: string
+          created_at: string
+          id: string
+          photo_urls: string[]
+          poll_options: string[] | null
+          team_id: string
+        }
+        Insert: {
+          author_profile_id: string
+          body: string
+          created_at?: string
+          id?: string
+          photo_urls?: string[]
+          poll_options?: string[] | null
+          team_id: string
+        }
+        Update: {
+          author_profile_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          photo_urls?: string[]
+          poll_options?: string[] | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_announcements_author_profile_id_fkey"
+            columns: ["author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_announcements_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_announcements_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_challenges: {
         Row: {
           challenged_paid_at: string | null
@@ -1921,6 +2012,45 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_poll_votes: {
+        Row: {
+          announcement_id: string
+          created_at: string
+          id: string
+          option_index: number
+          profile_id: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string
+          id?: string
+          option_index: number
+          profile_id: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string
+          id?: string
+          option_index?: number
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_poll_votes_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "team_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_poll_votes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2596,6 +2726,23 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_team_announcements: {
+        Args: { _team_id: string }
+        Returns: {
+          author_name: string
+          author_photo_url: string
+          body: string
+          created_at: string
+          dislike_count: number
+          id: string
+          like_count: number
+          my_reaction: string
+          my_vote: number
+          photo_urls: string[]
+          poll_options: string[]
+          poll_votes: number[]
+        }[]
+      }
       get_team_attendance_stats: {
         Args: { _team_id: string }
         Returns: {
@@ -2779,6 +2926,10 @@ export type Database = {
         Args: { p_active: boolean; p_manager_id: string }
         Returns: undefined
       }
+      toggle_announcement_reaction: {
+        Args: { _announcement_id: string; _reaction_type: string }
+        Returns: string
+      }
       track_banner_event: {
         Args: { p_banner_id: string; p_event: string }
         Returns: undefined
@@ -2799,6 +2950,10 @@ export type Database = {
           success: boolean
           user_data: Json
         }[]
+      }
+      vote_announcement_poll: {
+        Args: { _announcement_id: string; _option_index: number }
+        Returns: undefined
       }
     }
     Enums: {
