@@ -1221,6 +1221,87 @@ export type Database = {
         }
         Relationships: []
       }
+      player_stat_disputes: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_value: number
+          id: string
+          player_id: string
+          reason: string | null
+          requested_value: number
+          resolved_at: string | null
+          resolved_by: string | null
+          stat_field: string
+          status: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_value: number
+          id?: string
+          player_id: string
+          reason?: string | null
+          requested_value: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          stat_field: string
+          status?: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_value?: number
+          id?: string
+          player_id?: string
+          reason?: string | null
+          requested_value?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          stat_field?: string
+          status?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_stat_disputes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_stat_disputes_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_stat_disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_stat_disputes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "player_stat_disputes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_statistics: {
         Row: {
           assists: number | null
@@ -2452,6 +2533,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      approve_stat_dispute: {
+        Args: { p_dispute_id: string }
+        Returns: undefined
+      }
       approve_waitlist_participant: {
         Args: { _participant_id: string }
         Returns: undefined
@@ -2731,6 +2816,7 @@ export type Database = {
         }[]
       }
       get_player_career_stats: { Args: { p_player_id: string }; Returns: Json }
+      get_player_match_record: { Args: { p_player_id: string }; Returns: Json }
       get_player_secure: {
         Args: { _player_id: string; _team_id: string }
         Returns: {
@@ -2881,6 +2967,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      reject_stat_dispute: {
+        Args: { p_dispute_id: string }
+        Returns: undefined
+      }
       reject_waitlist_participant: {
         Args: { _participant_id: string }
         Returns: undefined
@@ -2943,6 +3033,15 @@ export type Database = {
       submit_game_ratings: {
         Args: { p_game_id: string; p_ratings: Json }
         Returns: undefined
+      }
+      submit_stat_dispute: {
+        Args: {
+          p_player_id: string
+          p_reason?: string
+          p_requested_value: number
+          p_stat_field: string
+        }
+        Returns: string
       }
       toggle_admin_manager: {
         Args: { p_active: boolean; p_manager_id: string }

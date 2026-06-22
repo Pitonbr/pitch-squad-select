@@ -7,6 +7,7 @@ import { Phone, MapPin, Clock, MessageCircle, Mail, TrendingUp, Calendar, Star }
 import { useAttendanceStats } from "@/hooks/useAttendanceStats";
 import { useTeams } from "@/hooks/useTeams";
 import { getInitialsAvatar } from "@/lib/avatar";
+import { PlayerProfileCard } from "@/components/PlayerProfileCard";
 
 interface PlayerCardProps {
   id?: string;
@@ -194,6 +195,15 @@ export function PlayerCard({
                   <Mail className="h-3 w-3 mr-1" />
                   Email
                 </Button>
+              )}
+
+              {id && (
+                <PlayerProfileCard
+                  playerId={id}
+                  name={name}
+                  nickname={nickname}
+                  profileImage={profile_image}
+                />
               )}
             </div>
           </div>
