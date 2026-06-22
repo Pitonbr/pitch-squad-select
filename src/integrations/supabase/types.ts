@@ -458,30 +458,42 @@ export type Database = {
       game_participants: {
         Row: {
           checked_in_at: string | null
+          confirm_by: string | null
           game_id: string
           id: string
           invited_at: string | null
           player_id: string
           profile_id: string | null
+          slot_type: string | null
           status: string
+          waitlist_position: number | null
+          waitlist_reason: string | null
         }
         Insert: {
           checked_in_at?: string | null
+          confirm_by?: string | null
           game_id: string
           id?: string
           invited_at?: string | null
           player_id: string
           profile_id?: string | null
+          slot_type?: string | null
           status?: string
+          waitlist_position?: number | null
+          waitlist_reason?: string | null
         }
         Update: {
           checked_in_at?: string | null
+          confirm_by?: string | null
           game_id?: string
           id?: string
           invited_at?: string | null
           player_id?: string
           profile_id?: string | null
+          slot_type?: string | null
           status?: string
+          waitlist_position?: number | null
+          waitlist_reason?: string | null
         }
         Relationships: [
           {
@@ -573,6 +585,8 @@ export type Database = {
           match_duration_minutes: number | null
           match_time_paused: string | null
           match_time_started: string | null
+          max_goalkeepers: number | null
+          max_outfield_players: number | null
           referee_id: string | null
           status: string
           team_id: string
@@ -596,6 +610,8 @@ export type Database = {
           match_duration_minutes?: number | null
           match_time_paused?: string | null
           match_time_started?: string | null
+          max_goalkeepers?: number | null
+          max_outfield_players?: number | null
           referee_id?: string | null
           status?: string
           team_id: string
@@ -619,6 +635,8 @@ export type Database = {
           match_duration_minutes?: number | null
           match_time_paused?: string | null
           match_time_started?: string | null
+          max_goalkeepers?: number | null
+          max_outfield_players?: number | null
           referee_id?: string | null
           status?: string
           team_id?: string
@@ -1862,6 +1880,7 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          member_type: string
           profile_id: string
           role: string
           team_id: string
@@ -1869,6 +1888,7 @@ export type Database = {
         Insert: {
           id?: string
           joined_at?: string
+          member_type?: string
           profile_id: string
           role?: string
           team_id: string
@@ -1876,6 +1896,7 @@ export type Database = {
         Update: {
           id?: string
           joined_at?: string
+          member_type?: string
           profile_id?: string
           role?: string
           team_id?: string
@@ -1992,6 +2013,7 @@ export type Database = {
           updated_at: string
           usual_days: string[] | null
           usual_time: string | null
+          waitlist_confirmation_hours: number
         }
         Insert: {
           accepting_players?: boolean
@@ -2026,6 +2048,7 @@ export type Database = {
           updated_at?: string
           usual_days?: string[] | null
           usual_time?: string | null
+          waitlist_confirmation_hours?: number
         }
         Update: {
           accepting_players?: boolean
@@ -2060,6 +2083,7 @@ export type Database = {
           updated_at?: string
           usual_days?: string[] | null
           usual_time?: string | null
+          waitlist_confirmation_hours?: number
         }
         Relationships: [
           {
@@ -2276,6 +2300,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      approve_waitlist_participant: {
+        Args: { _participant_id: string }
+        Returns: undefined
+      }
       auto_cleanup_verification_codes: { Args: never; Returns: undefined }
       can_view_player_payment_status: {
         Args: {
@@ -2288,6 +2316,13 @@ export type Database = {
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       cleanup_password_reset_rate_limits: { Args: never; Returns: undefined }
+      confirm_game_participation: {
+        Args: { _game_id: string }
+        Returns: {
+          result_reason: string
+          result_status: string
+        }[]
+      }
       create_audit_log: {
         Args: {
           _action: string
@@ -2487,6 +2522,16 @@ export type Database = {
           total_attempts: number
         }[]
       }
+      get_game_capacity: {
+        Args: { _game_id: string }
+        Returns: {
+          confirmed_goalkeepers: number
+          confirmed_players: number
+          max_goalkeepers: number
+          max_players: number
+          waitlist_count: number
+        }[]
+      }
       get_game_highlights: { Args: { p_game_id: string }; Returns: Json }
       get_game_participants_for_rating: {
         Args: { p_game_id: string }
@@ -2607,6 +2652,7 @@ export type Database = {
       }
       is_master_admin: { Args: never; Returns: boolean }
       is_panel_admin: { Args: never; Returns: boolean }
+      is_player_delinquent: { Args: { _player_id: string }; Returns: boolean }
       is_team_admin: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
@@ -2665,6 +2711,10 @@ export type Database = {
           message: string
           success: boolean
         }[]
+      }
+      reject_waitlist_participant: {
+        Args: { _participant_id: string }
+        Returns: undefined
       }
       remove_player_from_team: {
         Args: { _player_id: string; _team_id: string }

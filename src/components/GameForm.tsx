@@ -36,6 +36,8 @@ interface GameFormData {
   description?: string;
   invitedPlayerIds: string[];
   checkinDeadlineMinutes: number;
+  maxOutfieldPlayers?: number;
+  maxGoalkeepers?: number;
 }
 
 interface GameFormProps {
@@ -61,7 +63,9 @@ export function GameForm({
     location: "",
     description: "",
     invitedPlayerIds: [],
-    checkinDeadlineMinutes: 30
+    checkinDeadlineMinutes: 30,
+    maxOutfieldPlayers: undefined,
+    maxGoalkeepers: undefined
   });
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
@@ -111,7 +115,9 @@ export function GameForm({
       location: "",
       description: "",
       invitedPlayerIds: [],
-      checkinDeadlineMinutes: 30
+      checkinDeadlineMinutes: 30,
+      maxOutfieldPlayers: undefined,
+      maxGoalkeepers: undefined
     });
     setSelectedPlayerIds([]);
 
@@ -226,6 +232,36 @@ export function GameForm({
               Após este prazo, o check-in será fechado e apenas jogadores confirmados poderão participar da seleção de times.
             </p>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="maxOutfield" className="text-white">Vagas de linha <span className="text-white/50 text-xs">(opcional)</span></Label>
+              <Input
+                id="maxOutfield"
+                type="number"
+                min={1}
+                placeholder="Sem limite"
+                value={formData.maxOutfieldPlayers ?? ""}
+                onChange={(e) => setFormData({ ...formData, maxOutfieldPlayers: e.target.value ? parseInt(e.target.value) : undefined })}
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxGoalkeepers" className="text-white">Vagas de goleiro <span className="text-white/50 text-xs">(opcional)</span></Label>
+              <Input
+                id="maxGoalkeepers"
+                type="number"
+                min={1}
+                placeholder="Sem limite"
+                value={formData.maxGoalkeepers ?? ""}
+                onChange={(e) => setFormData({ ...formData, maxGoalkeepers: e.target.value ? parseInt(e.target.value) : undefined })}
+                className="w-full bg-background/50 border-primary/30 text-white placeholder:text-white/40 focus:border-primary"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-white/60 -mt-2">
+            Quando as vagas se esgotarem, novas confirmações entram na fila de espera (exceto mensalistas em dia, que têm prioridade).
+          </p>
 
           <PlayerSelector
             allPlayers={allPlayers}

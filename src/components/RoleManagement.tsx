@@ -26,10 +26,13 @@ import { useTeams } from "@/hooks/useTeams";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+type MemberType = 'mensalista' | 'diarista' | 'convidado';
+
 interface TeamMemberWithProfile {
   id: string;
   profile_id: string;
   role: 'admin' | 'player';
+  member_type: MemberType;
   joined_at: string;
   profile: {
     display_name: string | null;
@@ -48,6 +51,7 @@ export const RoleManagement = () => {
   const [members, setMembers] = useState<TeamMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [changingMemberType, setChangingMemberType] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     memberId: string;
@@ -78,6 +82,7 @@ export const RoleManagement = () => {
           id,
           profile_id,
           role,
+          member_type,
           joined_at,
           profiles:profile_id (
             display_name,
@@ -103,6 +108,7 @@ export const RoleManagement = () => {
           return {
             ...member,
             role: member.role as 'admin' | 'player',
+            member_type: (member.member_type as MemberType) || 'mensalista',
             profile: Array.isArray(member.profiles) ? member.profiles[0] : member.profiles,
             player: playerData
           };
@@ -166,6 +172,20 @@ export const RoleManagement = () => {
     } finally {
       setChangingRole(null);
       setConfirmDialog({ open: false, memberId: '', newRole: 'player', memberName: '' });
+    }
+  };
+
+  const handleMemberTypeChange = async (memberId: string, newType: MemberType) => {
+    try {
+      setChangingMemberType(memberId);
+      const { error } = await supabase.from('team_members').update({ member_type: newType }).eq('id', memberId);
+      if (error) throw error;
+      setMembers(prev => prev.map(m => m.id === memberId ? { ...m, member_type: newType } : m));
+      toast({ title: "Tipo de membro atualizado!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao atualizar tipo de membro", description: error.message, variant: "destructive" });
+    } finally {
+      setChangingMemberType(null);
     }
   };
 
@@ -237,6 +257,8 @@ export const RoleManagement = () => {
               <strong>Administradores</strong> têm acesso total ao gerenciamento do time.
               <br />
               <strong>Jogadores</strong> têm acesso visual e podem fazer check-in em jogos.
+              <br />
+              <strong>Mensalistas</strong> confirmam presença direto (sujeito a vagas); <strong>diaristas</strong> e <strong>convidados</strong> entram na fila e precisam de aprovação.
             </AlertDescription>
           </Alert>
 
@@ -271,7 +293,22 @@ export const RoleManagement = () => {
 
                   <div className="flex items-center gap-3">
                     {getRoleBadge(member.role)}
-                    
+
+                    <Select
+                      value={member.member_type}
+                      onValueChange={(value) => handleMemberTypeChange(member.id, value as MemberType)}
+                      disabled={changingMemberType === member.id}
+                    >
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mensalista">Mensalista</SelectItem>
+                        <SelectItem value="diarista">Diarista</SelectItem>
+                        <SelectItem value="convidado">Convidado</SelectItem>
+                      </SelectContent>
+                    </Select>
+
                     <Select
                       value={member.role}
                       onValueChange={(value) => handleRoleChange(member.id, value as 'admin' | 'player')}

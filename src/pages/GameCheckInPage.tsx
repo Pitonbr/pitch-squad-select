@@ -29,6 +29,14 @@ interface CheckedInPlayer {
   profile_image?: string;
 }
 
+interface GameCapacity {
+  confirmed_players: number;
+  confirmed_goalkeepers: number;
+  max_players: number | null;
+  max_goalkeepers: number | null;
+  waitlist_count: number;
+}
+
 export default function GameCheckInPage() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
@@ -42,6 +50,9 @@ export default function GameCheckInPage() {
   const [checkedInPlayers, setCheckedInPlayers] = useState<CheckedInPlayer[]>([]);
   const [isTeamMember, setIsTeamMember] = useState<boolean | null>(null);
   const [joinRequestStatus, setJoinRequestStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [waitlisted, setWaitlisted] = useState(false);
+  const [waitlistReason, setWaitlistReason] = useState<string | null>(null);
+  const [capacity, setCapacity] = useState<GameCapacity | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,10 +60,10 @@ export default function GameCheckInPage() {
       return;
     }
 
-    if (user && gameId) {
+    if (user && profile && gameId) {
       fetchGameAndCheckInStatus();
     }
-  }, [gameId, user, authLoading, navigate]);
+  }, [gameId, user, profile, authLoading, navigate]);
 
   const fetchGameAndCheckInStatus = async () => {
     if (!gameId || !profile) return;
@@ -96,8 +107,12 @@ export default function GameCheckInPage() {
         .eq("profile_id", profile.id)
         .maybeSingle();
 
-      if (participantData && participantData.status === "confirmed") {
+      if (participantData && (participantData.status === "confirmed" || participantData.status === "checked_in")) {
         setCheckedIn(true);
+        setWaitlisted(false);
+      } else if (participantData && participantData.status === "waitlist") {
+        setWaitlisted(true);
+        setWaitlistReason((participantData as any).waitlist_reason ?? null);
       }
 
       // Fetch all checked-in players
@@ -121,6 +136,10 @@ export default function GameCheckInPage() {
         }
         setCheckedInPlayers(players);
       }
+
+      // Fetch capacity (vagas de linha/goleiro + tamanho da fila)
+      const { data: capacityData } = await supabase.rpc("get_game_capacity", { _game_id: gameId });
+      if (capacityData && capacityData[0]) setCapacity(capacityData[0] as GameCapacity);
     } catch (err) {
       console.error("Error fetching game:", err);
       toast({
@@ -162,48 +181,28 @@ export default function GameCheckInPage() {
         }
       }
 
-      // If team member, proceed with check-in
-      let playerId: string | null = null;
-      
-      const { data: existingPlayer } = await supabase
-        .from("players")
-        .select("id")
-        .eq("team_id", game.team_id)
-        .eq("profile_id", profile.id)
-        .maybeSingle();
+      // Se é membro do time, decide entre confirmado direto ou fila de espera
+      // (limite de vagas, mensalista x diarista/convidado, inadimplência)
+      const { data: result, error: confirmError } = await supabase
+        .rpc("confirm_game_participation", { _game_id: game.id });
 
-      if (existingPlayer) {
-        playerId = existingPlayer.id;
-      } else {
-        throw new Error("Erro: jogador não encontrado no time");
-      }
+      if (confirmError) throw confirmError;
 
-      if (!playerId) {
-        throw new Error("Não foi possível encontrar jogador");
-      }
-
-      // Add or update game participant
-      const { error: participantError } = await supabase
-        .from("game_participants")
-        .upsert({
-          game_id: game.id,
-          player_id: playerId,
-          profile_id: profile.id,
-          status: "confirmed",
-          checked_in_at: new Date().toISOString(),
-        }, {
-          onConflict: "game_id,player_id"
+      const outcome = result?.[0];
+      if (outcome?.result_status === "waitlist") {
+        setWaitlisted(true);
+        setWaitlistReason(outcome.result_reason ?? null);
+        toast({
+          title: "Você está na fila de espera",
+          description: outcome.result_reason || "Aguarde a aprovação do administrador.",
         });
-
-      if (participantError) {
-        throw participantError;
+      } else {
+        setCheckedIn(true);
+        toast({
+          title: "✅ Check-in confirmado!",
+          description: "Sua presença foi registrada para o jogo.",
+        });
       }
-
-      setCheckedIn(true);
-      toast({
-        title: "✅ Check-in confirmado!",
-        description: "Sua presença foi registrada para o jogo.",
-      });
 
       // Refresh checked-in players list
       fetchGameAndCheckInStatus();
@@ -269,7 +268,7 @@ export default function GameCheckInPage() {
         <Card variant="dark" className="backdrop-blur-md">
           <CardHeader>
             <CardTitle className="text-white text-center text-2xl">
-              {checkedIn ? "✅ Check-in Confirmado!" : "Confirme sua Presença"}
+              {checkedIn ? "✅ Check-in Confirmado!" : waitlisted ? "⏳ Você está na fila" : "Confirme sua Presença"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -300,6 +299,20 @@ export default function GameCheckInPage() {
                   <p className="text-white/80">{game.description}</p>
                 </div>
               )}
+
+              {capacity && (capacity.max_players !== null || capacity.max_goalkeepers !== null) && (
+                <div className="mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-sm text-white/80 justify-center">
+                  {capacity.max_players !== null && (
+                    <span>👤 {capacity.confirmed_players}/{capacity.max_players} jogadores</span>
+                  )}
+                  {capacity.max_goalkeepers !== null && (
+                    <span>🧤 {capacity.confirmed_goalkeepers}/{capacity.max_goalkeepers} goleiros</span>
+                  )}
+                  {capacity.waitlist_count > 0 && (
+                    <span className="text-amber-300">⏳ {capacity.waitlist_count} na fila</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Show join request status if user is not a team member */}
@@ -317,7 +330,7 @@ export default function GameCheckInPage() {
               />
             )}
 
-            {!checkedIn && isTeamMember && !joinRequestStatus ? (
+            {!checkedIn && !waitlisted && isTeamMember && !joinRequestStatus ? (
               <Button
                 onClick={handleCheckIn}
                 disabled={checkingIn}
@@ -335,6 +348,16 @@ export default function GameCheckInPage() {
                   </>
                 )}
               </Button>
+            ) : waitlisted ? (
+              <div className="bg-amber-500/20 border-2 border-amber-400 rounded-lg p-6 text-center">
+                <Loader2 className="h-12 w-12 text-amber-300 mx-auto mb-3" />
+                <p className="text-white font-bold text-lg mb-2">
+                  Você está na fila de espera
+                </p>
+                <p className="text-white/70 text-sm">
+                  {waitlistReason || "Aguarde a aprovação do administrador."}
+                </p>
+              </div>
             ) : !checkedIn && !isTeamMember && !joinRequestStatus ? (
               <Button
                 onClick={handleCheckIn}

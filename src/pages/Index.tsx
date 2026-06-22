@@ -184,11 +184,11 @@ export default function Index() {
   // ── Handlers ─────────────────────────────────────────────────
   const handlePlayerAdded = () => fetchPlayersFromDB();
 
-  const handleGameCreated = async (d: { title:string; date:string; time:string; location:string; description?:string; invitedPlayerIds:string[]; checkinDeadlineMinutes:number; }) => {
+  const handleGameCreated = async (d: { title:string; date:string; time:string; location:string; description?:string; invitedPlayerIds:string[]; checkinDeadlineMinutes:number; maxOutfieldPlayers?:number; maxGoalkeepers?:number; }) => {
     if (!activeTeam) return;
     try {
       const { data: ng, error } = await supabase.from("games")
-        .insert({ team_id: activeTeam.id, title: d.title, date: d.date, time: d.time, location: d.location, description: d.description, checkin_deadline_minutes: d.checkinDeadlineMinutes, status: "scheduled" })
+        .insert({ team_id: activeTeam.id, title: d.title, date: d.date, time: d.time, location: d.location, description: d.description, checkin_deadline_minutes: d.checkinDeadlineMinutes, max_outfield_players: d.maxOutfieldPlayers ?? null, max_goalkeepers: d.maxGoalkeepers ?? null, status: "scheduled" })
         .select().single();
       if (error) { toast({ title: "Erro ao criar jogo", description: error.message, variant: "destructive" }); return; }
       if (d.invitedPlayerIds.length > 0) {

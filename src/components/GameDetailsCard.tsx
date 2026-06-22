@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Users, Edit, Send, Timer, UserPlus } from "lucide-react";
 import { GameInviteLink } from "./GameInviteLink";
 import { GamePlayerManager } from "./GamePlayerManager";
+import { GameWaitlist } from "./GameWaitlist";
 import { useState, useEffect } from "react";
 
 interface Player {
@@ -254,6 +255,13 @@ export function GameDetailsCard({
               invitedPlayers={invitedPlayers}
               onPlayersUpdate={onPlayersUpdate}
             />
+          </div>
+        )}
+
+        {/* Waitlist Section — só renderiza se houver alguém na fila */}
+        {isAdmin && (
+          <div className="mt-6">
+            <GameWaitlist gameId={id} />
           </div>
         )}
       </CardContent>
