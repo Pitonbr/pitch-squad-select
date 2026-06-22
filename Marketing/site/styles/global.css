@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Inter:wght@400;500;600&display=swap");
+
+@layer base {
+  body {
+    @apply font-body text-ss-ink bg-ss-paper antialiased;
+  }
+}
+
+/* Faixa 26 */
+.ss-band { display: flex; height: 6px; width: 100%; }
+.ss-band > span { flex: 1 1 0%; }
+.ss-band > span:nth-child(1) { background: #1d9e75; }
+.ss-band > span:nth-child(2) { background: #378add; }
+.ss-band > span:nth-child(3) { background: #ef9f27; }
+.ss-band > span:nth-child(4) { background: #d85a30; }
+.ss-band > span:nth-child(5) { background: #97c459; }
+
+/* Eyebrow */
+.ss-eyebrow {
+  @apply font-display font-extrabold text-xs tracking-[0.18em] uppercase;
+}
+
+/* Reveal on scroll */
+.ss-reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.55s ease, transform 0.55s ease; }
+.ss-reveal.ss-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ss-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Placar ao vivo */
+.ss-live-dot { animation: ss-pulse 1.6s ease-in-out infinite; }
+@keyframes ss-pulse { 0%,100% { opacity:1 } 50% { opacity:0.35 } }
+
+/* Marquee */
+.ss-marquee { overflow: hidden; white-space: nowrap; }
+.ss-marquee-track { display: inline-flex; gap: 2.5rem; padding-right: 2.5rem; animation: ss-scroll 28s linear infinite; }
+@keyframes ss-scroll { to { transform: translateX(-50%) } }
+@media (prefers-reduced-motion: reduce) {
+  .ss-marquee-track { animation: none !important; }
+  .ss-live-dot { animation: none; }
+}
