@@ -58,6 +58,7 @@ const TeamManager     = lazy(() => import("@/components/TeamManager").then(m => 
 const ManagementPanel = lazy(() => import("@/components/ManagementPanel").then(m => ({ default: m.ManagementPanel })));
 const Settings        = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
 const TeamAnnouncements = lazy(() => import("@/components/TeamAnnouncements").then(m => ({ default: m.TeamAnnouncements })));
+const RaioX = lazy(() => import("@/components/RaioX").then(m => ({ default: m.RaioX })));
 
 // ── Interfaces ──────────────────────────────────────────────
 interface Player {
@@ -345,6 +346,7 @@ export default function Index() {
             {currentView === "liveGame"    && <LiveGame />}
             {currentView === "rankings"    && <Rankings />}
             {currentView === "announcements" && <TeamAnnouncements />}
+            {currentView === "raioX"        && <RaioX />}
             {currentView === "finances"    && <FinancialControl />}
             {currentView === "teamManager" && <TeamManager />}
             {currentView === "management"  && <ManagementPanel />}

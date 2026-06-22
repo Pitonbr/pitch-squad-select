@@ -24,13 +24,13 @@ import { ViewType, NAV_ITEMS } from "@/types/navigation";
 import {
   LayoutDashboard, Users, Calendar, Play, Award, Trophy,
   UserCog, DollarSign, UserPlus, FileText, ShieldCheck,
-  Settings, LogOut, ChevronLeft, ChevronRight, Bell, Megaphone,
+  Settings, LogOut, ChevronLeft, ChevronRight, Bell, Megaphone, Activity,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard, Users, Calendar, Play, Award, Trophy,
   UserCog, DollarSign, UserPlus, FileText, ShieldCheck,
-  Settings, LogOut, Megaphone,
+  Settings, LogOut, Megaphone, Activity,
 };
 
 interface SidebarProps {

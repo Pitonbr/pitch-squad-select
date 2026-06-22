@@ -2816,6 +2816,10 @@ export type Database = {
         }[]
       }
       get_player_career_stats: { Args: { p_player_id: string }; Returns: Json }
+      get_player_health_metrics: {
+        Args: { p_days?: number; p_player_id: string }
+        Returns: Json
+      }
       get_player_match_record: { Args: { p_player_id: string }; Returns: Json }
       get_player_secure: {
         Args: { _player_id: string; _team_id: string }
@@ -2877,6 +2881,10 @@ export type Database = {
           total_expenses: number
           total_players_with_payments: number
         }[]
+      }
+      get_team_health_metrics: {
+        Args: { p_days?: number; p_team_id: string }
+        Returns: Json
       }
       get_team_players: {
         Args: { _team_id: string }
