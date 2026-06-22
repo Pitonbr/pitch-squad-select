@@ -1,0 +1,256 @@
+---
+import Base from "@/layouts/Base.astro";
+import StoreBadges from "@/components/StoreBadges.astro";
+import { APP, PRICING } from "@/lib/constants";
+
+const FEATURES = [
+  { icon: "📡", title: "Partida ao vivo", text: "Placar em tempo real, check-in por QR code e súmula digital. Quem não foi, acompanha.", bg: "bg-ss-brand-soft", color: "text-ss-brand", href: "/ao-vivo" },
+  { icon: "🏆", title: "Torneios completos", text: "Crie a sua própria Copa com chaveamento automático e fases eliminatórias.", bg: "bg-ss-royal-soft", color: "text-ss-royal", href: "/torneios" },
+  { icon: "⚔️", title: "Desafios entre times", text: "Matchmaking por nível e região. Encontre adversários à altura.", bg: "bg-ss-coral-soft", color: "text-ss-coral-deep" },
+  { icon: "📊", title: "Estatísticas de craque", text: "Gols, assistências, presença e nota por partida. O videogame na vida real.", bg: "bg-ss-amber-soft", color: "text-ss-amber-deep" },
+  { icon: "💰", title: "Financeiro sem briga", text: "Mensalidades, lembretes automáticos e caixa transparente para o elenco.", bg: "bg-ss-lime-soft", color: "text-ss-lime-deep" },
+  { icon: "📍", title: "Quadras perto de você", text: "Encontre o palco do próximo jogo entre as quadras parceiras.", bg: "bg-ss-royal-soft", color: "text-ss-royal" },
+];
+
+const STEPS = [
+  { n: "1", title: "Baixe o app", text: "Disponível grátis na App Store e Google Play. Crie sua conta em 30 segundos." },
+  { n: "2", title: "Monte o elenco", text: "Convide pelo WhatsApp, confirme presenças e sorteie times equilibrados." },
+  { n: "3", title: "Jogue e suba no ranking", text: "Registre o placar ao vivo, some estatísticas e dispute torneios." },
+];
+
+const FAQ = [
+  { q: "O app é gratuito para baixar?", a: "Sim. Você baixa grátis e testa todas as funcionalidades. Depois, a assinatura é R$ 59,90/mês por time — ou R$ 646,92 no plano anual." },
+  { q: "Funciona no iPhone e Android?", a: "Sim, o Soccer Squad está disponível na App Store (iOS) e no Google Play (Android)." },
+  { q: "Como funcionam os desafios contra outros times?", a: `Matchmaking por nível e região. Ao confirmar um jogo, cada equipe paga R$ ${PRICING.challengeFee} — garantia de compromisso dos dois lados.` },
+  { q: "O app funciona sem internet na quadra?", a: "Sim. O app salva suas ações offline e sincroniza automaticamente quando a conexão volta." },
+  { q: "Meus dados estão protegidos?", a: "Sim. Seguimos a LGPD, dados criptografados e cada time só vê as próprias informações." },
+];
+
+const MARQUEE = ["Copa do Bairro","Liga da Firma","Champions da Quebrada","Torneio de Sábado","Copa entre Amigos","Mundialito da Rua","Brasileirão da Pelada","Copa da Resenha"];
+---
+
+<Base
+  title="Soccer Squad — O clube digital do futebol amador | Baixe grátis"
+  description="Monte seu time, sorteie escalações, registre o placar ao vivo, crie torneios e controle o financeiro. Baixe grátis na App Store e Google Play."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: FAQ.map(f => ({ "@type":"Question", name:f.q, acceptedAnswer:{"@type":"Answer",text:f.a} })),
+    })} />
+  </Fragment>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="mx-auto max-w-6xl px-4 pt-14 pb-16 md:pt-20 md:pb-24 grid items-center gap-12 md:grid-cols-[1.1fr_0.9fr]">
+      <div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-ss-amber-soft px-4 py-1.5 text-ss-amber-deep ss-eyebrow">⚽ Especial Copa 2026</span>
+        <h1 class="mt-5 text-4xl md:text-6xl font-display font-black leading-[1.05]">
+          O mundo joga a Copa.<br/><span class="text-ss-brand">Você joga a sua.</span>
+        </h1>
+        <p class="mt-5 max-w-lg text-lg text-ss-ink/70 leading-relaxed">
+          Elenco, escalação, placar ao vivo, torneios, financeiro e estatísticas.
+          O clube digital completo para o seu time de futebol amador.
+        </p>
+        <StoreBadges class="mt-8" />
+        <p class="mt-4 text-sm text-ss-ink/50">Grátis para baixar · iOS e Android</p>
+      </div>
+
+      <!-- Card placar ao vivo -->
+      <div class="mx-auto w-full max-w-sm rounded-2xl border border-black/8 bg-white p-5 shadow-[0_24px_60px_-24px_rgba(15,110,86,0.35)] rotate-2 hover:rotate-0 transition-transform">
+        <div class="flex items-center justify-between">
+          <p class="font-display font-extrabold text-sm">Real Quebrada × Juventus da Vila</p>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-ss-coral-soft px-2.5 py-1 text-xs font-semibold text-ss-coral-deep">
+            <span class="ss-live-dot h-2 w-2 rounded-full bg-ss-coral"></span> AO VIVO
+          </span>
+        </div>
+        <p class="mt-3 font-display text-5xl font-black tracking-tight">3 <span class="text-ss-ink/30">×</span> 2</p>
+        <p class="text-xs text-ss-ink/50 mt-1">2º tempo · 18 min</p>
+        <div class="mt-4 space-y-2 border-t border-black/5 pt-4 text-sm">
+          <p class="flex justify-between"><span>⚽ Gol — Pedrão</span><span class="text-ss-ink/40">38'</span></p>
+          <p class="flex justify-between"><span>🅰️ Assist. — Lucas 10</span><span class="text-ss-ink/40">38'</span></p>
+          <p class="flex justify-between"><span>🟨 Amarelo — Zé do Gás</span><span class="text-ss-ink/40">31'</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-y border-black/5 bg-white py-3 ss-marquee" aria-hidden="true">
+      <div class="ss-marquee-track ss-eyebrow text-ss-ink/40">
+        {[...MARQUEE,...MARQUEE].map(name => (
+          <span class="inline-flex items-center gap-2.5"><span class="h-1.5 w-1.5 rounded-full bg-ss-brand-vivid"></span> {name}</span>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVA SOCIAL -->
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <div class="grid gap-4 sm:grid-cols-3">
+      {[
+        { n: "2.340+", label: "partidas organizadas", bg: "bg-ss-brand-soft", color: "text-ss-brand" },
+        { n: "580+", label: "times ativos", bg: "bg-ss-royal-soft", color: "text-ss-royal" },
+        { n: "64", label: "torneios em andamento", bg: "bg-ss-amber-soft", color: "text-ss-amber-deep" },
+      ].map(s => (
+        <div class:list={["ss-reveal rounded-2xl p-6 text-center", s.bg]}>
+          <p class:list={["font-display text-4xl font-black", s.color]}>{s.n}</p>
+          <p class:list={["mt-1 text-sm font-medium", s.color]}>{s.label}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="mx-auto max-w-6xl px-4 pb-20" id="funcionalidades">
+    <div class="ss-reveal max-w-2xl">
+      <div class="ss-band" style="max-width:96px;height:3px" aria-hidden="true"><span/><span/><span/><span/><span/></div>
+      <h2 class="mt-4 text-3xl md:text-4xl font-display font-black">Cada cor, uma arma do seu time</h2>
+      <p class="mt-3 text-ss-ink/70">Enquanto outros apps só marcam a pelada, o Soccer Squad estrutura o clube inteiro.</p>
+    </div>
+    <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {FEATURES.map(f => (
+        <a href={f.href || "#funcionalidades"} class:list={["ss-reveal rounded-2xl p-6 block hover:scale-[1.02] transition-transform", f.bg]}>
+          <span class="text-2xl">{f.icon}</span>
+          <h3 class:list={["mt-3 text-lg font-extrabold", f.color]}>{f.title}</h3>
+          <p class:list={["mt-2 text-sm leading-relaxed", f.color]}>{f.text}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="bg-ss-ink text-white" id="como-funciona">
+    <div class="ss-band" aria-hidden="true"><span/><span/><span/><span/><span/></div>
+    <div class="mx-auto max-w-6xl px-4 py-20">
+      <div class="ss-reveal max-w-2xl">
+        <p class="ss-eyebrow text-ss-lime">Do vestiário ao apito final</p>
+        <h2 class="mt-3 text-3xl md:text-4xl font-display font-black">Em campo em três toques</h2>
+      </div>
+      <div class="mt-12 grid gap-8 md:grid-cols-3">
+        {STEPS.map(s => (
+          <div class="ss-reveal">
+            <span class="font-display text-5xl font-black text-white/15">{s.n}</span>
+            <h3 class="mt-4 text-xl font-extrabold">{s.title}</h3>
+            <p class="mt-2 text-white/65 leading-relaxed text-sm">{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <StoreBadges class="ss-reveal mt-12" />
+    </div>
+  </section>
+
+  <!-- COPA 2026 -->
+  <section class="mx-auto max-w-6xl px-4 py-20">
+    <div class="ss-reveal overflow-hidden rounded-3xl bg-ss-brand-soft">
+      <div class="grid items-center gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-12">
+        <div>
+          <p class="ss-eyebrow text-ss-brand">Promoção válida durante o Mundial</p>
+          <h2 class="mt-3 text-3xl md:text-4xl font-display font-black text-ss-ink">Monte a sua Copa 2026</h2>
+          <p class="mt-3 max-w-lg text-ss-brand leading-relaxed">
+            48 seleções disputam o Mundial. Milhares de times disputam o Soccer Squad.
+            Crie um torneio durante a Copa e ganhe <strong>30 dias grátis</strong>.
+          </p>
+          <a href="/torneios" class="mt-6 inline-flex items-center gap-2 rounded-full bg-ss-brand px-7 py-3.5 font-semibold text-white hover:bg-ss-brand-vivid transition-colors">
+            Saiba mais →
+          </a>
+        </div>
+        <div class="hidden md:flex flex-col gap-2">
+          {["Oitavas","Quartas","Semi","A GRANDE FINAL"].map((fase,i) => (
+            <div class="rounded-xl bg-white px-5 py-3 font-display font-extrabold text-sm"
+                 style={`margin-left:${i*18}px; color:${i===3?"#993c1d":"#0a1b14"}`}>{fase}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPOIMENTOS + APP STORE RATING -->
+  <section class="mx-auto max-w-6xl px-4 pb-20">
+    <div class="ss-reveal flex flex-wrap items-center gap-6 mb-8">
+      <h2 class="text-3xl font-display font-black">Quem joga, aprova</h2>
+      <div class="flex items-center gap-4 rounded-full bg-ss-amber-soft px-5 py-2.5">
+        <span class="font-display text-2xl font-black text-ss-amber-deep">4,8</span>
+        <div>
+          <div class="flex gap-0.5 text-ss-amber text-sm">★★★★★</div>
+          <p class="text-xs text-ss-amber-deep">na App Store e Google Play</p>
+        </div>
+      </div>
+    </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      {[
+        { quote: "Acabou a planilha e o grupo de figurinha. Sorteio justo e ninguém mais reclama do time.", name: "Organizador · Pelada de quinta", color: "text-ss-brand" },
+        { quote: "O placar ao vivo mudou tudo. Quem não vai, acompanha. Quem vai, quer aparecer na estatística.", name: "Capitão · Society de sábado", color: "text-ss-royal" },
+        { quote: "Cobrar mensalidade era constrangedor. Agora o app lembra por mim e o caixa é transparente.", name: "Tesoureiro · Liga da firma", color: "text-ss-coral-deep" },
+      ].map(t => (
+        <figure class="ss-reveal rounded-2xl border border-black/8 bg-white p-6">
+          <div class="flex gap-0.5 text-ss-amber text-xs mb-3">★★★★★</div>
+          <blockquote class="text-[15px] leading-relaxed text-ss-ink/80">"{t.quote}"</blockquote>
+          <figcaption class:list={["mt-4 text-sm font-semibold", t.color]}>{t.name}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <!-- FERRAMENTA GRÁTIS -->
+  <section class="mx-auto max-w-6xl px-4 pb-20">
+    <div class="ss-reveal rounded-3xl bg-ss-lime-soft p-8 md:p-10 grid items-center gap-6 md:grid-cols-[1fr_auto]">
+      <div>
+        <p class="ss-eyebrow text-ss-lime-deep">Ferramenta grátis</p>
+        <h2 class="mt-2 text-2xl font-display font-black text-ss-ink">Sorteio de times online</h2>
+        <p class="mt-2 text-ss-lime-deep">Divida a galera em times equilibrados por nota. Sem cadastro, sem instalar.</p>
+      </div>
+      <a href="/sorteio" class="rounded-full bg-ss-lime-deep px-7 py-3.5 font-semibold text-white hover:opacity-90 transition-opacity">Sortear times agora</a>
+    </div>
+  </section>
+
+  <!-- PREÇO -->
+  <section class="mx-auto max-w-6xl px-4 pb-20">
+    <div class="ss-reveal grid items-center gap-8 rounded-3xl border border-black/8 bg-white p-8 md:grid-cols-[1fr_auto] md:p-12">
+      <div>
+        <p class="ss-eyebrow text-ss-brand">Um preço para o time inteiro</p>
+        <h2 class="mt-3 text-3xl font-display font-black">
+          Teste grátis. Depois, <span class="text-ss-brand">R$ {PRICING.monthly}/mês</span> por time.
+        </h2>
+        <p class="mt-3 max-w-xl text-ss-ink/70">
+          Não é por jogador. No plano anual sai por R$ {PRICING.annualPerMonth}/mês — economia de R$ {PRICING.annualSavings}. Cancele quando quiser.
+        </p>
+      </div>
+      <a href="/planos" class="rounded-full bg-ss-ink px-8 py-4 text-center font-semibold text-white hover:bg-black transition-colors">Ver planos</a>
+    </div>
+  </section>
+
+  <!-- B2B QUADRAS -->
+  <section class="mx-auto max-w-6xl px-4 pb-20">
+    <div class="ss-reveal flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-ss-amber-soft p-8 md:p-10">
+      <div>
+        <h2 class="text-2xl font-display font-black text-ss-amber-deep">Tem uma quadra ou arena?</h2>
+        <p class="mt-2 max-w-xl text-ss-amber-deep">Receba times do Soccer Squad e ocupe seus horários vagos.</p>
+      </div>
+      <a href="/quadras" class="rounded-full bg-ss-amber-deep px-7 py-3.5 font-semibold text-white hover:opacity-90 transition-opacity">Quero ser parceiro</a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-4 pb-24" id="faq">
+    <h2 class="ss-reveal text-3xl font-display font-black text-center">Perguntas frequentes</h2>
+    <div class="mt-8 space-y-3">
+      {FAQ.map(f => (
+        <details class="ss-reveal group rounded-2xl border border-black/8 bg-white px-6 py-4">
+          <summary class="cursor-pointer list-none font-semibold flex items-center justify-between gap-4">
+            {f.q}
+            <svg class="h-5 w-5 shrink-0 text-ss-brand transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+          </summary>
+          <p class="mt-3 text-ss-ink/70 leading-relaxed text-sm">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="bg-ss-brand text-white">
+    <div class="mx-auto max-w-6xl px-4 py-20 text-center">
+      <h2 class="ss-reveal text-3xl md:text-5xl font-display font-black">Falta o seu time.</h2>
+      <p class="ss-reveal mt-4 text-white/80 max-w-xl mx-auto">Baixe o Soccer Squad agora e faça o primeiro sorteio em menos de cinco minutos.</p>
+      <StoreBadges class="ss-reveal mt-8 justify-center" />
+    </div>
+  </section>
+</Base>

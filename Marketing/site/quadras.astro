@@ -1,0 +1,37 @@
+---
+import Base from "@/layouts/Base.astro";
+import LeadForm from "@/components/react/LeadForm";
+
+const BENEFICIOS = [
+  { icon: "📅", title: "Ocupe horários vagos", text: "Times do Soccer Squad procuram quadra toda semana." },
+  { icon: "🔄", title: "Cliente recorrente", text: "Pelada fixa é receita fixa. Não é cliente avulso." },
+  { icon: "💸", title: "Sem custo para começar", text: "Cadastro gratuito. Você só ganha visibilidade e demanda." },
+];
+---
+<Base title="Cadastre sua quadra ou arena | Parceiros Soccer Squad" description="Receba times de futebol amador organizados e ocupe horários vagos. Cadastro gratuito." path="/quadras">
+
+  <section class="bg-ss-amber-soft">
+    <div class="mx-auto max-w-6xl px-4 py-16 md:py-24 grid items-center gap-12 md:grid-cols-2">
+      <div>
+        <p class="ss-eyebrow text-ss-amber-deep">Para donos de quadra e arena</p>
+        <h1 class="mt-4 text-4xl md:text-5xl font-display font-black text-ss-ink">Horário vago é gol contra.</h1>
+        <p class="mt-4 max-w-md text-lg text-ss-amber-deep leading-relaxed">Conecte sua quadra aos times do Soccer Squad.</p>
+        <ul class="mt-8 space-y-5">
+          {BENEFICIOS.map(b => (
+            <li class="ss-reveal flex gap-4">
+              <span class="text-xl shrink-0">{b.icon}</span>
+              <div>
+                <p class="font-extrabold text-ss-ink">{b.title}</p>
+                <p class="text-sm text-ss-amber-deep">{b.text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="ss-reveal rounded-3xl border border-black/8 bg-white p-7 md:p-8">
+        <LeadForm client:visible />
+      </div>
+    </div>
+  </section>
+</Base>

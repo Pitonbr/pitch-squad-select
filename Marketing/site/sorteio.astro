@@ -1,0 +1,45 @@
+---
+import Base from "@/layouts/Base.astro";
+import SorteioTool from "@/components/react/SorteioTool";
+
+const FAQ = [
+  { q: "Como funciona o sorteio equilibrado?", a: "O algoritmo ordena jogadores por nota e distribui alternando entre os times, equilibrando a soma." },
+  { q: "Posso sortear sem dar nota?", a: "Sim! Deixe todas as notas em 3 e use modo aleatório — funciona como par ou ímpar, sem panelinha." },
+  { q: "Consigo salvar o resultado?", a: "Aqui no site você copia e cola no WhatsApp. No app, o sorteio fica salvo com presença e placar." },
+];
+---
+<Base title="Sorteio de Times Online Grátis — Dividir Times de Futebol | Soccer Squad" description="Sorteia times equilibrados por nota em segundos. Grátis, sem cadastro. 2 a 4 times, modo equilibrado ou aleatório." path="/sorteio">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: FAQ.map(f => ({ "@type":"Question", name:f.q, acceptedAnswer:{"@type":"Answer",text:f.a} })),
+    })} />
+  </Fragment>
+
+  <section class="mx-auto max-w-4xl px-4 py-14 md:py-20">
+    <div class="text-center">
+      <span class="text-4xl">🔀</span>
+      <h1 class="mt-4 text-3xl md:text-5xl font-display font-black">Sorteio de times online</h1>
+      <p class="mx-auto mt-3 max-w-lg text-ss-ink/65">Divida a galera em times equilibrados por nota. Grátis, sem cadastro.</p>
+    </div>
+    <div class="mt-10">
+      <!-- React Island: hydrated no client, resto da página é HTML estático -->
+      <SorteioTool client:load />
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-4 pb-20">
+    <h2 class="ss-reveal text-2xl font-display font-black">Perguntas sobre o sorteio</h2>
+    <div class="mt-6 space-y-3">
+      {FAQ.map(f => (
+        <details class="ss-reveal group rounded-2xl border border-black/8 bg-white px-6 py-4">
+          <summary class="cursor-pointer list-none font-semibold flex items-center justify-between gap-4">
+            {f.q}
+            <svg class="h-5 w-5 shrink-0 text-ss-brand transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+          </summary>
+          <p class="mt-3 text-ss-ink/70 leading-relaxed text-sm">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+</Base>
