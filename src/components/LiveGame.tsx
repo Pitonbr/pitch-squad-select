@@ -26,6 +26,10 @@ interface Game {
   away_score: number;
   match_duration_minutes: number;
   is_match_active: boolean;
+  home_team_name: string;
+  away_team_name: string;
+  home_team_color: string;
+  away_team_color: string;
 }
 
 interface Player {
@@ -181,7 +185,7 @@ const LiveGameContent: React.FC = () => {
                     </div>
                     {game.is_match_active && (
                       <div className="font-bold text-primary">
-                        {game.home_score} - {game.away_score}
+                        {game.home_team_name} {game.home_score} - {game.away_score} {game.away_team_name}
                       </div>
                     )}
                   </div>
@@ -221,7 +225,7 @@ const LiveGameContent: React.FC = () => {
         </Badge>
 
         {selectedGame.is_match_active && (
-          <Badge variant="destructive">
+          <Badge variant="destructive" className="animate-pulse">
             AO VIVO
           </Badge>
         )}
@@ -239,10 +243,19 @@ const LiveGameContent: React.FC = () => {
               <Clock className="w-4 h-4 text-primary" />
               {selectedGame.time}
             </span>
-            <span className="text-2xl font-bold text-white">
+          </CardDescription>
+
+          <div className="flex items-center justify-center gap-4 pt-2">
+            <span className="text-lg font-semibold" style={{ color: selectedGame.home_team_color }}>
+              {selectedGame.home_team_name}
+            </span>
+            <span className="text-3xl font-bold text-white">
               {selectedGame.home_score} - {selectedGame.away_score}
             </span>
-          </CardDescription>
+            <span className="text-lg font-semibold" style={{ color: selectedGame.away_team_color }}>
+              {selectedGame.away_team_name}
+            </span>
+          </div>
         </CardHeader>
       </Card>
 

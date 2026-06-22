@@ -571,6 +571,8 @@ export type Database = {
       games: {
         Row: {
           away_score: number | null
+          away_team_color: string
+          away_team_name: string
           checkin_deadline_minutes: number | null
           created_at: string
           current_half: number | null
@@ -578,6 +580,8 @@ export type Database = {
           description: string | null
           finished_at: string | null
           home_score: number | null
+          home_team_color: string
+          home_team_name: string
           id: string
           invite_link: string | null
           is_match_active: boolean | null
@@ -596,6 +600,8 @@ export type Database = {
         }
         Insert: {
           away_score?: number | null
+          away_team_color?: string
+          away_team_name?: string
           checkin_deadline_minutes?: number | null
           created_at?: string
           current_half?: number | null
@@ -603,6 +609,8 @@ export type Database = {
           description?: string | null
           finished_at?: string | null
           home_score?: number | null
+          home_team_color?: string
+          home_team_name?: string
           id?: string
           invite_link?: string | null
           is_match_active?: boolean | null
@@ -621,6 +629,8 @@ export type Database = {
         }
         Update: {
           away_score?: number | null
+          away_team_color?: string
+          away_team_name?: string
           checkin_deadline_minutes?: number | null
           created_at?: string
           current_half?: number | null
@@ -628,6 +638,8 @@ export type Database = {
           description?: string | null
           finished_at?: string | null
           home_score?: number | null
+          home_team_color?: string
+          home_team_name?: string
           id?: string
           invite_link?: string | null
           is_match_active?: boolean | null
@@ -670,6 +682,7 @@ export type Database = {
       }
       match_events: {
         Row: {
+          assist_player_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -681,6 +694,7 @@ export type Database = {
           team_side: string | null
         }
         Insert: {
+          assist_player_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -692,6 +706,7 @@ export type Database = {
           team_side?: string | null
         }
         Update: {
+          assist_player_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -703,6 +718,13 @@ export type Database = {
           team_side?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "match_events_assist_player_id_fkey"
+            columns: ["assist_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "match_events_created_by_fkey"
             columns: ["created_by"]

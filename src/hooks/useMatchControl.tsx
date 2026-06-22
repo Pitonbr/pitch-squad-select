@@ -8,12 +8,17 @@ interface MatchEvent {
   id: string;
   game_id: string;
   player_id?: string;
+  assist_player_id?: string;
   event_type: 'goal' | 'assist' | 'yellow_card' | 'red_card' | 'substitution' | 'tackle' | 'save' | 'foul' | 'offside';
   minute: number;
   description?: string;
   team_side?: 'home' | 'away';
   created_at: string;
   player?: {
+    name: string;
+    nickname?: string;
+  };
+  assist_player?: {
     name: string;
     nickname?: string;
   };
@@ -50,6 +55,10 @@ interface Game {
   away_score: number;
   match_duration_minutes: number;
   is_match_active: boolean;
+  home_team_name: string;
+  away_team_name: string;
+  home_team_color: string;
+  away_team_color: string;
 }
 
 interface MatchControlContextType {
@@ -69,6 +78,7 @@ interface MatchControlContextType {
   removeEvent: (eventId: string) => Promise<void>;
   designateReferee: (playerId: string) => Promise<void>;
   updateScore: (homeScore: number, awayScore: number) => Promise<void>;
+  updateTeamCustomization: (data: { homeTeamName: string; awayTeamName: string; homeTeamColor: string; awayTeamColor: string }) => Promise<void>;
   loading: boolean;
   refreshMatchData: () => Promise<void>;
 }
@@ -147,16 +157,24 @@ export const MatchControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Load player details separately to avoid relationship issues
         const eventsWithPlayers = await Promise.all(
           eventsData.map(async (event) => {
+            let enriched: any = event;
             if (event.player_id) {
               const { data: player } = await supabase
                 .from('players')
                 .select('name, nickname')
                 .eq('id', event.player_id)
                 .single();
-              
-              return { ...event, player };
+              enriched = { ...enriched, player };
             }
-            return event;
+            if (event.assist_player_id) {
+              const { data: assistPlayer } = await supabase
+                .from('players')
+                .select('name, nickname')
+                .eq('id', event.assist_player_id)
+                .single();
+              enriched = { ...enriched, assist_player: assistPlayer };
+            }
+            return enriched;
           })
         );
         setEvents(eventsWithPlayers as MatchEvent[]);
@@ -426,6 +444,36 @@ export const MatchControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const updateTeamCustomization = async (data: { homeTeamName: string; awayTeamName: string; homeTeamColor: string; awayTeamColor: string }) => {
+    if (!selectedGame || (!isReferee && !isAdmin)) return;
+
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update({
+          home_team_name: data.homeTeamName,
+          away_team_name: data.awayTeamName,
+          home_team_color: data.homeTeamColor,
+          away_team_color: data.awayTeamColor,
+        })
+        .eq('id', selectedGame.id);
+
+      if (error) throw error;
+
+      toast.success('Times personalizados!');
+      setSelectedGame(prev => prev ? {
+        ...prev,
+        home_team_name: data.homeTeamName,
+        away_team_name: data.awayTeamName,
+        home_team_color: data.homeTeamColor,
+        away_team_color: data.awayTeamColor,
+      } : prev);
+    } catch (error) {
+      console.error('Error customizing teams:', error);
+      toast.error('Erro ao personalizar times');
+    }
+  };
+
   return (
     <MatchControlContext.Provider value={{
       selectedGame,
@@ -444,6 +492,7 @@ export const MatchControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       removeEvent,
       designateReferee,
       updateScore,
+      updateTeamCustomization,
       loading,
       refreshMatchData
     }}>

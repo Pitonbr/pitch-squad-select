@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useMatchControl } from '@/hooks/useMatchControl';
-import { Play, Pause, StopCircle, Plus, Minus, Clock, Target, UserCheck, AlertTriangle, Trophy } from 'lucide-react';
+import { Play, Pause, StopCircle, Plus, Minus, Clock, Target, UserCheck, AlertTriangle, Trophy, Palette } from 'lucide-react';
 
 interface Player {
   id: string;
@@ -32,15 +32,21 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
     endHalf,
     addEvent,
     removeEvent,
-    updateScore
+    updateScore,
+    updateTeamCustomization
   } = useMatchControl();
 
   const [selectedPlayer, setSelectedPlayer] = useState('');
+  const [selectedAssistPlayer, setSelectedAssistPlayer] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('');
   const [selectedTeamSide, setSelectedTeamSide] = useState<'home' | 'away'>('home');
   const [eventDescription, setEventDescription] = useState('');
   const [newHomeScore, setNewHomeScore] = useState(selectedGame?.home_score || 0);
   const [newAwayScore, setNewAwayScore] = useState(selectedGame?.away_score || 0);
+  const [homeTeamName, setHomeTeamName] = useState(selectedGame?.home_team_name || 'Time Casa');
+  const [awayTeamName, setAwayTeamName] = useState(selectedGame?.away_team_name || 'Time Visitante');
+  const [homeTeamColor, setHomeTeamColor] = useState(selectedGame?.home_team_color || '#3b82f6');
+  const [awayTeamColor, setAwayTeamColor] = useState(selectedGame?.away_team_color || '#ef4444');
 
   if (!selectedGame || (!isReferee && !isAdmin)) {
     return (
@@ -68,6 +74,7 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
 
     await addEvent({
       player_id: selectedPlayer,
+      assist_player_id: selectedEventType === 'goal' && selectedAssistPlayer ? selectedAssistPlayer : undefined,
       event_type: selectedEventType as any,
       team_side: selectedTeamSide,
       minute: Math.floor(matchTime / 60),
@@ -76,12 +83,17 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
 
     // Reset form
     setSelectedPlayer('');
+    setSelectedAssistPlayer('');
     setSelectedEventType('');
     setEventDescription('');
   };
 
   const handleUpdateScore = async () => {
     await updateScore(newHomeScore, newAwayScore);
+  };
+
+  const handleUpdateCustomization = async () => {
+    await updateTeamCustomization({ homeTeamName, awayTeamName, homeTeamColor, awayTeamColor });
   };
 
   const eventTypeIcons = {
@@ -110,6 +122,31 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
 
   return (
     <div className="space-y-6">
+      {/* Team Customization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="w-5 h-5" />
+            Personalizar Times
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <input type="color" value={homeTeamColor} onChange={(e) => setHomeTeamColor(e.target.value)} className="h-9 w-9 rounded border cursor-pointer" />
+              <Input placeholder="Nome do time da casa" value={homeTeamName} onChange={(e) => setHomeTeamName(e.target.value)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="color" value={awayTeamColor} onChange={(e) => setAwayTeamColor(e.target.value)} className="h-9 w-9 rounded border cursor-pointer" />
+              <Input placeholder="Nome do time visitante" value={awayTeamName} onChange={(e) => setAwayTeamName(e.target.value)} />
+            </div>
+          </div>
+          <Button onClick={handleUpdateCustomization} size="sm" variant="outline">
+            Salvar nomes e cores
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Match Timer and Controls */}
       <Card>
         <CardHeader>
@@ -234,8 +271,8 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="home">Time da Casa</SelectItem>
-                <SelectItem value="away">Time Visitante</SelectItem>
+                <SelectItem value="home">{selectedGame.home_team_name}</SelectItem>
+                <SelectItem value="away">{selectedGame.away_team_name}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -246,8 +283,23 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
             />
           </div>
 
-          <Button 
-            onClick={handleAddEvent} 
+          {selectedEventType === 'goal' && (
+            <Select value={selectedAssistPlayer} onValueChange={setSelectedAssistPlayer}>
+              <SelectTrigger>
+                <SelectValue placeholder="Assistência (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {players.filter(p => p.id !== selectedPlayer).map((player) => (
+                  <SelectItem key={player.id} value={player.id}>
+                    {player.nickname || player.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          <Button
+            onClick={handleAddEvent}
             disabled={!selectedPlayer || !selectedEventType}
             className="w-full"
           >
@@ -268,30 +320,37 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
             </p>
           ) : (
             <div className="space-y-3">
-              {events.map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {eventTypeIcons[event.event_type]}
-                    <div>
-                      <div className="font-medium">
-                        {eventTypeLabels[event.event_type]} - {event.player?.nickname || event.player?.name}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {event.minute}' {event.team_side === 'home' ? 'Casa' : 'Visitante'}
-                        {event.description && ` - ${event.description}`}
+              {events.map((event) => {
+                const scorerName = event.player?.nickname || event.player?.name || 'Jogador';
+                const assistName = event.assist_player?.nickname || event.assist_player?.name;
+                const teamLabel = event.team_side === 'home' ? selectedGame.home_team_name : selectedGame.away_team_name;
+                return (
+                  <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {eventTypeIcons[event.event_type]}
+                      <div>
+                        <div className="font-medium">
+                          {event.event_type === 'goal'
+                            ? `⚽ ${scorerName} marcou!${assistName ? ` Assistência de ${assistName}` : ''}`
+                            : `${eventTypeLabels[event.event_type]} - ${scorerName}`}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {event.minute}' {teamLabel}
+                          {event.description && ` - ${event.description}`}
+                        </div>
                       </div>
                     </div>
+
+                    <Button
+                      onClick={() => removeEvent(event.id)}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
                   </div>
-                  
-                  <Button
-                    onClick={() => removeEvent(event.id)}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
