@@ -5,24 +5,50 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Trophy, 
-  Target, 
-  Heart, 
-  Shield, 
-  Zap, 
+import {
+  Trophy,
+  Target,
+  Heart,
+  Shield,
+  Zap,
   AlertTriangle,
   Crown,
   Medal,
   Award,
   Calendar,
   TrendingUp,
-  Users
+  Users,
+  EyeOff
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { getInitialsAvatar } from "@/lib/avatar";
+
+interface TeamRankingRow {
+  player_id: string;
+  player_name: string;
+  player_nickname: string;
+  goals: number;
+  assists: number;
+}
+
+const PERIOD_LABELS: Record<string, string> = {
+  month: "Mês",
+  quarter: "Trimestre",
+  semester: "Semestre",
+  year: "Ano",
+  career: "Carreira",
+};
 
 interface PlayerRanking {
   id: string;
@@ -43,17 +69,55 @@ interface CoachRanking {
 }
 
 export function Rankings() {
-  const [activeTab, setActiveTab] = useState("stats");
+  const [activeTab, setActiveTab] = useState("podium");
   const [loading, setLoading] = useState(true);
   const [recentGames, setRecentGames] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
-  const { activeTeam } = useTeams();
+  const [period, setPeriod] = useState("career");
+  const [teamRankings, setTeamRankings] = useState<TeamRankingRow[]>([]);
+  const [rankingsLoading, setRankingsLoading] = useState(true);
+  const [hideNegative, setHideNegative] = useState(false);
+  const { activeTeam, isTeamAdmin } = useTeams();
 
   useEffect(() => {
     if (activeTeam) {
       fetchRankingsData();
+      fetchTeamSettings();
     }
   }, [activeTeam]);
+
+  useEffect(() => {
+    if (activeTeam) {
+      fetchTeamRankings();
+    }
+  }, [activeTeam, period]);
+
+  const fetchTeamSettings = async () => {
+    const { data } = await supabase
+      .from("teams")
+      .select("hide_negative_highlights")
+      .eq("id", activeTeam.id)
+      .single();
+    setHideNegative((data as any)?.hide_negative_highlights || false);
+  };
+
+  const fetchTeamRankings = async () => {
+    setRankingsLoading(true);
+    const { data } = await supabase.rpc("get_team_rankings", {
+      p_team_id: activeTeam.id,
+      p_period: period,
+    });
+    setTeamRankings((data as unknown as TeamRankingRow[]) || []);
+    setRankingsLoading(false);
+  };
+
+  const handleToggleHideNegative = async (checked: boolean) => {
+    setHideNegative(checked);
+    await supabase
+      .from("teams")
+      .update({ hide_negative_highlights: checked } as any)
+      .eq("id", activeTeam.id);
+  };
 
   // Realtime listeners
   const handleDataUpdate = useCallback(() => {
@@ -235,10 +299,80 @@ export function Rankings() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-primary/30">
+        <TabsList className="grid w-full grid-cols-3 bg-black/40 border border-primary/30">
+          <TabsTrigger value="podium" className="data-[state=active]:bg-primary data-[state=active]:text-white">Pódio</TabsTrigger>
           <TabsTrigger value="stats" className="data-[state=active]:bg-primary data-[state=active]:text-white">Estatísticas dos Jogadores</TabsTrigger>
           <TabsTrigger value="recent" className="data-[state=active]:bg-primary data-[state=active]:text-white">Jogos Recentes</TabsTrigger>
         </TabsList>
+
+        {/* Podium Tab */}
+        <TabsContent value="podium" className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-[180px] bg-black/40 border-primary/30 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(PERIOD_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {isTeamAdmin(activeTeam?.id || "") && (
+              <div className="flex items-center gap-2">
+                <EyeOff className="h-4 w-4 text-white/70" />
+                <Label htmlFor="hide-negative" className="text-sm text-white/85">Ocultar destaques negativos</Label>
+                <Switch id="hide-negative" checked={hideNegative} onCheckedChange={handleToggleHideNegative} />
+              </div>
+            )}
+          </div>
+
+          {rankingsLoading ? (
+            <Skeleton className="h-48 w-full" />
+          ) : teamRankings.length === 0 ? (
+            <Card variant="dark" className="backdrop-blur-md">
+              <CardContent className="text-center py-12">
+                <Trophy className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-white">Sem dados neste período</h3>
+                <p className="text-white/90">Nenhum gol ou assistência registrado no período selecionado.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                {teamRankings.slice(0, 3).map((row, index) => {
+                  const medal = ["🥇", "🥈", "🥉"][index];
+                  return (
+                    <Card key={row.player_id} variant="dark" className="backdrop-blur-md text-center">
+                      <CardContent className="pt-6 pb-4">
+                        <div className="text-3xl mb-1">{medal}</div>
+                        <p className="font-semibold text-white text-sm truncate">{row.player_nickname || row.player_name}</p>
+                        <p className="text-xs text-white/60">{row.goals} gols · {row.assists} assist.</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {teamRankings.length > 3 && (
+                <Card variant="dark" className="backdrop-blur-md">
+                  <CardContent className="space-y-2 pt-4">
+                    {teamRankings.slice(3).map((row, index) => (
+                      <div key={row.player_id} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 border border-primary/10">
+                        <div className="flex items-center gap-3">
+                          <span className="w-6 text-center text-sm font-bold text-white/60">#{index + 4}</span>
+                          <span className="text-sm text-white">{row.player_nickname || row.player_name}</span>
+                        </div>
+                        <span className="text-xs text-white/70">{row.goals} gols · {row.assists} assist.</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </TabsContent>
 
         {/* Player Statistics Tab */}
         <TabsContent value="stats" className="space-y-6">

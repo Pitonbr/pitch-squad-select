@@ -2223,6 +2223,7 @@ export type Database = {
           description: string | null
           end_time: string | null
           game_type: string | null
+          hide_negative_highlights: boolean
           id: string
           invite_code: string
           is_public: boolean | null
@@ -2258,6 +2259,7 @@ export type Database = {
           description?: string | null
           end_time?: string | null
           game_type?: string | null
+          hide_negative_highlights?: boolean
           id?: string
           invite_code?: string
           is_public?: boolean | null
@@ -2293,6 +2295,7 @@ export type Database = {
           description?: string | null
           end_time?: string | null
           game_type?: string | null
+          hide_negative_highlights?: boolean
           id?: string
           invite_code?: string
           is_public?: boolean | null
@@ -2770,6 +2773,16 @@ export type Database = {
         }[]
       }
       get_game_highlights: { Args: { p_game_id: string }; Returns: Json }
+      get_game_lineup_of_the_round: {
+        Args: { p_game_id: string }
+        Returns: {
+          avg_rating: number
+          player_id: string
+          player_name: string
+          player_nickname: string
+          player_position: string
+        }[]
+      }
       get_game_participants_for_rating: {
         Args: { p_game_id: string }
         Returns: {
@@ -2902,6 +2915,16 @@ export type Database = {
           skill_level: number
           team_id: string
           updated_at: string
+        }[]
+      }
+      get_team_rankings: {
+        Args: { p_period?: string; p_team_id: string }
+        Returns: {
+          assists: number
+          goals: number
+          player_id: string
+          player_name: string
+          player_nickname: string
         }[]
       }
       has_financial_admin_access: {

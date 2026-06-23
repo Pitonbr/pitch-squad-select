@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy } from "lucide-react";
+import { Trophy, Star } from "lucide-react";
+
+interface LineupOfRoundEntry {
+  player_position: string;
+  player_id: string;
+  player_name: string;
+  player_nickname: string;
+  avg_rating: number;
+}
 
 interface HighlightEntry {
   player_id: string | null;
@@ -102,6 +110,17 @@ export function GameHighlights({ gameId, gameTitle }: GameHighlightsProps) {
     },
   });
 
+  const { data: lineupOfRound } = useQuery<LineupOfRoundEntry[]>({
+    queryKey: ["game-lineup-of-round", gameId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_game_lineup_of_the_round", {
+        p_game_id: gameId,
+      });
+      if (error) throw error;
+      return (data as LineupOfRoundEntry[]) || [];
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="text-center py-8 text-white/50 text-sm">
@@ -127,45 +146,76 @@ export function GameHighlights({ gameId, gameTitle }: GameHighlightsProps) {
   }
 
   return (
-    <Card variant="dark" className="backdrop-blur-md">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <Trophy className="w-5 h-5 text-amber-400" />
-          <div>
-            <CardTitle className="text-white text-base">
-              Destaques da Partida
-            </CardTitle>
-            <p className="text-xs text-white/50 mt-0.5">{gameTitle}</p>
+    <div className="space-y-4">
+      <Card variant="dark" className="backdrop-blur-md">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Trophy className="w-5 h-5 text-amber-400" />
+            <div>
+              <CardTitle className="text-white text-base">
+                Destaques da Partida
+              </CardTitle>
+              <p className="text-xs text-white/50 mt-0.5">{gameTitle}</p>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {HIGHLIGHT_CONFIG.map((cfg) => {
-            const entry = highlights[cfg.key];
-            if (!entry?.player_name) return null;
-            return (
-              <div
-                key={cfg.key}
-                className={`rounded-xl border p-3 flex flex-col items-center text-center gap-1 ${cfg.cardClass}`}
-              >
-                <span className="text-2xl">{cfg.emoji}</span>
-                <p className={`text-xs font-semibold uppercase tracking-wide ${cfg.labelClass}`}>
-                  {cfg.label}
-                </p>
-                <p className="text-sm font-bold text-white leading-tight">
-                  {entry.player_name}
-                </p>
-                {entry.value !== null && (
-                  <p className="text-xs text-white/50">
-                    {cfg.description(entry.value)}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {HIGHLIGHT_CONFIG.map((cfg) => {
+              const entry = highlights[cfg.key];
+              if (!entry?.player_name) return null;
+              return (
+                <div
+                  key={cfg.key}
+                  className={`rounded-xl border p-3 flex flex-col items-center text-center gap-1 ${cfg.cardClass}`}
+                >
+                  <span className="text-2xl">{cfg.emoji}</span>
+                  <p className={`text-xs font-semibold uppercase tracking-wide ${cfg.labelClass}`}>
+                    {cfg.label}
                   </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+                  <p className="text-sm font-bold text-white leading-tight">
+                    {entry.player_name}
+                  </p>
+                  {entry.value !== null && (
+                    <p className="text-xs text-white/50">
+                      {cfg.description(entry.value)}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {lineupOfRound && lineupOfRound.length > 0 && (
+        <Card variant="dark" className="backdrop-blur-md">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <Star className="w-5 h-5 text-yellow-400" />
+              <CardTitle className="text-white text-base">Seleção da Rodada</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {lineupOfRound.map((entry) => (
+                <div
+                  key={entry.player_position}
+                  className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 flex flex-col items-center text-center gap-1"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                    {entry.player_position}
+                  </p>
+                  <p className="text-sm font-bold text-white leading-tight">
+                    {entry.player_nickname || entry.player_name}
+                  </p>
+                  <p className="text-xs text-white/50">Nota {entry.avg_rating}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
