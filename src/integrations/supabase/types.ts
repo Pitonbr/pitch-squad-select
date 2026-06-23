@@ -731,6 +731,7 @@ export type Database = {
           match_time_started: string | null
           max_goalkeepers: number | null
           max_outfield_players: number | null
+          recurring_schedule_id: string | null
           referee_id: string | null
           status: string
           team_id: string
@@ -760,6 +761,7 @@ export type Database = {
           match_time_started?: string | null
           max_goalkeepers?: number | null
           max_outfield_players?: number | null
+          recurring_schedule_id?: string | null
           referee_id?: string | null
           status?: string
           team_id: string
@@ -789,6 +791,7 @@ export type Database = {
           match_time_started?: string | null
           max_goalkeepers?: number | null
           max_outfield_players?: number | null
+          recurring_schedule_id?: string | null
           referee_id?: string | null
           status?: string
           team_id?: string
@@ -797,6 +800,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "games_recurring_schedule_id_fkey"
+            columns: ["recurring_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_game_schedules"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "games_referee_id_fkey"
             columns: ["referee_id"]
@@ -1752,6 +1762,82 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_game_schedules: {
+        Row: {
+          active: boolean
+          checkin_deadline_minutes: number
+          created_at: string
+          created_by: string | null
+          day_of_week: number
+          description: string | null
+          id: string
+          location: string
+          max_goalkeepers: number | null
+          max_outfield_players: number | null
+          team_id: string
+          time: string
+          title: string
+          updated_at: string
+          weeks_ahead: number
+        }
+        Insert: {
+          active?: boolean
+          checkin_deadline_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          day_of_week: number
+          description?: string | null
+          id?: string
+          location: string
+          max_goalkeepers?: number | null
+          max_outfield_players?: number | null
+          team_id: string
+          time: string
+          title: string
+          updated_at?: string
+          weeks_ahead?: number
+        }
+        Update: {
+          active?: boolean
+          checkin_deadline_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          day_of_week?: number
+          description?: string | null
+          id?: string
+          location?: string
+          max_goalkeepers?: number | null
+          max_outfield_players?: number | null
+          team_id?: string
+          time?: string
+          title?: string
+          updated_at?: string
+          weeks_ahead?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_game_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_game_schedules_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "recurring_game_schedules_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -2747,6 +2833,7 @@ export type Database = {
             }[]
           }
       expire_pending_payments: { Args: never; Returns: undefined }
+      generate_recurring_games: { Args: { p_team_id: string }; Returns: number }
       get_active_banners: {
         Args: { p_target?: string }
         Returns: {

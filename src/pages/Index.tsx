@@ -34,6 +34,7 @@ import { isOnboardingDone } from "@/hooks/useOnboardingFlow";
 import { PlayerForm } from "@/components/PlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
+import { RecurringSchedules } from "@/components/RecurringSchedules";
 import { GameDetailsCard } from "@/components/GameDetailsCard";
 import { GameEditDialog } from "@/components/GameEditDialog";
 import { PlayerInviteManager } from "@/components/PlayerInviteManager";
@@ -285,7 +286,10 @@ export default function Index() {
           <Badge variant="outline" className="flex items-center gap-1"><Calendar className="h-3 w-3" />{games.length} jogos</Badge>
         </div>
         {activeTeam && isTeamAdmin(activeTeam.id) && (
-          <GameForm allPlayers={players} teamLists={teamLists} onGameCreated={handleGameCreated} onTeamListSave={handleTeamListSave} onTeamListDelete={handleTeamListDelete} />
+          <>
+            <RecurringSchedules onGamesGenerated={fetchGamesFromDB} />
+            <GameForm allPlayers={players} teamLists={teamLists} onGameCreated={handleGameCreated} onTeamListSave={handleTeamListSave} onTeamListDelete={handleTeamListDelete} />
+          </>
         )}
         <Card>
           <CardHeader>
