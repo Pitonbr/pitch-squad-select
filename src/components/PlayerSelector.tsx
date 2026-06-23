@@ -154,13 +154,14 @@ export function PlayerSelector({
                 className="flex-1"
               />
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                <Button type="button" variant="outline" size="sm" onClick={handleSelectAll}>
                   Todos
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleClearAll}>
+                <Button type="button" variant="outline" size="sm" onClick={handleClearAll}>
                   Limpar
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => handleRandomSelection(22)}
@@ -176,11 +177,17 @@ export function PlayerSelector({
                 <div
                   key={player.id}
                   className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
-                  onClick={() => handlePlayerToggle(player.id)}
+                  onClick={(e) => {
+                    // Radix Checkbox dispara um clique sintético num input oculto
+                    // ao mudar de estado, que sobe (bubble) até aqui — ignorá-lo
+                    // evita um loop infinito de toggle (clique real vs. sintético).
+                    if (e.target instanceof HTMLInputElement) return;
+                    handlePlayerToggle(player.id);
+                  }}
                 >
                   <Checkbox
                     checked={selectedPlayerIds.includes(player.id)}
-                    onChange={() => handlePlayerToggle(player.id)}
+                    onCheckedChange={() => handlePlayerToggle(player.id)}
                   />
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={player.profile_image || getInitialsAvatar(player.name)} />
@@ -204,6 +211,7 @@ export function PlayerSelector({
             {selectedPlayerIds.length >= 2 && (
               <div className="pt-2 border-t space-y-3">
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className="w-full gap-2 border-primary/50 text-primary hover:bg-primary/10"
@@ -244,7 +252,7 @@ export function PlayerSelector({
                 </span>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button type="button" variant="outline" size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       Salvar Lista
                     </Button>
@@ -263,7 +271,7 @@ export function PlayerSelector({
                           placeholder="Ex: Equipe Titular, Time dos Veteranos..."
                         />
                       </div>
-                      <Button onClick={handleSaveTeamList} className="w-full">
+                      <Button type="button" onClick={handleSaveTeamList} className="w-full">
                         <Save className="h-4 w-4 mr-2" />
                         Salvar Lista
                       </Button>
@@ -294,6 +302,7 @@ export function PlayerSelector({
                       </div>
                       <div className="flex gap-2">
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => onTeamListLoad(teamList.playerIds)}
@@ -301,6 +310,7 @@ export function PlayerSelector({
                           Carregar
                         </Button>
                         <Button
+                          type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => onTeamListDelete(teamList.id)}

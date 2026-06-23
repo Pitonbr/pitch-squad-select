@@ -172,11 +172,17 @@ export function PlayerInviteManager({ isOpen, onClose, game, onPlayersInvited }:
                 <div
                   key={player.id}
                   className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer"
-                  onClick={() => handlePlayerToggle(player.id)}
+                  onClick={(e) => {
+                    // Radix Checkbox dispara um clique sintético num input oculto
+                    // ao mudar de estado, que sobe (bubble) até aqui — ignorá-lo
+                    // evita um loop infinito de toggle (clique real vs. sintético).
+                    if (e.target instanceof HTMLInputElement) return;
+                    handlePlayerToggle(player.id);
+                  }}
                 >
                   <Checkbox
                     checked={selectedPlayerIds.includes(player.id)}
-                    onChange={() => handlePlayerToggle(player.id)}
+                    onCheckedChange={() => handlePlayerToggle(player.id)}
                   />
                   
                   <Avatar className="h-10 w-10">
