@@ -59,6 +59,7 @@ const ManagementPanel = lazy(() => import("@/components/ManagementPanel").then(m
 const Settings        = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
 const TeamAnnouncements = lazy(() => import("@/components/TeamAnnouncements").then(m => ({ default: m.TeamAnnouncements })));
 const RaioX = lazy(() => import("@/components/RaioX").then(m => ({ default: m.RaioX })));
+const ActivityLog = lazy(() => import("@/components/ActivityLog").then(m => ({ default: m.ActivityLog })));
 
 // ── Interfaces ──────────────────────────────────────────────
 interface Player {
@@ -347,6 +348,7 @@ export default function Index() {
             {currentView === "rankings"    && <Rankings />}
             {currentView === "announcements" && <TeamAnnouncements />}
             {currentView === "raioX"        && <RaioX />}
+            {currentView === "activityLog"  && <ActivityLog />}
             {currentView === "finances"    && <FinancialControl />}
             {currentView === "teamManager" && <TeamManager />}
             {currentView === "management"  && <ManagementPanel />}

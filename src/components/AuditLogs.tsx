@@ -46,6 +46,7 @@ export function AuditLogs({ teamId }: AuditLogsProps) {
           *,
           profile:profiles(display_name)
         `)
+        .eq('team_id', teamId)
         .order('created_at', { ascending: false })
         .limit(50);
 

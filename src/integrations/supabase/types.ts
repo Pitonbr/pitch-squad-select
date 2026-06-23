@@ -241,6 +241,7 @@ export type Database = {
           profile_id: string | null
           resource_id: string | null
           resource_type: string
+          team_id: string | null
           user_agent: string | null
           user_id: string | null
         }
@@ -254,6 +255,7 @@ export type Database = {
           profile_id?: string | null
           resource_id?: string | null
           resource_type: string
+          team_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -267,6 +269,7 @@ export type Database = {
           profile_id?: string | null
           resource_id?: string | null
           resource_type?: string
+          team_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
