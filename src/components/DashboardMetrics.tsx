@@ -68,12 +68,11 @@ export function DashboardMetrics({ onNavigate }: DashboardMetricsProps) {
         setNextGame(null);
       }
 
-      // Total de jogadores
-      const { count } = await supabase
-        .from("players")
-        .select("id", { count: "exact", head: true })
-        .eq("team_id", activeTeam.id);
-      setTotalPlayers(count || 0);
+      // Total de jogadores — get_team_players() é SECURITY DEFINER porque o
+      // SELECT direto em "players" é restrito a admins do time (ou à própria
+      // linha); um jogador comum precisa dessa função para ver o total do time.
+      const { data: teamPlayers } = await supabase.rpc("get_team_players", { _team_id: activeTeam.id });
+      setTotalPlayers(teamPlayers?.length || 0);
     } catch (e) {
       console.error(e);
     } finally {

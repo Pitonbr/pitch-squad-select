@@ -5,6 +5,7 @@ import { Calendar, Clock, MapPin, Users, Edit, Send, Timer, UserPlus } from "luc
 import { GameInviteLink } from "./GameInviteLink";
 import { GamePlayerManager } from "./GamePlayerManager";
 import { GameWaitlist } from "./GameWaitlist";
+import { GameBBQ } from "./GameBBQ";
 import { useState, useEffect } from "react";
 
 interface Player {
@@ -264,6 +265,9 @@ export function GameDetailsCard({
             <GameWaitlist gameId={id} />
           </div>
         )}
+
+        {/* Churrasco — visível a todos; admin pode criar/configurar */}
+        <GameBBQ gameId={id} isAdmin={!!isAdmin} />
       </CardContent>
     </Card>
   );

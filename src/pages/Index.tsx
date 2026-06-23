@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // F1 — Layout
 import { AppLayout } from "@/components/AppLayout";
-import { ViewType } from "@/types/navigation";
+import { ViewType, NAV_ITEMS } from "@/types/navigation";
 
 // F3 — UX melhorado
 import { ViewTransition } from "@/components/ViewTransition";
@@ -284,7 +284,9 @@ export default function Index() {
           <div><h2 className="text-2xl font-bold">Gerenciar Jogos</h2><p className="text-muted-foreground">Crie e acompanhe os jogos da temporada</p></div>
           <Badge variant="outline" className="flex items-center gap-1"><Calendar className="h-3 w-3" />{games.length} jogos</Badge>
         </div>
-        <GameForm allPlayers={players} teamLists={teamLists} onGameCreated={handleGameCreated} onTeamListSave={handleTeamListSave} onTeamListDelete={handleTeamListDelete} />
+        {activeTeam && isTeamAdmin(activeTeam.id) && (
+          <GameForm allPlayers={players} teamLists={teamLists} onGameCreated={handleGameCreated} onTeamListSave={handleTeamListSave} onTeamListDelete={handleTeamListDelete} />
+        )}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -315,7 +317,7 @@ export default function Index() {
                       playersCheckedIn={game.playersCheckedIn||0} totalPlayers={game.invitedPlayerIds?.length||22}
                       status={game.status} rawDate={game.date}
                       checkinDeadlineMinutes={game.checkin_deadline_minutes||30}
-                      timeLeft={undefined} isAdmin={true}
+                      timeLeft={undefined} isAdmin={activeTeam ? isTeamAdmin(activeTeam.id) : false}
                       onEdit={() => setGameToEdit(game)} onInvite={() => setGameToInvite(game)}
                       onJoin={game.status==="checkin" ? () => {} : undefined}
                       homeScore={game.home_score} awayScore={game.away_score}
@@ -330,32 +332,44 @@ export default function Index() {
   };
 
   // ── Render ───────────────────────────────────────────────────
+  // Views com playerAllowed=false só existem na Sidebar para admins, mas
+  // currentView é estado de cliente puro — qualquer onNavigate() (ex.: o
+  // card de "próximo jogo" no Dashboard) pode setá-lo para uma view
+  // admin-only mesmo vindo de um jogador comum. Aplicamos aqui o mesmo
+  // critério de NAV_ITEMS.playerAllowed como última linha de defesa de UI
+  // (as RPCs/RLS já protegem os dados; isso evita só expor os controles).
+  const isCurrentTeamAdmin = activeTeam ? isTeamAdmin(activeTeam.id) : false;
+  const requestedNavItem = NAV_ITEMS.find(i => i.key === currentView);
+  const effectiveView: ViewType = (!isCurrentTeamAdmin && requestedNavItem?.playerAllowed === false)
+    ? "dashboard"
+    : currentView;
+
   return (
     <>
       <AppLayout currentView={currentView} onViewChange={setCurrentView}>
-        <ViewTransition viewKey={currentView}>
+        <ViewTransition viewKey={effectiveView}>
           <Suspense fallback={<SkeletonDashboard />}>
-            {currentView === "dashboard"   && (
+            {effectiveView === "dashboard"   && (
               <>
                 <DashboardMetrics onNavigate={setCurrentView} />
                 <Dashboard />
               </>
             )}
-            {currentView === "players"     && renderPlayersView()}
-            {currentView === "games"       && renderGamesView()}
-            {currentView === "tournaments" && <TournamentManager />}
-            {currentView === "liveGame"    && <LiveGame />}
-            {currentView === "rankings"    && <Rankings />}
-            {currentView === "announcements" && <TeamAnnouncements />}
-            {currentView === "raioX"        && <RaioX />}
-            {currentView === "activityLog"  && <ActivityLog />}
-            {currentView === "finances"    && <FinancialControl />}
-            {currentView === "teamManager" && <TeamManager />}
-            {currentView === "management"  && <ManagementPanel />}
-            {currentView === "settings"    && <Settings />}
+            {effectiveView === "players"     && renderPlayersView()}
+            {effectiveView === "games"       && renderGamesView()}
+            {effectiveView === "tournaments" && <TournamentManager />}
+            {effectiveView === "liveGame"    && <LiveGame />}
+            {effectiveView === "rankings"    && <Rankings />}
+            {effectiveView === "announcements" && <TeamAnnouncements />}
+            {effectiveView === "raioX"        && <RaioX />}
+            {effectiveView === "activityLog"  && <ActivityLog />}
+            {effectiveView === "finances"    && <FinancialControl />}
+            {effectiveView === "teamManager" && <TeamManager />}
+            {effectiveView === "management"  && <ManagementPanel />}
+            {effectiveView === "settings"    && <Settings />}
             {/* F4 — Novas views */}
-            {currentView === "requests"    && <TeamMatchmaking />}
-            {currentView === "joinRequests"&& <CourtFinder />}
+            {effectiveView === "requests"    && <TeamMatchmaking />}
+            {effectiveView === "joinRequests"&& <CourtFinder />}
           </Suspense>
         </ViewTransition>
 

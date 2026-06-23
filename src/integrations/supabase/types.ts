@@ -283,6 +283,87 @@ export type Database = {
           },
         ]
       }
+      bbq_confirmations: {
+        Row: {
+          bbq_id: string
+          confirmed_at: string
+          id: string
+          player_id: string
+        }
+        Insert: {
+          bbq_id: string
+          confirmed_at?: string
+          id?: string
+          player_id: string
+        }
+        Update: {
+          bbq_id?: string
+          confirmed_at?: string
+          id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bbq_confirmations_bbq_id_fkey"
+            columns: ["bbq_id"]
+            isOneToOne: false
+            referencedRelation: "game_bbqs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bbq_confirmations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bbq_items: {
+        Row: {
+          bbq_id: string
+          brought: boolean
+          created_at: string
+          estimated_cost: number
+          id: string
+          item_name: string
+          responsible_player_id: string | null
+        }
+        Insert: {
+          bbq_id: string
+          brought?: boolean
+          created_at?: string
+          estimated_cost?: number
+          id?: string
+          item_name: string
+          responsible_player_id?: string | null
+        }
+        Update: {
+          bbq_id?: string
+          brought?: boolean
+          created_at?: string
+          estimated_cost?: number
+          id?: string
+          item_name?: string
+          responsible_player_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bbq_items_bbq_id_fkey"
+            columns: ["bbq_id"]
+            isOneToOne: false
+            referencedRelation: "game_bbqs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bbq_items_responsible_player_id_fkey"
+            columns: ["responsible_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_delivery_logs: {
         Row: {
           attempt_number: number | null
@@ -396,6 +477,62 @@ export type Database = {
           },
           {
             foreignKeyName: "financial_periods_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_bbqs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          restrict_to_monthly: boolean
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          restrict_to_monthly?: boolean
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          restrict_to_monthly?: boolean
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_bbqs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_bbqs_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_bbqs_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "game_bbqs_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
@@ -2748,6 +2885,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_bbq_summary: { Args: { p_bbq_id: string }; Returns: Json }
       get_brazilian_states: {
         Args: never
         Returns: {
@@ -2949,6 +3087,7 @@ export type Database = {
         Returns: undefined
       }
       is_master_admin: { Args: never; Returns: boolean }
+      is_own_player: { Args: { p_player_id: string }; Returns: boolean }
       is_panel_admin: { Args: never; Returns: boolean }
       is_player_delinquent: { Args: { _player_id: string }; Returns: boolean }
       is_team_admin: {
@@ -3056,6 +3195,7 @@ export type Database = {
           state: string
         }[]
       }
+      send_bbq_reminder: { Args: { p_bbq_id: string }; Returns: undefined }
       site_public_rankings: {
         Args: { limit_rows?: number }
         Returns: {
@@ -3106,6 +3246,10 @@ export type Database = {
           p_role?: string
         }
         Returns: Json
+      }
+      upsert_game_bbq: {
+        Args: { p_game_id: string; p_restrict_to_monthly?: boolean }
+        Returns: string
       }
       verify_sms_code: {
         Args: { _code: string; _verification_id: string }
