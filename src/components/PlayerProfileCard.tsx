@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeams } from "@/hooks/useTeams";
 import { useToast } from "@/hooks/use-toast";
 import { getInitialsAvatar } from "@/lib/avatar";
+import { PlayerAttendanceHistory } from "@/components/PlayerAttendanceHistory";
 
 interface PlayerProfileCardProps {
   playerId: string;
@@ -233,6 +234,14 @@ export function PlayerProfileCard({ playerId, name, nickname, profileImage, trig
                   Taxa de vitória disponível após jogos com time definido
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium flex items-center gap-1">
+                <CalendarDays className="h-4 w-4" />
+                Histórico de Presença
+              </p>
+              <PlayerAttendanceHistory playerId={playerId} />
             </div>
 
             {isOwnProfile && (

@@ -2820,6 +2820,15 @@ export type Database = {
           requested_by_name: string
         }[]
       }
+      get_player_attendance_history: {
+        Args: { p_player_id: string }
+        Returns: {
+          game_date: string
+          game_id: string
+          game_title: string
+          present: boolean
+        }[]
+      }
       get_player_attendance_stats: {
         Args: { _player_id: string; _team_id: string }
         Returns: {
