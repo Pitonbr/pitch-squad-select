@@ -11,6 +11,7 @@ interface FinancialPeriod {
   period_month: number;
   monthly_fee: number;
   game_fee: number;
+  payment_due_day: number;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +23,8 @@ interface PlayerPayment {
   payment_type: 'monthly_fee' | 'game_fee';
   amount: number;
   paid: boolean;
+  status: 'pending' | 'paid' | 'overdue';
+  due_date: string | null;
   payment_date: string | null;
   player?: {
     name: string;
@@ -111,12 +114,16 @@ export const useFinancialData = () => {
     checkPermissions();
   }, [user, activeTeam, isTeamAdmin]);
 
-  // Load financial data for current period
+  // Load financial data for current period — depende de isFinancialAdmin
+  // porque a auto-criação do período (abaixo) só roda quando ele é true,
+  // e essa permissão resolve de forma assíncrona (RPC); sem essa
+  // dependência, a primeira visita à aba Finanças de um time novo corria
+  // o risco de rodar antes da permissão resolver e nunca criar o período.
   useEffect(() => {
     if (activeTeam && selectedYear && selectedMonth) {
       loadFinancialData();
     }
-  }, [activeTeam, selectedYear, selectedMonth]);
+  }, [activeTeam, selectedYear, selectedMonth, isFinancialAdmin]);
 
   const loadFinancialData = async () => {
     if (!activeTeam) return;
@@ -135,7 +142,11 @@ export const useFinancialData = () => {
       if (periodError) throw periodError;
 
       if (!period && isFinancialAdmin) {
-        // Create new period if admin
+        // Create new period if admin. isFinancialAdmin resolve assincronamente,
+        // então duas chamadas a loadFinancialData podem cair aqui em sequência
+        // rápida (a 2ª já encontraria o período se não fosse a corrida) — se a
+        // inserção colidir com a unique constraint, é porque a outra chamada
+        // já criou o período; nesse caso só buscamos a linha existente.
         const { data: newPeriod, error: createError } = await supabase
           .from('financial_periods')
           .insert({
@@ -146,13 +157,31 @@ export const useFinancialData = () => {
           .select()
           .single();
 
-        if (createError) throw createError;
-        period = newPeriod;
+        if (createError) {
+          if (createError.code === '23505') {
+            const { data: existing, error: refetchError } = await supabase
+              .from('financial_periods')
+              .select('*')
+              .eq('team_id', activeTeam.id)
+              .eq('period_year', selectedYear)
+              .eq('period_month', selectedMonth)
+              .single();
+            if (refetchError) throw refetchError;
+            period = existing;
+          } else {
+            throw createError;
+          }
+        } else {
+          period = newPeriod;
+        }
       }
 
       setCurrentPeriod(period);
 
       if (period) {
+        // Marca como "overdue" o que passou do vencimento — não há cron
+        // nesta base, então isso é feito de forma lazy a cada carregamento.
+        await supabase.rpc('refresh_overdue_payments', { p_team_id: activeTeam.id });
         await Promise.all([
           loadPlayerPayments(period.id),
           loadTeamExpenses(period.id),
@@ -288,19 +317,29 @@ export const useFinancialData = () => {
 
       if (playersError) throw playersError;
 
+      const dueDate = new Date(currentPeriod.period_year, currentPeriod.period_month - 1, currentPeriod.payment_due_day)
+        .toISOString().split('T')[0];
+      // Já nasce "overdue" se o vencimento do período já passou (ex.: gerar
+      // pagamentos retroativos de um mês anterior).
+      const initialStatus = dueDate < new Date().toISOString().split('T')[0] ? 'overdue' : 'pending';
+
       // Create payment records for each player
       const paymentInserts = players.flatMap(player => [
         {
           financial_period_id: currentPeriod.id,
           player_id: player.id,
           payment_type: 'monthly_fee',
-          amount: currentPeriod.monthly_fee
+          amount: currentPeriod.monthly_fee,
+          due_date: dueDate,
+          status: initialStatus
         },
         {
           financial_period_id: currentPeriod.id,
           player_id: player.id,
           payment_type: 'game_fee',
-          amount: currentPeriod.game_fee
+          amount: currentPeriod.game_fee,
+          due_date: dueDate,
+          status: initialStatus
         }
       ]);
 
@@ -329,20 +368,26 @@ export const useFinancialData = () => {
     if (!isFinancialAdmin) return;
 
     try {
+      const existing = playerPayments.find(p => p.id === paymentId);
+      const status: 'pending' | 'paid' | 'overdue' = paid
+        ? 'paid'
+        : (existing?.due_date && existing.due_date < new Date().toISOString().split('T')[0] ? 'overdue' : 'pending');
+
       const { error } = await supabase
         .from('player_payments')
-        .update({ 
+        .update({
           paid,
+          status,
           payment_date: paid ? new Date().toISOString() : null
         })
         .eq('id', paymentId);
 
       if (error) throw error;
 
-      setPlayerPayments(prev => 
-        prev.map(payment => 
-          payment.id === paymentId 
-            ? { ...payment, paid, payment_date: paid ? new Date().toISOString() : null }
+      setPlayerPayments(prev =>
+        prev.map(payment =>
+          payment.id === paymentId
+            ? { ...payment, paid, status, payment_date: paid ? new Date().toISOString() : null }
             : payment
         )
       );
@@ -567,6 +612,32 @@ export const useFinancialData = () => {
     }
   };
 
+  const sendBatchPaymentReminders = async () => {
+    if (!isFinancialAdmin || !currentPeriod) return;
+
+    try {
+      const { data, error } = await supabase.rpc('send_batch_payment_reminders', {
+        p_financial_period_id: currentPeriod.id
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: data && data > 0 ? 'Cobrança em lote enviada!' : 'Nada a cobrar',
+        description: data && data > 0
+          ? `${data} jogador(es) notificado(s) sobre pagamentos pendentes.`
+          : 'Todos os pagamentos deste período já estão pagos.'
+      });
+    } catch (error) {
+      console.error('Error sending batch reminders:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar cobrança em lote.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Calculate financial summary
   const getFinancialSummary = (): FinancialSummary => {
     if (isFinancialAdmin) {
@@ -675,6 +746,7 @@ export const useFinancialData = () => {
     deleteRevenue,
     toggleRevenueReceived,
     sendPaymentReminder,
+    sendBatchPaymentReminders,
     getFinancialSummary,
     getSecureFinancialSummary
   };

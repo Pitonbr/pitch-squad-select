@@ -58,6 +58,7 @@ export const FinancialControl: React.FC = () => {
     deleteRevenue,
     toggleRevenueReceived,
     sendPaymentReminder,
+    sendBatchPaymentReminders,
     getFinancialSummary
   } = useFinancialData();
 
@@ -383,8 +384,21 @@ export const FinancialControl: React.FC = () => {
               <Badge variant="outline">
                 {playerPayments.length} pagamentos
               </Badge>
+              {playerPayments.some(p => p.status !== 'paid') && (
+                <Button
+                  type="button"
+                  onClick={sendBatchPaymentReminders}
+                  size="sm"
+                  variant="outline"
+                  disabled={loading}
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  Cobrar todos
+                </Button>
+              )}
               {currentPeriod && playerPayments.length === 0 && (
                 <Button
+                  type="button"
                   onClick={generatePlayerPayments}
                   size="sm"
                   disabled={loading}
@@ -420,11 +434,17 @@ export const FinancialControl: React.FC = () => {
                         <p className="font-medium text-white">{payment.player?.name}</p>
                         <p className="text-sm text-white/60 capitalize">
                           {payment.payment_type === 'monthly_fee' ? 'Mensalidade' : 'Taxa do jogo'}
+                          {payment.due_date && payment.status !== 'paid' && (
+                            <> · vence {format(new Date(`${payment.due_date}T00:00:00`), 'dd/MM')}</>
+                          )}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={payment.paid ? "default" : "secondary"}>
+                      <Badge variant={payment.status === 'paid' ? 'default' : payment.status === 'overdue' ? 'destructive' : 'secondary'}>
+                        {payment.status === 'paid' ? 'Pago' : payment.status === 'overdue' ? 'Atrasado' : 'Pendente'}
+                      </Badge>
+                      <Badge variant="outline">
                         R$ {payment.amount.toFixed(2)}
                       </Badge>
                       <Switch
@@ -432,8 +452,9 @@ export const FinancialControl: React.FC = () => {
                         onCheckedChange={(checked) => togglePlayerPayment(payment.id, checked)}
                         disabled={loading}
                       />
-                      {!payment.paid && (
+                      {payment.status !== 'paid' && (
                         <Button
+                          type="button"
                           size="sm"
                           variant="outline"
                           onClick={() => sendPaymentReminder(payment.id)}

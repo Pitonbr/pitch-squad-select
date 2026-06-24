@@ -442,6 +442,7 @@ export type Database = {
           game_fee: number | null
           id: string
           monthly_fee: number | null
+          payment_due_day: number
           period_month: number
           period_year: number
           team_id: string
@@ -452,6 +453,7 @@ export type Database = {
           game_fee?: number | null
           id?: string
           monthly_fee?: number | null
+          payment_due_day?: number
           period_month: number
           period_year: number
           team_id: string
@@ -462,6 +464,7 @@ export type Database = {
           game_fee?: number | null
           id?: string
           monthly_fee?: number | null
+          payment_due_day?: number
           period_month?: number
           period_year?: number
           team_id?: string
@@ -543,7 +546,7 @@ export type Database = {
       game_notifications: {
         Row: {
           created_at: string
-          game_id: string
+          game_id: string | null
           id: string
           message: string
           metadata: Json | null
@@ -553,7 +556,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          game_id: string
+          game_id?: string | null
           id?: string
           message: string
           metadata?: Json | null
@@ -563,7 +566,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          game_id?: string
+          game_id?: string | null
           id?: string
           message?: string
           metadata?: Json | null
@@ -1270,34 +1273,40 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          due_date: string | null
           financial_period_id: string
           id: string
           paid: boolean
           payment_date: string | null
           payment_type: string
           player_id: string
+          status: string
           updated_at: string
         }
         Insert: {
           amount: number
           created_at?: string
+          due_date?: string | null
           financial_period_id: string
           id?: string
           paid?: boolean
           payment_date?: string | null
           payment_type: string
           player_id: string
+          status?: string
           updated_at?: string
         }
         Update: {
           amount?: number
           created_at?: string
+          due_date?: string | null
           financial_period_id?: string
           id?: string
           paid?: boolean
           payment_date?: string | null
           payment_type?: string
           player_id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -3229,6 +3238,7 @@ export type Database = {
           team_name: string
         }[]
       }
+      refresh_overdue_payments: { Args: { p_team_id: string }; Returns: number }
       reject_player_request: {
         Args: { _reason?: string; _request_id: string }
         Returns: {
@@ -3281,6 +3291,10 @@ export type Database = {
           public_description: string
           state: string
         }[]
+      }
+      send_batch_payment_reminders: {
+        Args: { p_financial_period_id: string }
+        Returns: number
       }
       send_bbq_reminder: { Args: { p_bbq_id: string }; Returns: undefined }
       site_public_rankings: {
