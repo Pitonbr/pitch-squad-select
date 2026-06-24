@@ -4,6 +4,7 @@ export interface BalancePlayer {
   nickname: string;
   position: string;
   skill_level?: number;
+  avg_rating?: number;
   profile_image?: string;
   phone?: string;
   checkedIn?: boolean;
@@ -17,33 +18,88 @@ export interface BalancedTeams {
   diff: number;
 }
 
-/**
- * Splits players into two balanced teams using a serpentine draft based on skill_level.
- * Players without skill_level are treated as level 3 (intermediate).
- *
- * Snake draft example for 6 players sorted by skill [5,5,4,3,2,1]:
- *   Round 1: A picks #1 (5), B picks #2 (5)
- *   Round 2: B picks #3 (4), A picks #4 (3)
- *   Round 3: A picks #5 (2), B picks #6 (1)
- *   Result: A=[5,3,2]=10, B=[5,4,1]=10 — perfectly balanced
- */
-export function splitTeamsBalanced(players: BalancePlayer[], count?: number): BalancedTeams {
-  const pool = count ? players.slice(0, count) : [...players];
+export type BalanceCriterion = 'skill_level' | 'avg_rating' | 'position';
 
-  // Sort descending by skill (unknown → 3)
-  const sorted = [...pool].sort(
-    (a, b) => (b.skill_level ?? 3) - (a.skill_level ?? 3)
-  );
+export interface BalanceOptions {
+  /** Critérios combináveis usados para ordenar o draft. "position" não pontua
+   *  o jogador — em vez disso, faz o sorteio dentro de cada posição
+   *  separadamente, para que os dois times saiam com a mesma mistura. */
+  criteria?: BalanceCriterion[];
+  /** Goleiros "fixos": player_id -> time, atribuídos antes do sorteio do
+   *  restante, para o admin garantir o goleiro de cada lado. */
+  fixedGoalkeepers?: Record<string, 'teamA' | 'teamB'>;
+}
+
+// avg_rating é 0-10; normalizamos para a mesma escala de skill_level (1-5)
+// para que os dois critérios pesem de forma comparável quando combinados.
+function compositeScore(player: BalancePlayer, criteria: BalanceCriterion[]): number {
+  const useSkill = criteria.includes('skill_level');
+  const useRating = criteria.includes('avg_rating') && player.avg_rating != null;
+
+  if (useSkill && useRating) {
+    return ((player.skill_level ?? 3) + player.avg_rating! / 2) / 2;
+  }
+  if (useRating) return player.avg_rating! / 2;
+  return player.skill_level ?? 3;
+}
+
+function snakeDraft(
+  sorted: BalancePlayer[],
+  teamA: BalancePlayer[],
+  teamB: BalancePlayer[],
+  startIndex: number
+) {
+  sorted.forEach((player, i) => {
+    const globalIndex = startIndex + i;
+    const round = Math.floor(globalIndex / 2);
+    const pickA = round % 2 === 0 ? globalIndex % 2 === 0 : globalIndex % 2 === 1;
+    (pickA ? teamA : teamB).push(player);
+  });
+}
+
+/**
+ * Divide jogadores em dois times equilibrados via draft em serpentina.
+ * Critérios combináveis: nível de habilidade, avaliação média e posição
+ * (quando "position" está nos critérios, cada grupo de posição é sorteado
+ * separadamente, garantindo a mesma mistura de posições nos dois times).
+ * Goleiros em `fixedGoalkeepers` são atribuídos antes do sorteio do resto.
+ */
+export function splitTeamsBalanced(
+  players: BalancePlayer[],
+  options: BalanceOptions = {}
+): BalancedTeams {
+  const criteria = options.criteria?.length ? options.criteria : ['skill_level'];
+  const fixed = options.fixedGoalkeepers ?? {};
 
   const teamA: BalancePlayer[] = [];
   const teamB: BalancePlayer[] = [];
 
-  sorted.forEach((player, i) => {
-    // Snake draft: round = Math.floor(i/2), even rounds A first, odd rounds B first
-    const round = Math.floor(i / 2);
-    const pickA = round % 2 === 0 ? i % 2 === 0 : i % 2 === 1;
-    (pickA ? teamA : teamB).push(player);
-  });
+  const pool = players.filter(p => !fixed[p.id]);
+  for (const player of players) {
+    if (fixed[player.id] === 'teamA') teamA.push(player);
+    else if (fixed[player.id] === 'teamB') teamB.push(player);
+  }
+
+  const byScoreDesc = (a: BalancePlayer, b: BalancePlayer) =>
+    compositeScore(b, criteria) - compositeScore(a, criteria);
+
+  if (criteria.includes('position')) {
+    const groups = new Map<string, BalancePlayer[]>();
+    for (const player of pool) {
+      const key = player.position || 'Outro';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(player);
+    }
+    for (const group of groups.values()) {
+      const sorted = [...group].sort(byScoreDesc);
+      // continua a serpentina a partir do tamanho atual dos times, para que
+      // a alternância A/B não recomece do zero em cada grupo de posição.
+      snakeDraft(sorted, teamA, teamB, teamA.length + teamB.length);
+    }
+  } else {
+    const sorted = [...pool].sort(byScoreDesc);
+    snakeDraft(sorted, teamA, teamB, teamA.length + teamB.length);
+  }
 
   const sum = (arr: BalancePlayer[]) =>
     arr.reduce((acc, p) => acc + (p.skill_level ?? 3), 0);

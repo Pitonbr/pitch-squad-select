@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Save, Shuffle, Trash2, Scale } from "lucide-react";
 import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { splitTeamsBalanced, randomBalancedSelection } from "@/lib/teamBalancer";
+import { splitTeamsBalanced, randomBalancedSelection, type BalanceCriterion } from "@/lib/teamBalancer";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Player {
   id: string;
@@ -77,14 +78,42 @@ export function PlayerSelector({
   };
 
   const [balancedPreview, setBalancedPreview] = useState<ReturnType<typeof splitTeamsBalanced> | null>(null);
+  const [balanceCriteria, setBalanceCriteria] = useState<BalanceCriterion[]>(["skill_level"]);
+  const [goalkeeperAssignments, setGoalkeeperAssignments] = useState<Record<string, "teamA" | "teamB">>({});
+  const [sorting, setSorting] = useState(false);
 
-  const handleBalancedSort = () => {
+  const toggleCriterion = (criterion: BalanceCriterion) => {
+    setBalanceCriteria(prev =>
+      prev.includes(criterion) ? prev.filter(c => c !== criterion) : [...prev, criterion]
+    );
+  };
+
+  const selectedGoalkeepers = allPlayers.filter(
+    p => selectedPlayerIds.includes(p.id) && p.position === "Goleiro"
+  );
+
+  const handleBalancedSort = async () => {
     const selected = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
     if (selected.length < 2) {
       toast({ title: "Selecione ao menos 2 jogadores", variant: "destructive" });
       return;
     }
-    setBalancedPreview(splitTeamsBalanced(selected));
+
+    let withRatings = selected;
+    if (balanceCriteria.includes("avg_rating")) {
+      setSorting(true);
+      const { data } = await supabase
+        .from("player_statistics")
+        .select("player_id, avg_rating")
+        .in("player_id", selected.map(p => p.id));
+      const ratingById = new Map((data || []).map(r => [r.player_id, r.avg_rating]));
+      withRatings = selected.map(p => ({ ...p, avg_rating: ratingById.get(p.id) ?? undefined }));
+      setSorting(false);
+    }
+
+    setBalancedPreview(
+      splitTeamsBalanced(withRatings, { criteria: balanceCriteria, fixedGoalkeepers: goalkeeperAssignments })
+    );
   };
 
   const handleSaveTeamList = () => {
@@ -210,12 +239,69 @@ export function PlayerSelector({
 
             {selectedPlayerIds.length >= 2 && (
               <div className="pt-2 border-t space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Critérios do sorteio (combináveis)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      ["skill_level", "Nível de habilidade"],
+                      ["avg_rating", "Avaliação média"],
+                      ["position", "Posição"],
+                    ] as const).map(([criterion, label]) => (
+                      <Badge
+                        key={criterion}
+                        variant={balanceCriteria.includes(criterion) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => toggleCriterion(criterion)}
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedGoalkeepers.length > 0 && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Goleiro fixo (opcional)</Label>
+                    {selectedGoalkeepers.map(gk => (
+                      <div key={gk.id} className="flex items-center justify-between text-sm gap-2">
+                        <span className="truncate">{gk.nickname || gk.name}</span>
+                        <div className="flex gap-1 shrink-0">
+                          {([
+                            [undefined, "Sortear"],
+                            ["teamA", "Time A"],
+                            ["teamB", "Time B"],
+                          ] as const).map(([value, label]) => (
+                            <Badge
+                              key={label}
+                              variant={
+                                (goalkeeperAssignments[gk.id] ?? undefined) === value ? "default" : "outline"
+                              }
+                              className="cursor-pointer text-xs"
+                              onClick={() =>
+                                setGoalkeeperAssignments(prev => {
+                                  const next = { ...prev };
+                                  if (value) next[gk.id] = value;
+                                  else delete next[gk.id];
+                                  return next;
+                                })
+                              }
+                            >
+                              {label}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   className="w-full gap-2 border-primary/50 text-primary hover:bg-primary/10"
                   onClick={handleBalancedSort}
+                  disabled={sorting}
                 >
                   <Scale className="h-4 w-4" />
                   Sortear Times Equilibrados
