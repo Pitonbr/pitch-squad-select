@@ -9,7 +9,7 @@ interface MatchEvent {
   game_id: string;
   player_id?: string;
   assist_player_id?: string;
-  event_type: 'goal' | 'assist' | 'yellow_card' | 'red_card' | 'substitution' | 'tackle' | 'save' | 'foul' | 'offside';
+  event_type: 'goal' | 'assist' | 'yellow_card' | 'red_card' | 'substitution' | 'tackle' | 'save' | 'foul' | 'offside' | 'penalty_missed';
   minute: number;
   description?: string;
   team_side?: 'home' | 'away';

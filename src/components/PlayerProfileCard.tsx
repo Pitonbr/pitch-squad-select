@@ -43,6 +43,7 @@ interface CareerStats {
   red_cards: number;
   saves: number;
   tackles: number;
+  penalties_missed: number;
   games_played: number;
   avg_rating: number | null;
   total_votes: number;
@@ -64,6 +65,7 @@ const STAT_FIELD_LABELS: Record<string, string> = {
   saves: "Defesas",
   tackles: "Desarmes",
   fouls: "Faltas",
+  penalties_missed: "Pênaltis Perdidos",
 };
 
 export function PlayerProfileCard({ playerId, name, nickname, profileImage, trigger }: PlayerProfileCardProps) {
@@ -235,6 +237,14 @@ export function PlayerProfileCard({ playerId, name, nickname, profileImage, trig
                 </p>
               )}
             </div>
+
+            {!!careerStats?.penalties_missed && (
+              <div className="text-center">
+                <Badge variant="outline" className="text-xs text-red-400 border-red-500/40">
+                  {careerStats.penalties_missed} pênalti{careerStats.penalties_missed !== 1 ? "s" : ""} perdido{careerStats.penalties_missed !== 1 ? "s" : ""}
+                </Badge>
+              </div>
+            )}
 
             <div className="space-y-2">
               <p className="text-sm font-medium flex items-center gap-1">

@@ -6,6 +6,8 @@ import { GameInviteLink } from "./GameInviteLink";
 import { GamePlayerManager } from "./GamePlayerManager";
 import { GameWaitlist } from "./GameWaitlist";
 import { GameBBQ } from "./GameBBQ";
+import { FlexCallButton } from "./FlexCallButton";
+import { WeatherForecast } from "./WeatherForecast";
 import { useState, useEffect } from "react";
 
 interface Player {
@@ -192,9 +194,12 @@ export function GameDetailsCard({
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 text-sm text-white/80">
-          <MapPin className="h-4 w-4 text-primary" />
-          <span>{location}</span>
+        <div className="flex items-center justify-between gap-2 text-sm text-white/80">
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-4 w-4 text-primary" />
+            <span>{location}</span>
+          </div>
+          <WeatherForecast location={location} date={rawDate} />
         </div>
 
         {/* Show score for finished games */}
@@ -263,6 +268,13 @@ export function GameDetailsCard({
         {isAdmin && (
           <div className="mt-6">
             <GameWaitlist gameId={id} />
+          </div>
+        )}
+
+        {/* Chamada de jogadores flex — útil justo quando a fila está vazia */}
+        {isAdmin && (status === "scheduled" || status === "checkin") && (
+          <div className="mt-4">
+            <FlexCallButton gameId={id} />
           </div>
         )}
 

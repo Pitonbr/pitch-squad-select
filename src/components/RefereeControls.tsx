@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useMatchControl } from '@/hooks/useMatchControl';
-import { Play, Pause, StopCircle, Plus, Minus, Clock, Target, UserCheck, AlertTriangle, Trophy, Palette } from 'lucide-react';
+import { Play, Pause, StopCircle, Plus, Minus, Clock, Target, UserCheck, AlertTriangle, Trophy, Palette, XCircle } from 'lucide-react';
 
 interface Player {
   id: string;
@@ -105,7 +105,8 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
     tackle: <Trophy className="w-4 h-4" />,
     save: <Trophy className="w-4 h-4" />,
     foul: <AlertTriangle className="w-4 h-4" />,
-    offside: <AlertTriangle className="w-4 h-4" />
+    offside: <AlertTriangle className="w-4 h-4" />,
+    penalty_missed: <XCircle className="w-4 h-4 text-red-500" />
   };
 
   const eventTypeLabels = {
@@ -117,7 +118,8 @@ export const RefereeControls: React.FC<RefereeControlsProps> = ({ players }) => 
     tackle: 'Desarme',
     save: 'Defesa',
     foul: 'Falta',
-    offside: 'Impedimento'
+    offside: 'Impedimento',
+    penalty_missed: 'Pênalti Perdido'
   };
 
   return (

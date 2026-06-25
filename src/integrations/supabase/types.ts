@@ -1469,6 +1469,7 @@ export type Database = {
           games_played: number | null
           goals: number | null
           id: string
+          penalties_missed: number | null
           player_id: string
           red_cards: number | null
           saves: number | null
@@ -1484,6 +1485,7 @@ export type Database = {
           games_played?: number | null
           goals?: number | null
           id?: string
+          penalties_missed?: number | null
           player_id: string
           red_cards?: number | null
           saves?: number | null
@@ -1499,6 +1501,7 @@ export type Database = {
           games_played?: number | null
           goals?: number | null
           id?: string
+          penalties_missed?: number | null
           player_id?: string
           red_cards?: number | null
           saves?: number | null
@@ -2226,6 +2229,52 @@ export type Database = {
             columns: ["financial_period_id"]
             isOneToOne: false
             referencedRelation: "financial_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_feed_posts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          profile_id: string
+          team_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          team_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_feed_posts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_feed_posts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_payment_status"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_feed_posts_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -3227,6 +3276,7 @@ export type Database = {
         Args: { _phone: string; _requesting_user_id: string; _team_id: string }
         Returns: string
       }
+      notify_flex_players: { Args: { p_game_id: string }; Returns: number }
       process_team_join_request: {
         Args: { _action: string; _admin_message?: string; _request_id: string }
         Returns: {

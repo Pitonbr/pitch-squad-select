@@ -26,7 +26,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-type MemberType = 'mensalista' | 'diarista' | 'convidado';
+type MemberType = 'mensalista' | 'diarista' | 'convidado' | 'flex';
 
 interface TeamMemberWithProfile {
   id: string;
@@ -258,7 +258,7 @@ export const RoleManagement = () => {
               <br />
               <strong>Jogadores</strong> têm acesso visual e podem fazer check-in em jogos.
               <br />
-              <strong>Mensalistas</strong> confirmam presença direto (sujeito a vagas); <strong>diaristas</strong> e <strong>convidados</strong> entram na fila e precisam de aprovação.
+              <strong>Mensalistas</strong> e <strong>flex</strong> confirmam presença direto (sujeito a vagas); <strong>diaristas</strong> e <strong>convidados</strong> entram na fila e precisam de aprovação. Jogadores <strong>flex</strong> são avisados quando o jogo está com poucos confirmados.
             </AlertDescription>
           </Alert>
 
@@ -306,6 +306,7 @@ export const RoleManagement = () => {
                         <SelectItem value="mensalista">Mensalista</SelectItem>
                         <SelectItem value="diarista">Diarista</SelectItem>
                         <SelectItem value="convidado">Convidado</SelectItem>
+                        <SelectItem value="flex">Flex</SelectItem>
                       </SelectContent>
                     </Select>
 

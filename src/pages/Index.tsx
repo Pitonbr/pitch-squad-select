@@ -60,6 +60,7 @@ const ManagementPanel = lazy(() => import("@/components/ManagementPanel").then(m
 const Settings        = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
 const TeamAnnouncements = lazy(() => import("@/components/TeamAnnouncements").then(m => ({ default: m.TeamAnnouncements })));
 const RaioX = lazy(() => import("@/components/RaioX").then(m => ({ default: m.RaioX })));
+const TeamFeed = lazy(() => import("@/components/TeamFeed").then(m => ({ default: m.TeamFeed })));
 const ActivityLog = lazy(() => import("@/components/ActivityLog").then(m => ({ default: m.ActivityLog })));
 
 // ── Interfaces ──────────────────────────────────────────────
@@ -367,6 +368,7 @@ export default function Index() {
             {effectiveView === "announcements" && <TeamAnnouncements />}
             {effectiveView === "raioX"        && <RaioX />}
             {effectiveView === "activityLog"  && <ActivityLog />}
+            {effectiveView === "feed"          && <TeamFeed />}
             {effectiveView === "finances"    && <FinancialControl />}
             {effectiveView === "teamManager" && <TeamManager />}
             {effectiveView === "management"  && <ManagementPanel />}
