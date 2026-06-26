@@ -33,33 +33,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('useAuth: Auth state changed', { event, hasSession: !!session });
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Fetch user profile after state update
-          fetchProfile(session.user.id);
+          // Espera o perfil carregar antes de soltar loading=false — caso
+          // contrário, outros hooks (ex.: useTeams) veem profile=null e
+          // loading=false juntos e concluem erroneamente "sem time".
+          await fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
-        
+
         setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('useAuth: Initial session check', { hasSession: !!session });
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
+        await fetchProfile(session.user.id);
       }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

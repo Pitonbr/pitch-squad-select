@@ -3,12 +3,12 @@
 // Wizard de time — Etapa 2/5: Localização (busca de endereço)
 // ============================================================
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, ChevronRight, Info, CheckCircle2 } from "lucide-react";
+import { Search, Loader2, ChevronRight, Info, CheckCircle2, MapPin } from "lucide-react";
 import { TeamFormData } from "@/types/onboarding";
 import { WizardProgress } from "./WizardProgress";
 
@@ -29,38 +29,59 @@ export function TeamStepLocation({ initial = {}, onNext, onBack }: TeamStepLocat
   const { toast } = useToast();
   const [query, setQuery] = useState(initial.address ?? "");
   const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
   const [result, setResult] = useState<GeocodeResult | null>(
     initial.address && initial.lat ? {
       display_name: initial.address, lat: String(initial.lat), lon: String(initial.lng),
       address: { state_code: initial.state ?? "", city: initial.city ?? "", suburb: initial.neighborhood ?? "" },
     } : null
   );
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const requestIdRef = useRef(0);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-    setSearching(true);
-    setResult(null);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=1&accept-language=pt-BR&countrycodes=br`,
-        { headers: { "Accept-Language": "pt-BR" } }
-      );
-      const data = await res.json();
-      if (data.length === 0) {
-        toast({ title: "Endereço não encontrado", description: "Tente ser mais específico.", variant: "destructive" });
-        return;
-      }
-      setResult(data[0]);
-    } catch {
-      toast({ title: "Erro ao buscar endereço", description: "Tente novamente.", variant: "destructive" });
-    } finally {
-      setSearching(false);
+  // Busca em tempo real (autocomplete), com debounce de 450ms — conectado
+  // à base nacional de endereços do OpenStreetMap/Nominatim (cobertura
+  // completa do Brasil, sem necessidade de chave de API).
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (result || query.trim().length < 3) {
+      setSuggestions([]);
+      return;
     }
+    const thisRequestId = ++requestIdRef.current;
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=pt-BR&countrycodes=br`,
+          { headers: { "Accept-Language": "pt-BR" } }
+        );
+        if (thisRequestId !== requestIdRef.current) return;
+        const data = await res.json();
+        setSuggestions(data || []);
+      } catch {
+        if (thisRequestId === requestIdRef.current) setSuggestions([]);
+      } finally {
+        if (thisRequestId === requestIdRef.current) setSearching(false);
+      }
+    }, 450);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query, result]);
+
+  const handleSelect = (item: GeocodeResult) => {
+    setResult(item);
+    setQuery(item.display_name);
+    setSuggestions([]);
+  };
+
+  const handleChangeQuery = (value: string) => {
+    setQuery(value);
+    if (result) setResult(null);
   };
 
   const handleNext = () => {
     if (!result) {
-      toast({ title: "Busque e confirme o endereço", variant: "destructive" });
+      toast({ title: "Busque e selecione o endereço na lista", variant: "destructive" });
       return;
     }
     const addr = result.address;
@@ -86,26 +107,49 @@ export function TeamStepLocation({ initial = {}, onNext, onBack }: TeamStepLocat
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <Label htmlFor="addr">Endereço</Label>
-          <div className="flex gap-2">
+          <div className="relative">
             <Input
               id="addr"
-              placeholder="Ex: R. 7 de Setembro, Anápolis - GO"
+              placeholder="Digite rua, bairro ou cidade — Ex: R. 7 de Setembro, Anápolis"
               value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSearch()}
+              onChange={e => handleChangeQuery(e.target.value)}
+              autoComplete="off"
             />
-            <Button type="button" variant="outline" onClick={handleSearch} disabled={searching || !query.trim()}>
-              {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-            </Button>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {searching ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Search className="h-4 w-4 text-muted-foreground" />}
+            </div>
           </div>
+
+          {suggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 rounded-lg border bg-popover shadow-lg overflow-hidden">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleSelect(s)}
+                  className="flex items-start gap-2 w-full text-left px-3 py-2.5 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
+                >
+                  <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span className="leading-snug">{s.display_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!result && !searching && query.trim().length >= 3 && suggestions.length === 0 && (
+            <p className="text-xs text-muted-foreground">Nenhum endereço encontrado. Tente ser mais específico.</p>
+          )}
         </div>
 
         {result && (
           <div className="flex items-start gap-2 p-3 rounded-lg border-2 border-primary bg-primary/5">
             <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-            <p className="text-sm text-foreground leading-snug">{result.display_name}</p>
+            <p className="text-sm text-foreground leading-snug flex-1">{result.display_name}</p>
+            <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs shrink-0" onClick={() => { setResult(null); setQuery(""); }}>
+              Trocar
+            </Button>
           </div>
         )}
 

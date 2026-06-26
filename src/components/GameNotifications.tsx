@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, Trophy, X } from 'lucide-react';
+import { Bell, Trophy, X, MessageCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -140,6 +140,8 @@ export function GameNotifications() {
     switch (type) {
       case 'game_finished':
         return <Trophy className="h-5 w-5 text-primary" />;
+      case 'feed_post':
+        return <MessageCircle className="h-5 w-5 text-primary" />;
       default:
         return <Bell className="h-5 w-5 text-primary" />;
     }

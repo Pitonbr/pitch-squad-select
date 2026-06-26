@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, RotateCcw, ChevronRight } from "lucide-react";
+import { Loader2, RotateCcw, ChevronRight, Camera } from "lucide-react";
 import { PersonalData, POSITIONS } from "@/types/onboarding";
 
 interface PlayerStickerProps {
@@ -146,9 +146,12 @@ async function drawSticker(
 
 export function PlayerSticker({ personal, onNext, onRetakePhoto }: PlayerStickerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [rendering, setRendering] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(personal.photo_url);
 
   const positionLabel = personal.positions?.[0]
     ? POSITIONS.find(p => p.code === personal.positions![0])?.label
@@ -160,7 +163,7 @@ export function PlayerSticker({ personal, onNext, onRetakePhoto }: PlayerSticker
     (async () => {
       if (canvasRef.current) {
         await drawSticker(canvasRef.current, {
-          photoUrl: personal.photo_url,
+          photoUrl,
           name: personal.full_name ?? "",
           nickname: personal.nickname,
           jersey: personal.jersey_number,
@@ -170,7 +173,26 @@ export function PlayerSticker({ personal, onNext, onRetakePhoto }: PlayerSticker
       if (mounted) setRendering(false);
     })();
     return () => { mounted = false; };
-  }, [personal.photo_url, personal.full_name, personal.nickname, personal.jersey_number, positionLabel]);
+  }, [photoUrl, personal.full_name, personal.nickname, personal.jersey_number, positionLabel]);
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `onboarding/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("player-images").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("player-images").getPublicUrl(path);
+      setPhotoUrl(publicUrl);
+    } catch {
+      toast({ title: "Erro ao enviar foto", description: "Tente novamente.", variant: "destructive" });
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  };
 
   const handleContinue = async () => {
     if (!canvasRef.current) { onNext(undefined); return; }
@@ -199,7 +221,7 @@ export function PlayerSticker({ personal, onNext, onRetakePhoto }: PlayerSticker
       </div>
 
       <div className="flex justify-center relative">
-        {rendering && (
+        {(rendering || uploadingPhoto) && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -207,15 +229,28 @@ export function PlayerSticker({ personal, onNext, onRetakePhoto }: PlayerSticker
         <canvas
           ref={canvasRef}
           className="rounded-2xl shadow-xl"
-          style={{ width: CARD_W, height: CARD_H, opacity: rendering ? 0.2 : 1, transition: "opacity 0.3s" }}
+          style={{ width: CARD_W, height: CARD_H, opacity: (rendering || uploadingPhoto) ? 0.2 : 1, transition: "opacity 0.3s" }}
         />
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          className="gap-2"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploadingPhoto || saving}
+        >
+          <Camera className="h-4 w-4" /> Tirar foto ou escolher da galeria
+        </Button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
       </div>
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="outline" className="gap-1" onClick={onRetakePhoto} disabled={saving}>
-          <RotateCcw className="h-4 w-4" /> Tentar outra foto
+          <RotateCcw className="h-4 w-4" /> Voltar
         </Button>
-        <Button className="flex-1 gap-1" onClick={handleContinue} disabled={rendering || saving}>
+        <Button className="flex-1 gap-1" onClick={handleContinue} disabled={rendering || saving || uploadingPhoto}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continuar <ChevronRight className="h-4 w-4" /></>}
         </Button>
       </div>

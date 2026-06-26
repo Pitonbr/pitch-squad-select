@@ -58,10 +58,10 @@ const FinancialControl= lazy(() => import("@/components/FinancialControl").then(
 const TeamManager     = lazy(() => import("@/components/TeamManager").then(m => ({ default: m.TeamManager })));
 const ManagementPanel = lazy(() => import("@/components/ManagementPanel").then(m => ({ default: m.ManagementPanel })));
 const Settings        = lazy(() => import("@/components/Settings").then(m => ({ default: m.Settings })));
-const TeamAnnouncements = lazy(() => import("@/components/TeamAnnouncements").then(m => ({ default: m.TeamAnnouncements })));
 const RaioX = lazy(() => import("@/components/RaioX").then(m => ({ default: m.RaioX })));
 const TeamFeed = lazy(() => import("@/components/TeamFeed").then(m => ({ default: m.TeamFeed })));
 const ActivityLog = lazy(() => import("@/components/ActivityLog").then(m => ({ default: m.ActivityLog })));
+const SiteLanding = lazy(() => import("@/pages/site/Landing"));
 
 // ── Interfaces ──────────────────────────────────────────────
 interface Player {
@@ -87,7 +87,7 @@ export default function Index() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
-  const { activeTeam, loading: teamsLoading, isTeamAdmin, getUserRole } = useTeams();
+  const { activeTeam, userTeams, loading: teamsLoading, isTeamAdmin, getUserRole } = useTeams();
   const { toast } = useToast();
 
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
@@ -152,7 +152,6 @@ export default function Index() {
   useAutoSave({ data: players, saveFunction: async () => {}, enabled: false, interval: 1000 });
 
   useEffect(() => { fetchPlayersFromDB(); fetchGamesFromDB(); }, [activeTeam]);
-  useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
 
   // ── Guards ──────────────────────────────────────────────────
   if (loading || teamsLoading) return (
@@ -165,21 +164,21 @@ export default function Index() {
   );
 
   if (!user) return (
-    <div className="min-h-screen stadium-bg flex items-center justify-center p-4">
-      <Card variant="dark" className="w-full max-w-md text-center backdrop-blur-md">
-        <CardContent className="p-6">
-          <h1 className="text-2xl font-bold text-white text-glow-cyan mb-4">⚽ Soccer Squad</h1>
-          <p className="text-white/70 mb-6">Faça login para acessar o sistema de gerenciamento de futebol</p>
-          <Button onClick={() => navigate("/auth")} className="w-full bg-primary hover:bg-accent text-white">
-            <LogIn className="h-4 w-4 mr-2" />Fazer Login
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <Suspense fallback={
+      <div className="min-h-screen stadium-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    }>
+      <SiteLanding />
+    </Suspense>
   );
 
-  // New users who haven't completed onboarding → redirect once
-  if (!activeTeam && user && !isOnboardingDone(user.id)) {
+  // New users who haven't completed onboarding → redirect once.
+  // Usa userTeams (não activeTeam) porque há um tick entre teamsLoading
+  // virar false e o efeito de auto-seleção de activeTeam rodar — sem isso,
+  // um usuário com time eligible era brevemente jogado de volta pro onboarding.
+  const hasEligibleTeam = userTeams.some(t => t.subscription_status !== "pending_payment");
+  if (!hasEligibleTeam && user && !isOnboardingDone(user.id)) {
     const invite = searchParams.get("invite");
     const dest = invite ? `/onboarding?invite=${invite}` : "/onboarding";
     navigate(dest, { replace: true });
@@ -365,10 +364,9 @@ export default function Index() {
             {effectiveView === "tournaments" && <TournamentManager />}
             {effectiveView === "liveGame"    && <LiveGame />}
             {effectiveView === "rankings"    && <Rankings />}
-            {effectiveView === "announcements" && <TeamAnnouncements />}
             {effectiveView === "raioX"        && <RaioX />}
             {effectiveView === "activityLog"  && <ActivityLog />}
-            {effectiveView === "feed"          && <TeamFeed />}
+            {(effectiveView === "feed" || effectiveView === "announcements") && <TeamFeed />}
             {effectiveView === "finances"    && <FinancialControl />}
             {effectiveView === "teamManager" && <TeamManager />}
             {effectiveView === "management"  && <ManagementPanel />}

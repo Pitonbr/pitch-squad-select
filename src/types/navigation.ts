@@ -24,7 +24,6 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "games",       label: "Jogos",           iconName: "Calendar",        group: "main",   playerAllowed: false },
   { key: "liveGame",    label: "Jogo Ativo",      iconName: "Play",            group: "main",   playerAllowed: true  },
   { key: "rankings",    label: "Rankings",        iconName: "Award",           group: "main",   playerAllowed: true  },
-  { key: "announcements", label: "Mural",         iconName: "Megaphone",       group: "main",   playerAllowed: true  },
   { key: "raioX",       label: "Raio-X",          iconName: "Activity",        group: "main",   playerAllowed: true  },
   { key: "activityLog", label: "Atividades",      iconName: "History",         group: "main",   playerAllowed: true  },
   { key: "feed",        label: "Resenha",         iconName: "MessageCircle",   group: "main",   playerAllowed: true  },
