@@ -153,6 +153,17 @@ export default function Index() {
 
   useEffect(() => { fetchPlayersFromDB(); fetchGamesFromDB(); }, [activeTeam]);
 
+  // Site institucional (Base44) é a porta de entrada oficial em
+  // soccersquad.com.br — visitante deslogado que cair direto no
+  // subdomínio do app é mandado pra lá. Roda só fora do domínio raiz
+  // pra não criar loop caso esta página ainda esteja servindo a raiz
+  // (ex.: antes da troca de DNS).
+  useEffect(() => {
+    if (!loading && !user && window.location.hostname !== "soccersquad.com.br") {
+      window.location.replace("https://soccersquad.com.br");
+    }
+  }, [loading, user]);
+
   // ── Guards ──────────────────────────────────────────────────
   if (loading || teamsLoading) return (
     <div className="min-h-screen stadium-bg flex items-center justify-center">
@@ -163,15 +174,22 @@ export default function Index() {
     </div>
   );
 
-  if (!user) return (
-    <Suspense fallback={
+  if (!user) {
+    if (window.location.hostname !== "soccersquad.com.br") return (
       <div className="min-h-screen stadium-bg flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
-    }>
-      <SiteLanding />
-    </Suspense>
-  );
+    );
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen stadium-bg flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      }>
+        <SiteLanding />
+      </Suspense>
+    );
+  }
 
   // New users who haven't completed onboarding → redirect once.
   // Usa userTeams (não activeTeam) porque há um tick entre teamsLoading
