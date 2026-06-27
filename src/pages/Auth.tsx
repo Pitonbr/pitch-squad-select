@@ -269,7 +269,10 @@ const Auth = () => {
         </div>
 
         <Card className="bg-black/40 backdrop-blur-md border-2 border-primary/30">
-          <Tabs defaultValue="login" value={inviteCode ? "signup" : undefined}>
+          <Tabs
+            defaultValue={inviteCode || searchParams.get("tab") === "signup" ? "signup" : "login"}
+            value={inviteCode ? "signup" : undefined}
+          >
             <CardHeader>
               <TabsList className="grid w-full grid-cols-2 bg-black/50 border border-primary/20">
                 <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-white">Entrar</TabsTrigger>
